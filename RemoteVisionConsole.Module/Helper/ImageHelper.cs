@@ -83,30 +83,38 @@ namespace RemoteVisionConsole.Module.Helper
                     throw new InvalidOperationException("Undefined number of bits per sample");
                 }
 
-                short bps = value[0].ToShort();
-                if (bps != sizeof(float) * 8)
+                short bitsPerSample = value[0].ToShort();
+                if (bitsPerSample != sizeof(float) * 8)
                 {
                     throw new InvalidOperationException("Unsupported number of bits per sample");
                 }
 
 
+                // Check that it is of a type that we support
+                value = image.GetField(TiffTag.ROWSPERSTRIP);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of ROWSPERSTRIP");
+                }
 
+                short ROWSPERSTRIP = value[0].ToShort();
+             
 
 
                 // Read in the possibly multiple strips
                 int stripSize = image.StripSize();
-                int stripMax = image.NumberOfStrips();
+                int stripCount = image.NumberOfStrips();
                 int imageOffset = 0;
 
-                int bufferSize = image.NumberOfStrips() * stripSize;
+                int bufferSize = stripCount * stripSize;
                 byte[] buffer = new byte[bufferSize];
 
-                for (int stripCount = 0; stripCount < stripMax; stripCount++)
+                for (int stripIndex = 0; stripIndex < stripCount; stripIndex++)
                 {
-                    int result = image.ReadEncodedStrip(stripCount, buffer, imageOffset, stripSize);
+                    int result = image.ReadEncodedStrip(stripIndex, buffer, imageOffset, stripSize);
                     if (result == -1)
                     {
-                        throw new InvalidOperationException($"Read error on input strip number {stripCount}");
+                        throw new InvalidOperationException($"Read error on input strip number {stripIndex}");
                     }
 
                     imageOffset += result;
@@ -143,7 +151,7 @@ namespace RemoteVisionConsole.Module.Helper
 
                 var outputSize = buffer.Length / sizeof(float);
                 output = new float[outputSize];
-                Buffer.BlockCopy(buffer, 0, output, 0, outputSize);
+                Buffer.BlockCopy(buffer, 0, output, 0, bufferSize);
 
                 image.Close();
             }
