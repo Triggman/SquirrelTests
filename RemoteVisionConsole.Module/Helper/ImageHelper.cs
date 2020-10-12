@@ -34,24 +34,34 @@ namespace RemoteVisionConsole.Module.Helper
                 image.SetField(TiffTag.IMAGELENGTH, height);
                 image.SetField(TiffTag.BITSPERSAMPLE, sizeof(float) * 8);
                 image.SetField(TiffTag.SAMPLESPERPIXEL, samplesPerPixel);
-                image.SetField(TiffTag.ROWSPERSTRIP, height);
+                image.SetField(TiffTag.ROWSPERSTRIP, optimalRowsPerStrip);
                 image.SetField(TiffTag.PHOTOMETRIC, photometric);
                 image.SetField(TiffTag.FILLORDER, FillOrder.MSB2LSB);
                 image.SetField(TiffTag.PLANARCONFIG, PlanarConfig.CONTIG);
-
 
                 image.SetField(TiffTag.XRESOLUTION, xRes);
                 image.SetField(TiffTag.YRESOLUTION, yRes);
                 image.SetField(TiffTag.RESOLUTIONUNIT, resUnit);
 
-                // Write the information to the file
-                var ret = image.WriteEncodedStrip(0, byteArray, byteArray.Length);
-                if (ret == -1) throw new InvalidOperationException("Error when writing the image");
+
+                var maxStrip = Math.Ceiling((float)height / optimalRowsPerStrip);
+                var byteCountEachRow = byteArray.Length / height;
+                for (int stripIndex = 0; stripIndex < maxStrip; stripIndex++)
+                {
+                    // Write the information to the file
+                    var currentStripLength = (stripIndex == maxStrip - 1) && (height % optimalRowsPerStrip != 0) ?
+                        height % optimalRowsPerStrip : optimalRowsPerStrip;
+                    var offset = stripIndex * byteCountEachRow;
+
+                    var ret = image.WriteEncodedStrip(stripIndex, byteArray, offset, currentStripLength * byteCountEachRow);
+                    if (ret == -1) throw new InvalidOperationException("Error when writing the image");
+                }
 
                 // file will be auto-closed during disposal
                 // but you can close image yourself
                 image.Close();
             }
+
 
         }
 
