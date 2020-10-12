@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteVisionConsole.App", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteVisionConsole.Module", "RemoteVisionConsole.Module\RemoteVisionConsole.Module.csproj", "{D9110E89-0595-452C-8F5E-B051C865A005}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteVisionModule.Tests", "RemoteVisionModule.Tests\RemoteVisionModule.Tests.csproj", "{183D236B-028B-473D-817D-269C714BBE56}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{D9110E89-0595-452C-8F5E-B051C865A005}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9110E89-0595-452C-8F5E-B051C865A005}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D9110E89-0595-452C-8F5E-B051C865A005}.Release|Any CPU.Build.0 = Release|Any CPU
+		{183D236B-028B-473D-817D-269C714BBE56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{183D236B-028B-473D-817D-269C714BBE56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{183D236B-028B-473D-817D-269C714BBE56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{183D236B-028B-473D-817D-269C714BBE56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

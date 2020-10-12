@@ -3,9 +3,9 @@ using System;
 
 namespace RemoteVisionConsole.Module.Helper
 {
-    internal class ImageHelper
+    public class ImageHelper
     {
-        internal static void SaveTiff(float[] data, int samplesPerPixel, int width, string path, float xRes = 100, float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER, Photometric photometric = Photometric.MINISBLACK)
+        public static void SaveTiff(float[] data, int samplesPerPixel, int width, string path, float xRes = 100, float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER, Photometric photometric = Photometric.MINISBLACK)
         {
             var perfectDivided = data.Length % (samplesPerPixel * width) == 0;
             if (!perfectDivided)
@@ -65,7 +65,7 @@ namespace RemoteVisionConsole.Module.Helper
 
         }
 
-        internal static float[] ReadTiffAsFloatArray(string path)
+        public static float[] ReadTiffAsFloatArray(string path)
         {
             float[] output = null;
             // Open the TIFF image
@@ -97,8 +97,8 @@ namespace RemoteVisionConsole.Module.Helper
                     throw new InvalidOperationException("Undefined number of ROWSPERSTRIP");
                 }
 
-                short ROWSPERSTRIP = value[0].ToShort();
-             
+                short rowsPerStrip = value[0].ToShort();
+
 
 
                 // Read in the possibly multiple strips
@@ -158,5 +158,64 @@ namespace RemoteVisionConsole.Module.Helper
 
             return output;
         }
+
+
+        public static void SaveTiff(byte[] data, int samplesPerPixel, int width, string path, float xRes = 100, float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER, Photometric photometric = Photometric.MINISBLACK)
+        {
+            var perfectDivided = data.Length % (samplesPerPixel * width) == 0;
+            if (!perfectDivided)
+                throw new InvalidOperationException($"Data length({data.Length}) is incompatible with current samplesPerPixel({samplesPerPixel}) and width({width})");
+
+
+            // Calcualte suitable ROWSPERSTRIP
+            var optimalSizePerStrip = 8000;
+            var optimalRowsPerStrip = optimalSizePerStrip / width / samplesPerPixel;
+            var height = data.Length / samplesPerPixel / width;
+
+
+            using (Tiff image = Tiff.Open(path, "w"))
+            {
+                if (image == null)
+                {
+                    throw new InvalidOperationException($"Can not open image: {path}");
+                }
+
+                // We need to set some values for basic tags before we can add any data
+                image.SetField(TiffTag.SAMPLEFORMAT, SampleFormat.UINT);
+                image.SetField(TiffTag.IMAGEWIDTH, width);
+                image.SetField(TiffTag.IMAGELENGTH, height);
+                image.SetField(TiffTag.BITSPERSAMPLE, 8);
+                image.SetField(TiffTag.SAMPLESPERPIXEL, samplesPerPixel);
+                image.SetField(TiffTag.ROWSPERSTRIP, optimalRowsPerStrip);
+                image.SetField(TiffTag.PHOTOMETRIC, photometric);
+                image.SetField(TiffTag.FILLORDER, FillOrder.MSB2LSB);
+                image.SetField(TiffTag.PLANARCONFIG, PlanarConfig.CONTIG);
+
+                image.SetField(TiffTag.XRESOLUTION, xRes);
+                image.SetField(TiffTag.YRESOLUTION, yRes);
+                image.SetField(TiffTag.RESOLUTIONUNIT, resUnit);
+
+
+                var maxStrip = Math.Ceiling((float)height / optimalRowsPerStrip);
+                var byteCountEachRow = data.Length / height;
+                for (int stripIndex = 0; stripIndex < maxStrip; stripIndex++)
+                {
+                    // Write the information to the file
+                    var currentStripLength = (stripIndex == maxStrip - 1) && (height % optimalRowsPerStrip != 0) ?
+                        height % optimalRowsPerStrip : optimalRowsPerStrip;
+                    var offset = stripIndex * byteCountEachRow;
+
+                    var ret = image.WriteEncodedStrip(stripIndex, data, offset, currentStripLength * byteCountEachRow);
+                    if (ret == -1) throw new InvalidOperationException("Error when writing the image");
+                }
+
+                // file will be auto-closed during disposal
+                // but you can close image yourself
+                image.Close();
+            }
+
+
+        }
+
     }
 }
