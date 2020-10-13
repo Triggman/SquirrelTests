@@ -1,4 +1,5 @@
 ﻿using System;
+using BitMiracle.LibTiff.Classic;
 using NUnit.Framework;
 using RemoteVisionConsole.Module.Helper;
 
@@ -28,7 +29,7 @@ namespace RemoteVisionModule.Tests
             ImageHelper.SaveTiff(data, 1, width, path);
 
 
-            var dataRead = ImageHelper.ReadTiffAsFloatArray(path);
+            var dataRead = ImageHelper.ReadFloatTiff(path);
 
             ImageHelper.SaveTiff(dataRead, 1, width, "image1.tiff");
             
@@ -51,9 +52,11 @@ namespace RemoteVisionModule.Tests
                 }
             }
 
-            ImageHelper.SaveTiff(data, 1, width, path);
+            ImageHelper.SaveTiff(data, width, 1, Photometric.MINISWHITE, "grayscale.tiff");
 
-            
+            var (dataRead, samplesPerPixel) = ImageHelper.ReadByteTiff("grayscale.tiff");
+            ImageHelper.SaveTiff(dataRead, width, samplesPerPixel, Photometric.MINISBLACK, "grayscaleRewrite.tiff");
+
         }
     }
     

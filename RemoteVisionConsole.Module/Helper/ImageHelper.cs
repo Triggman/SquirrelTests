@@ -65,7 +65,7 @@ namespace RemoteVisionConsole.Module.Helper
             }
         }
 
-        public static float[] ReadTiffAsFloatArray(string path)
+        public static float[] ReadFloatTiff(string path)
         {
             float[] output = null;
             // Open the TIFF image
@@ -183,7 +183,7 @@ namespace RemoteVisionConsole.Module.Helper
             return output;
         }
 
-      
+
         /// <summary>
         /// Write byte images, support single channel 8 bit grayscale image and 24 bit RGB image
         /// </summary>
@@ -191,16 +191,21 @@ namespace RemoteVisionConsole.Module.Helper
         /// <param name="width">Number of pixels in one row</param>
         /// <param name="samplesPerPixel">1 for grayscale image, 3 for RGB image</param>
         /// <param name="photo">
-        /// <see cref="Photometric.MINISBLACK"/> or <see cref="Photometric.MINISWHITE"/> for grayscale image
-        /// <see cref="Photometric.RGB"/> for RGB image
+        ///     <see cref="Photometric.MINISBLACK"/> or <see cref="Photometric.MINISWHITE"/> for grayscale image
+        ///     <see cref="Photometric.RGB"/> for RGB image
         /// </param>
-        public static void SaveTiff(byte[] data, int width, int samplesPerPixel, Photometric photo, float xRes = 100, float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER)
+        /// <param name="path"></param>
+        /// <param name="xRes"></param>
+        /// <param name="yRes"></param>
+        /// <param name="resUnit"></param>
+        public static void SaveTiff(byte[] data, int width, int samplesPerPixel, Photometric photo, string path,
+            float xRes = 100, float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER)
         {
             var optimalSizePerStrip = 8000;
             var optimalRowsPerStrip = optimalSizePerStrip / width / samplesPerPixel;
 
             var height = data.Length / width / samplesPerPixel;
-            using (var output = Tiff.Open("SimpleTiffStriped.tif", "w"))
+            using (var output = Tiff.Open(path, "w"))
             {
                 output.SetField(TiffTag.IMAGEWIDTH, width);
                 output.SetField(TiffTag.IMAGELENGTH, height);
@@ -224,7 +229,39 @@ namespace RemoteVisionConsole.Module.Helper
                         : stripSize;
                     output.WriteEncodedStrip(stripIndex, data, start, bytesToWrite);
                 }
+                
+                output.Close();
             }
+        }
+        
+        public static (byte[] data, int samplesPerPixel) ReadByteTiff(string path)
+        {
+            byte[] buffer = null;
+            int samplesPerPixel;
+            using (var input = Tiff.Open(path, "r"))
+            {
+                int width = input.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
+                int height = input.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
+                 samplesPerPixel = input.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
+                int rowsPerStrip = input.GetField(TiffTag.ROWSPERSTRIP)[0].ToInt();
+                var stripSize = input.StripSize();
+
+
+                buffer = new byte[height * width * samplesPerPixel];
+
+                var stripCount = Math.Ceiling((float)height / rowsPerStrip);
+
+                for (int stripIndex = 0; stripIndex < stripCount; stripIndex++)
+                {
+                    var start = stripIndex * stripSize;
+                    var bytesToRead = (stripIndex == stripCount - 1) && (height % rowsPerStrip != 0) ? (height * width * samplesPerPixel - start) : stripSize;
+                    input.ReadEncodedStrip(stripIndex, buffer, start, bytesToRead);
+                }
+
+                input.Close();
+            }
+
+            return (buffer, samplesPerPixel);
         }
         
         
