@@ -11,8 +11,8 @@ namespace RemoteVisionModule.Tests
         public void SaveAndLoadFloatImage()
         {
             var path = "image.tiff";
-            var width = 100;
-            var b = 100;
+            var width = 70;
+            var b = 70;
             var max = (float)Math.Log(width * width, b);
             var data = new float[width * width];
 
