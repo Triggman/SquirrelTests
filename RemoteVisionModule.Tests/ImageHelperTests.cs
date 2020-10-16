@@ -39,7 +39,7 @@ namespace RemoteVisionModule.Tests
         [Test]
         public void SaveAndLoadByteImage()
         {
-            var path = "image2.tiff";
+            var path = "imageByte.tiff";
             var width = 100;
             var b = 100;
             var data = new byte[width * width];
@@ -57,6 +57,26 @@ namespace RemoteVisionModule.Tests
             var (dataRead, samplesPerPixel) = ImageHelper.ReadByteTiff("grayscale.tiff");
             ImageHelper.SaveTiff(dataRead, width, samplesPerPixel, Photometric.MINISBLACK, "grayscaleRewrite.tiff");
 
+        }
+
+        [Test]
+        public void SaveAndLoadShortImage()
+        {
+            var path = "imageShort.tiff";
+            var width = 100;
+            var b = 100;
+            var data = new short[width * width];
+            var max = (double) width +width;
+
+            for (int rowIndex = 0; rowIndex < width; rowIndex++)
+            {
+                for (int colIndex = 0; colIndex < width; colIndex++)
+                {
+                    data[rowIndex * width + colIndex] = (short)((colIndex + rowIndex) / max * short.MaxValue);
+                }
+            }
+            
+            ImageHelper.SaveTiff(data, 100, path);
         }
     }
     

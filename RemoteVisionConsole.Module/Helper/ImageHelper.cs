@@ -229,11 +229,11 @@ namespace RemoteVisionConsole.Module.Helper
                         : stripSize;
                     output.WriteEncodedStrip(stripIndex, data, start, bytesToWrite);
                 }
-                
+
                 output.Close();
             }
         }
-        
+
         public static (byte[] data, int samplesPerPixel) ReadByteTiff(string path)
         {
             byte[] buffer = null;
@@ -242,19 +242,21 @@ namespace RemoteVisionConsole.Module.Helper
             {
                 int width = input.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
                 int height = input.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
-                 samplesPerPixel = input.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
+                samplesPerPixel = input.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
                 int rowsPerStrip = input.GetField(TiffTag.ROWSPERSTRIP)[0].ToInt();
                 var stripSize = input.StripSize();
 
 
                 buffer = new byte[height * width * samplesPerPixel];
 
-                var stripCount = Math.Ceiling((float)height / rowsPerStrip);
+                var stripCount = Math.Ceiling((float) height / rowsPerStrip);
 
                 for (int stripIndex = 0; stripIndex < stripCount; stripIndex++)
                 {
                     var start = stripIndex * stripSize;
-                    var bytesToRead = (stripIndex == stripCount - 1) && (height % rowsPerStrip != 0) ? (height * width * samplesPerPixel - start) : stripSize;
+                    var bytesToRead = (stripIndex == stripCount - 1) && (height % rowsPerStrip != 0)
+                        ? (height * width * samplesPerPixel - start)
+                        : stripSize;
                     input.ReadEncodedStrip(stripIndex, buffer, start, bytesToRead);
                 }
 
@@ -263,7 +265,68 @@ namespace RemoteVisionConsole.Module.Helper
 
             return (buffer, samplesPerPixel);
         }
-        
-        
+
+
+        public static void SaveTiff(short[] data, int width, string path, float xRes = 100,
+            float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER)
+        {
+            var samplesPerPixel = 1;
+            var photometric = Photometric.MINISBLACK;
+            var perfectDivided = data.Length % (samplesPerPixel * width) == 0;
+            if (!perfectDivided)
+                throw new InvalidOperationException(
+                    $"Data length({data.Length}) is incompatible with current samplesPerPixel({samplesPerPixel}) and width({width})");
+
+            var byteArray = new byte[data.Length * sizeof(short)];
+            Buffer.BlockCopy(data, 0, byteArray, 0, byteArray.Length);
+
+            // Calcualte suitable ROWSPERSTRIP
+            var optimalSizePerStrip = 8000;
+            var optimalRowsPerStrip = optimalSizePerStrip / sizeof(short) / width / samplesPerPixel;
+            var height = data.Length / samplesPerPixel / width;
+
+            using (Tiff image = Tiff.Open(path, "w"))
+            {
+                if (image == null)
+                {
+                    throw new InvalidOperationException($"Can not open image: {path}");
+                }
+
+                // We need to set some values for basic tags before we can add any data
+                image.SetField(TiffTag.SAMPLEFORMAT, SampleFormat.UINT);
+                image.SetField(TiffTag.IMAGEWIDTH, width);
+                image.SetField(TiffTag.IMAGELENGTH, height);
+                image.SetField(TiffTag.BITSPERSAMPLE, sizeof(short) * 8);
+                image.SetField(TiffTag.SAMPLESPERPIXEL, samplesPerPixel);
+                image.SetField(TiffTag.ROWSPERSTRIP, optimalRowsPerStrip);
+                image.SetField(TiffTag.PHOTOMETRIC, photometric);
+                image.SetField(TiffTag.FILLORDER, FillOrder.MSB2LSB);
+                image.SetField(TiffTag.COMPRESSION, Compression.NONE);
+                image.SetField(TiffTag.PLANARCONFIG, PlanarConfig.CONTIG);
+
+                image.SetField(TiffTag.XRESOLUTION, xRes);
+                image.SetField(TiffTag.YRESOLUTION, yRes);
+                image.SetField(TiffTag.RESOLUTIONUNIT, resUnit);
+
+                var maxStrip = Math.Ceiling((float) height / optimalRowsPerStrip);
+                var byteCountEachRow = width * samplesPerPixel * sizeof(short);
+                for (int stripIndex = 0; stripIndex < maxStrip; stripIndex++)
+                {
+                    // Write the information to the file
+                    var currentStripLength = (stripIndex == maxStrip - 1) && (height % optimalRowsPerStrip != 0)
+                        ? height % optimalRowsPerStrip
+                        : optimalRowsPerStrip;
+                    var offset = stripIndex * byteCountEachRow * optimalRowsPerStrip;
+
+                    var ret = image.WriteEncodedStrip(stripIndex, byteArray, offset,
+                        currentStripLength * byteCountEachRow);
+                    if (ret == -1) throw new InvalidOperationException("Error when writing the image");
+                }
+
+                // file will be auto-closed during disposal
+                // but you can close image yourself
+                image.Close();
+            }
+        }
     }
 }
