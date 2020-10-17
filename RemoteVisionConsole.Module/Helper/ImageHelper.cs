@@ -1,12 +1,14 @@
 ﻿using BitMiracle.LibTiff.Classic;
 using System;
+using System.IO;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Converters;
 
 namespace RemoteVisionConsole.Module.Helper
 {
     public class ImageHelper
     {
-        public static void SaveTiff(float[] data, int samplesPerPixel, int width, string path, float xRes = 100,
+        public static void SaveTiff(float[] data,  int width, int samplesPerPixel, string path, float xRes = 100,
             float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER, Photometric photometric = Photometric.MINISBLACK)
         {
             var perfectDivided = data.Length % (samplesPerPixel * width) == 0;
@@ -18,8 +20,9 @@ namespace RemoteVisionConsole.Module.Helper
             Buffer.BlockCopy(data, 0, byteArray, 0, byteArray.Length);
 
             // Calcualte suitable ROWSPERSTRIP
-            var optimalSizePerStrip = 8000;
-            var optimalRowsPerStrip = optimalSizePerStrip / sizeof(float) / width / samplesPerPixel;
+            var optimalSizePerStrip = 8000.0;
+            var optimalRowsPerStripDouble = optimalSizePerStrip / sizeof(float) / width / samplesPerPixel;
+            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int) optimalRowsPerStripDouble;
             var height = data.Length / samplesPerPixel / width;
 
             using (Tiff image = Tiff.Open(path, "w"))
@@ -65,9 +68,12 @@ namespace RemoteVisionConsole.Module.Helper
             }
         }
 
-        public static float[] ReadFloatTiff(string path)
+        public static (float[] data, int width) ReadFloatTiff(string path)
         {
+            if (!File.Exists(path)) throw new FileNotFoundException($"File not exists: {path}");
+
             float[] output = null;
+            int width;
             // Open the TIFF image
             using (Tiff image = Tiff.Open(path, "r"))
             {
@@ -105,7 +111,7 @@ namespace RemoteVisionConsole.Module.Helper
                     throw new InvalidOperationException("Undefined number of IMAGEWIDTH");
                 }
 
-                var width = value[0].ToShort();
+                width = value[0].ToShort();
 
                 // Get samples per pixel
                 value = image.GetField(TiffTag.SAMPLESPERPIXEL);
@@ -180,7 +186,7 @@ namespace RemoteVisionConsole.Module.Helper
                 image.Close();
             }
 
-            return output;
+            return (output, width);
         }
 
 
@@ -201,9 +207,9 @@ namespace RemoteVisionConsole.Module.Helper
         public static void SaveTiff(byte[] data, int width, int samplesPerPixel, Photometric photo, string path,
             float xRes = 100, float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER)
         {
-            var optimalSizePerStrip = 8000;
-            var optimalRowsPerStrip = optimalSizePerStrip / width / samplesPerPixel;
-
+            var optimalSizePerStrip = 8000.0;
+            var optimalRowsPerStripDouble = optimalSizePerStrip / sizeof(byte) / width / samplesPerPixel;
+            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int) optimalRowsPerStripDouble;
             var height = data.Length / width / samplesPerPixel;
             using (var output = Tiff.Open(path, "w"))
             {
@@ -234,13 +240,20 @@ namespace RemoteVisionConsole.Module.Helper
             }
         }
 
-        public static (byte[] data, int samplesPerPixel) ReadByteTiff(string path)
+        public static (byte[] data, int samplesPerPixel, int width) ReadByteTiff(string path)
         {
+            if (!File.Exists(path)) throw new FileNotFoundException($"File not exists: {path}");
+
             byte[] buffer = null;
             int samplesPerPixel;
+            int width;
             using (var input = Tiff.Open(path, "r"))
             {
-                int width = input.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
+                if (input == null)
+                {
+                    throw new InvalidOperationException("Could not open incoming image");
+                }
+                width = input.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
                 int height = input.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
                 samplesPerPixel = input.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
                 int rowsPerStrip = input.GetField(TiffTag.ROWSPERSTRIP)[0].ToInt();
@@ -263,11 +276,11 @@ namespace RemoteVisionConsole.Module.Helper
                 input.Close();
             }
 
-            return (buffer, samplesPerPixel);
+            return (buffer, samplesPerPixel, width);
         }
 
 
-        public static void SaveTiff(short[] data, int width, string path, float xRes = 100,
+        public static void SaveTiff(short[] data, int width,  string path, float xRes = 100,
             float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER)
         {
             var samplesPerPixel = 1;
@@ -281,8 +294,9 @@ namespace RemoteVisionConsole.Module.Helper
             Buffer.BlockCopy(data, 0, byteArray, 0, byteArray.Length);
 
             // Calcualte suitable ROWSPERSTRIP
-            var optimalSizePerStrip = 8000;
-            var optimalRowsPerStrip = optimalSizePerStrip / sizeof(short) / width / samplesPerPixel;
+            var optimalSizePerStrip = 8000.0;
+            var optimalRowsPerStripDouble = optimalSizePerStrip / sizeof(short) / width / samplesPerPixel;
+            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int) optimalRowsPerStripDouble;
             var height = data.Length / samplesPerPixel / width;
 
             using (Tiff image = Tiff.Open(path, "w"))
@@ -293,7 +307,7 @@ namespace RemoteVisionConsole.Module.Helper
                 }
 
                 // We need to set some values for basic tags before we can add any data
-                image.SetField(TiffTag.SAMPLEFORMAT, SampleFormat.UINT);
+                image.SetField(TiffTag.SAMPLEFORMAT, SampleFormat.INT);
                 image.SetField(TiffTag.IMAGEWIDTH, width);
                 image.SetField(TiffTag.IMAGELENGTH, height);
                 image.SetField(TiffTag.BITSPERSAMPLE, sizeof(short) * 8);
@@ -328,5 +342,127 @@ namespace RemoteVisionConsole.Module.Helper
                 image.Close();
             }
         }
+        
+         public static (short[] data, int width) ReadShortTiff(string path)
+        {
+            if (!File.Exists(path)) throw new FileNotFoundException($"File not exists: {path}");
+
+            short[] output = null;
+            int width;
+            // Open the TIFF image
+            using (Tiff image = Tiff.Open(path, "r"))
+            {
+                if (image == null)
+                {
+                    throw new InvalidOperationException("Could not open incoming image");
+                }
+
+                // Check that it is of a type that we support
+                FieldValue[] value = image.GetField(TiffTag.BITSPERSAMPLE);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of bits per sample");
+                }
+
+                short bitsPerSample = value[0].ToShort();
+                if (bitsPerSample != sizeof(short) * 8)
+                {
+                    throw new InvalidOperationException("Unsupported number of bits per sample");
+                }
+
+                // Check that it is of a type that we support
+                value = image.GetField(TiffTag.ROWSPERSTRIP);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of ROWSPERSTRIP");
+                }
+
+                short rowsPerStrip = value[0].ToShort();
+
+                // Get image width
+                value = image.GetField(TiffTag.IMAGEWIDTH);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of IMAGEWIDTH");
+                }
+
+                width = value[0].ToShort();
+
+                // Get samples per pixel
+                value = image.GetField(TiffTag.SAMPLESPERPIXEL);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of SAMPLESPERPIXEL");
+                }
+
+                var samplesPerPixel = value[0].ToShort();
+
+                // Check that it is of a type that we support
+                value = image.GetField(TiffTag.IMAGELENGTH);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of IMAGELENGTH");
+                }
+
+                var height = value[0].ToShort();
+
+                // Read in the possibly multiple strips
+                int stripSize = image.StripSize();
+                int stripCount = image.NumberOfStrips();
+                int imageOffset = 0;
+
+                var bytesPerRow = width * sizeof(short) * samplesPerPixel;
+                int bufferSize = bytesPerRow * height;
+                byte[] buffer = new byte[bufferSize];
+
+                for (int stripIndex = 0; stripIndex < stripCount; stripIndex++)
+                {
+                    int result = image.ReadEncodedStrip(stripIndex, buffer, imageOffset, stripSize);
+                    if (result == -1)
+                    {
+                        throw new InvalidOperationException($"Read error on input strip number {stripIndex}");
+                    }
+
+                    imageOffset += result;
+                }
+
+                // Deal with fillorder
+                value = image.GetField(TiffTag.FILLORDER);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Image has an undefined FILLORDER");
+                }
+
+                FillOrder fillorder = (FillOrder) value[0].ToInt();
+                if (fillorder != FillOrder.MSB2LSB)
+                {
+                    // We need to swap bits -- ABCDEFGH becomes HGFEDCBA
+                    System.Console.Out.WriteLine("Fixing the fillorder");
+
+                    for (int count = 0; count < bufferSize; count++)
+                    {
+                        byte tempbyte = 0;
+                        if ((buffer[count] & 128) != 0) tempbyte += 1;
+                        if ((buffer[count] & 64) != 0) tempbyte += 2;
+                        if ((buffer[count] & 32) != 0) tempbyte += 4;
+                        if ((buffer[count] & 16) != 0) tempbyte += 8;
+                        if ((buffer[count] & 8) != 0) tempbyte += 16;
+                        if ((buffer[count] & 4) != 0) tempbyte += 32;
+                        if ((buffer[count] & 2) != 0) tempbyte += 64;
+                        if ((buffer[count] & 1) != 0) tempbyte += 128;
+                        buffer[count] = tempbyte;
+                    }
+                }
+
+                var outputSize = buffer.Length / sizeof(short);
+                output = new short[outputSize];
+                Buffer.BlockCopy(buffer, 0, output, 0, bufferSize);
+
+                image.Close();
+            }
+
+            return (output, width);
+        }
+
     }
 }
