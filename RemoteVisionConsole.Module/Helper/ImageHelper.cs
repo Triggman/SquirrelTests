@@ -8,9 +8,10 @@ namespace RemoteVisionConsole.Module.Helper
 {
     public class ImageHelper
     {
-        public static void SaveTiff(float[] data, int width, int samplesPerPixel, string path, float xRes = 100,
+        public static void SaveTiff(float[] data, int width, string path, float xRes = 100,
             float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER, Photometric photometric = Photometric.MINISBLACK)
         {
+            var samplesPerPixel = 1;
             var perfectDivided = data.Length % (samplesPerPixel * width) == 0;
             if (!perfectDivided)
                 throw new InvalidOperationException(

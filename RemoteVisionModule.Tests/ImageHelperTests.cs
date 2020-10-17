@@ -11,50 +11,41 @@ namespace RemoteVisionModule.Tests
         [Test]
         public void SaveAndLoadFloatImage()
         {
-            var path = "image.tiff";
-            var width = 70;
-            var b = 70;
-            var max = (float) Math.Log(width * width, b);
-            var data = new float[width * width];
-
-            for (int rowIndex = 0; rowIndex < width; rowIndex++)
+            var (data, samplesPerPixel, width) = LoadRbgData();
+            var fileName = "float";
+            var path = $"{fileName}.tif";
+            var outputData = new float[data.Length / samplesPerPixel];
+            // convert bytes to short
+            for (int i = 0; i < outputData.Length; i++)
             {
-                for (int colIndex = 0; colIndex < width; colIndex++)
-                {
-                    var value = Math.Log(colIndex * rowIndex, b);
-                    data[rowIndex * width + colIndex] = (float) value / max;
-                }
+                outputData[i] = (float) (data[i*samplesPerPixel] / 255.0 );
             }
-
-            ImageHelper.SaveTiff(data, 1, width, path);
-
-
+            
+            ImageHelper.SaveTiff(outputData, width, path);
+            
+            // Read
             var (dataRead, widthRead) = ImageHelper.ReadFloatTiff(path);
-
-            ImageHelper.SaveTiff(dataRead, 1, width, "image1.tiff");
+            ImageHelper.SaveTiff(dataRead, widthRead, $"{fileName}Reload.tif");
         }
 
 
         [Test]
         public void SaveAndLoadByteImage()
         {
-            var path = "imageByte.tiff";
-            var width = 100;
-            var b = 100;
-            var data = new byte[width * width];
-
-            for (int rowIndex = 0; rowIndex < width; rowIndex++)
+            var (data, samplesPerPixel, width) = LoadRbgData();
+            var fileName = "byte";
+            var path = $"{fileName}.tif";
+            var outputData = new byte[data.Length / samplesPerPixel];
+            for (int i = 0; i < outputData.Length; i++)
             {
-                for (int colIndex = 0; colIndex < width; colIndex++)
-                {
-                    data[rowIndex * width + colIndex] = (byte) (rowIndex + colIndex);
-                }
+                outputData[i] = data[i * samplesPerPixel];
             }
 
-            ImageHelper.SaveTiff(data, width, 1, Photometric.MINISWHITE, "grayscale.tiff");
-
-            var (dataRead, samplesPerPixel, widthRead) = ImageHelper.ReadByteTiff("grayscale.tiff");
-            ImageHelper.SaveTiff(dataRead, width, samplesPerPixel, Photometric.MINISBLACK, "grayscaleRewrite.tiff");
+            ImageHelper.SaveTiff(outputData, width, 1, Photometric.MINISBLACK, path);
+            
+            // Read
+            var (dataRead,samplesPerPixelRead, widthRead) = ImageHelper.ReadByteTiff(path);
+            ImageHelper.SaveTiff(dataRead, widthRead, samplesPerPixelRead, Photometric.MINISBLACK, $"{fileName}Reload.tif");
         }
 
         [Test]
@@ -70,33 +61,31 @@ namespace RemoteVisionModule.Tests
         [Test]
         public void SaveAndLoadShortImage()
         {
-            var path = "imageShort.tiff";
-            var width = 100;
-            var b = 100;
-            var data = new short[width * width];
-            var max = (double) width + width;
+            var (data, samplesPerPixel, width) = LoadRbgData();
+            var fileName = "short";
+            var path = $"{fileName}.tif";
 
-            for (int rowIndex = 0; rowIndex < width; rowIndex++)
+            var outputData = new short[data.Length / samplesPerPixel];
+            // convert bytes to short
+            for (int i = 0; i < outputData.Length; i++)
             {
-                for (int colIndex = 0; colIndex < width; colIndex++)
-                {
-                    data[rowIndex * width + colIndex] = (short) ((colIndex + rowIndex) / max * short.MaxValue);
-                }
+                outputData[i] = (short) (data[i*samplesPerPixel] / 255.0 * ushort.MaxValue + short.MinValue);
             }
-
-            ImageHelper.SaveTiff(data, 100,  path);
-
-            // Load
-            var (dataRead, widthRead) = ImageHelper.ReadShortTiff(path);
-            ImageHelper.SaveTiff(dataRead, widthRead, "imageShortReload.tiff");
+            
+            ImageHelper.SaveTiff(outputData, width,  path);
+            
+            // Read
+            var (dataRead, widthRead) = ImageHelper.ReadUshortTiff(path);
+            ImageHelper.SaveTiff(dataRead, widthRead, $"{fileName}Reload.tif");
         }
 
         [Test]
         public void SaveAndReadUshort()
         {
 
-            var (data, samplesPerPixel, width) = ImageHelper.ReadByteTiff("Sample Data/marbles.tif");
-            var path = "ushort.tiff";
+            var (data, samplesPerPixel, width) = LoadRbgData();
+            var fileName = "ushort";
+            var path = $"{fileName}.tif";
             var outputData = new ushort[data.Length / samplesPerPixel];
             // convert bytes to ushorts
             for (int i = 0; i < outputData.Length; i++)
@@ -108,7 +97,12 @@ namespace RemoteVisionModule.Tests
             
             // Read
             var (dataRead, widthRead) = ImageHelper.ReadUshortTiff(path);
-            ImageHelper.SaveTiff(dataRead, widthRead, "ushortReload.tiff");
+            ImageHelper.SaveTiff(dataRead, widthRead, $"{fileName}Reload.tif");
+        }
+
+        private static (byte[] data, int samplesPerPixel, int width) LoadRbgData()
+        {
+            return ImageHelper.ReadByteTiff("Sample Data/marbles.tif");
         }
     }
 }
