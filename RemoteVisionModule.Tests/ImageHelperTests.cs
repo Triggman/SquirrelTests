@@ -91,6 +91,24 @@ namespace RemoteVisionModule.Tests
             ImageHelper.SaveTiff(dataRead, widthRead, "imageShortReload.tiff");
         }
 
+        [Test]
+        public void SaveAndReadUshort()
+        {
 
+            var (data, samplesPerPixel, width) = ImageHelper.ReadByteTiff("Sample Data/marbles.tif");
+            var path = "ushort.tiff";
+            var outputData = new ushort[data.Length / samplesPerPixel];
+            // convert bytes to ushorts
+            for (int i = 0; i < outputData.Length; i++)
+            {
+                outputData[i] = (ushort) (data[i*samplesPerPixel] / 255.0 * ushort.MaxValue);
+            }
+            
+            ImageHelper.SaveTiff(outputData, width,  path);
+            
+            // Read
+            var (dataRead, widthRead) = ImageHelper.ReadUshortTiff(path);
+            ImageHelper.SaveTiff(dataRead, widthRead, "ushortReload.tiff");
+        }
     }
 }

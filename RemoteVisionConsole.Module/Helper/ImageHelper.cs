@@ -8,7 +8,7 @@ namespace RemoteVisionConsole.Module.Helper
 {
     public class ImageHelper
     {
-        public static void SaveTiff(float[] data,  int width, int samplesPerPixel, string path, float xRes = 100,
+        public static void SaveTiff(float[] data, int width, int samplesPerPixel, string path, float xRes = 100,
             float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER, Photometric photometric = Photometric.MINISBLACK)
         {
             var perfectDivided = data.Length % (samplesPerPixel * width) == 0;
@@ -253,6 +253,7 @@ namespace RemoteVisionConsole.Module.Helper
                 {
                     throw new InvalidOperationException("Could not open incoming image");
                 }
+
                 width = input.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
                 int height = input.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
                 samplesPerPixel = input.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
@@ -280,7 +281,7 @@ namespace RemoteVisionConsole.Module.Helper
         }
 
 
-        public static void SaveTiff(short[] data, int width,  string path, float xRes = 100,
+        public static void SaveTiff(short[] data, int width, string path, float xRes = 100,
             float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER)
         {
             var samplesPerPixel = 1;
@@ -342,8 +343,8 @@ namespace RemoteVisionConsole.Module.Helper
                 image.Close();
             }
         }
-        
-         public static (short[] data, int width) ReadShortTiff(string path)
+
+        public static (short[] data, int width) ReadShortTiff(string path)
         {
             if (!File.Exists(path)) throw new FileNotFoundException($"File not exists: {path}");
 
@@ -464,5 +465,188 @@ namespace RemoteVisionConsole.Module.Helper
             return (output, width);
         }
 
+        public static void SaveTiff(ushort[] data, int width, string path, float xRes = 100,
+            float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER)
+        {
+            var samplesPerPixel = 1;
+            var photometric = Photometric.MINISBLACK;
+            var perfectDivided = data.Length % (samplesPerPixel * width) == 0;
+            if (!perfectDivided)
+                throw new InvalidOperationException(
+                    $"Data length({data.Length}) is incompatible with current samplesPerPixel({samplesPerPixel}) and width({width})");
+
+            var byteArray = new byte[data.Length * sizeof(ushort)];
+            Buffer.BlockCopy(data, 0, byteArray, 0, byteArray.Length);
+
+            // Calcualte suitable ROWSPERSTRIP
+            var optimalSizePerStrip = 8000.0;
+            var optimalRowsPerStripDouble = optimalSizePerStrip / sizeof(ushort) / width / samplesPerPixel;
+            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int) optimalRowsPerStripDouble;
+            var height = data.Length / samplesPerPixel / width;
+
+            using (Tiff image = Tiff.Open(path, "w"))
+            {
+                if (image == null)
+                {
+                    throw new InvalidOperationException($"Can not open image: {path}");
+                }
+
+                // We need to set some values for basic tags before we can add any data
+                image.SetField(TiffTag.SAMPLEFORMAT, SampleFormat.UINT);
+                image.SetField(TiffTag.IMAGEWIDTH, width);
+                image.SetField(TiffTag.IMAGELENGTH, height);
+                image.SetField(TiffTag.BITSPERSAMPLE, sizeof(ushort) * 8);
+                image.SetField(TiffTag.SAMPLESPERPIXEL, samplesPerPixel);
+                image.SetField(TiffTag.ROWSPERSTRIP, optimalRowsPerStrip);
+                image.SetField(TiffTag.PHOTOMETRIC, photometric);
+                image.SetField(TiffTag.FILLORDER, FillOrder.MSB2LSB);
+                image.SetField(TiffTag.COMPRESSION, Compression.NONE);
+                image.SetField(TiffTag.PLANARCONFIG, PlanarConfig.CONTIG);
+
+                image.SetField(TiffTag.XRESOLUTION, xRes);
+                image.SetField(TiffTag.YRESOLUTION, yRes);
+                image.SetField(TiffTag.RESOLUTIONUNIT, resUnit);
+
+                var maxStrip = Math.Ceiling((float) height / optimalRowsPerStrip);
+                var byteCountEachRow = width * samplesPerPixel * sizeof(ushort);
+                for (int stripIndex = 0; stripIndex < maxStrip; stripIndex++)
+                {
+                    // Write the information to the file
+                    var currentStripLength = (stripIndex == maxStrip - 1) && (height % optimalRowsPerStrip != 0)
+                        ? height % optimalRowsPerStrip
+                        : optimalRowsPerStrip;
+                    var offset = stripIndex * byteCountEachRow * optimalRowsPerStrip;
+
+                    var ret = image.WriteEncodedStrip(stripIndex, byteArray, offset,
+                        currentStripLength * byteCountEachRow);
+                    if (ret == -1) throw new InvalidOperationException("Error when writing the image");
+                }
+
+                // file will be auto-closed during disposal
+                // but you can close image yourself
+                image.Close();
+            }
+        }
+
+        public static (ushort[] data, int width) ReadUshortTiff(string path)
+        {
+            if (!File.Exists(path)) throw new FileNotFoundException($"File not exists: {path}");
+
+            ushort[] output = null;
+            int width;
+            // Open the TIFF image
+            using (Tiff image = Tiff.Open(path, "r"))
+            {
+                if (image == null)
+                {
+                    throw new InvalidOperationException("Could not open incoming image");
+                }
+
+                // Check that it is of a type that we support
+                FieldValue[] value = image.GetField(TiffTag.BITSPERSAMPLE);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of bits per sample");
+                }
+
+                short bitsPerSample = value[0].ToShort();
+                if (bitsPerSample != sizeof(ushort) * 8)
+                {
+                    throw new InvalidOperationException("Unsupported number of bits per sample");
+                }
+
+                // Check that it is of a type that we support
+                value = image.GetField(TiffTag.ROWSPERSTRIP);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of ROWSPERSTRIP");
+                }
+
+                short rowsPerStrip = value[0].ToShort();
+
+                // Get image width
+                value = image.GetField(TiffTag.IMAGEWIDTH);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of IMAGEWIDTH");
+                }
+
+                width = value[0].ToShort();
+
+                // Get samples per pixel
+                value = image.GetField(TiffTag.SAMPLESPERPIXEL);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of SAMPLESPERPIXEL");
+                }
+
+                var samplesPerPixel = value[0].ToShort();
+
+                // Check that it is of a type that we support
+                value = image.GetField(TiffTag.IMAGELENGTH);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Undefined number of IMAGELENGTH");
+                }
+
+                var height = value[0].ToShort();
+
+                // Read in the possibly multiple strips
+                int stripSize = image.StripSize();
+                int stripCount = image.NumberOfStrips();
+                int imageOffset = 0;
+
+                var bytesPerRow = width * sizeof(ushort) * samplesPerPixel;
+                int bufferSize = bytesPerRow * height;
+                byte[] buffer = new byte[bufferSize];
+
+                for (int stripIndex = 0; stripIndex < stripCount; stripIndex++)
+                {
+                    int result = image.ReadEncodedStrip(stripIndex, buffer, imageOffset, stripSize);
+                    if (result == -1)
+                    {
+                        throw new InvalidOperationException($"Read error on input strip number {stripIndex}");
+                    }
+
+                    imageOffset += result;
+                }
+
+                // Deal with fillorder
+                value = image.GetField(TiffTag.FILLORDER);
+                if (value == null)
+                {
+                    throw new InvalidOperationException("Image has an undefined FILLORDER");
+                }
+
+                FillOrder fillorder = (FillOrder) value[0].ToInt();
+                if (fillorder != FillOrder.MSB2LSB)
+                {
+                    // We need to swap bits -- ABCDEFGH becomes HGFEDCBA
+                    System.Console.Out.WriteLine("Fixing the fillorder");
+
+                    for (int count = 0; count < bufferSize; count++)
+                    {
+                        byte tempbyte = 0;
+                        if ((buffer[count] & 128) != 0) tempbyte += 1;
+                        if ((buffer[count] & 64) != 0) tempbyte += 2;
+                        if ((buffer[count] & 32) != 0) tempbyte += 4;
+                        if ((buffer[count] & 16) != 0) tempbyte += 8;
+                        if ((buffer[count] & 8) != 0) tempbyte += 16;
+                        if ((buffer[count] & 4) != 0) tempbyte += 32;
+                        if ((buffer[count] & 2) != 0) tempbyte += 64;
+                        if ((buffer[count] & 1) != 0) tempbyte += 128;
+                        buffer[count] = tempbyte;
+                    }
+                }
+
+                var outputSize = buffer.Length / sizeof(ushort);
+                output = new ushort[outputSize];
+                Buffer.BlockCopy(buffer, 0, output, 0, bufferSize);
+
+                image.Close();
+            }
+
+            return (output, width);
+        }
     }
 }
