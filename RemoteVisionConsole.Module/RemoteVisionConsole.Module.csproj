@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -49,6 +50,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums.cs" />
     <Compile Include="Helper\ImageHelper.cs" />
     <Compile Include="ModuleModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -64,7 +66,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="ViewModels\ViewAViewModel.cs" />
+    <Compile Include="RemoteVisionConsoleEvents.cs" />
+    <Compile Include="ViewModels\VisionProcessSystem.cs" />
     <Compile Include="Views\ViewA.xaml.cs">
       <DependentUpon>ViewA.xaml</DependentUpon>
     </Compile>
@@ -78,7 +81,16 @@
     </None>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\RemoteVisionConsole.Data\RemoteVisionConsole.Data.csproj">
+      <Project>{46fbfb29-f3e7-4ae5-ad65-067a1b501223}</Project>
+      <Name>RemoteVisionConsole.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RemoteVisionConsole.Interface\RemoteVisionConsole.Interface.csproj">
+      <Project>{afcc4b12-c5cf-46f8-a0da-5eb56993c590}</Project>
+      <Name>RemoteVisionConsole.Interface</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <Page Include="Views\ViewA.xaml">
       <SubType>Designer</SubType>
@@ -88,6 +100,12 @@
   <ItemGroup>
     <PackageReference Include="BitMiracle.LibTiff.NET">
       <Version>2.4.639</Version>
+    </PackageReference>
+    <PackageReference Include="NetMQ">
+      <Version>4.0.1.6</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.3</Version>
     </PackageReference>
     <PackageReference Include="Prism.Wpf" Version="7.2.0.1422" />
   </ItemGroup>
