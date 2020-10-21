@@ -17,7 +17,7 @@ namespace RemoteVisionConsole.Interface
 
     public class ProcessResult<TData>
     {
-        public Graphic<TData> Graphic { get; set; }
+        public TData[] DisplayData { get; set; }
         public Statistics Statistics { get; set; }
     }
 
@@ -28,19 +28,7 @@ namespace RemoteVisionConsole.Interface
         public Dictionary<string, string> TextResults { get; set; }
     }
 
-    public class Graphic<TData>
-    {
-        public DataSampleType SampleType { get; set; }
-        public TData[] DisplayData { get; set; }
-        public int ScanLineSize { get; set; }
-    }
-
-    public enum DataSampleType
-    {
-        OneDimension,
-        TwoDimension,
-        TwoDimensionRGB
-    }
+  
 
 
 

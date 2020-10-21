@@ -67,7 +67,8 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="RemoteVisionConsoleEvents.cs" />
-    <Compile Include="ViewModels\VisionProcessSystem.cs" />
+    <Compile Include="TypeSource.cs" />
+    <Compile Include="ViewModels\VisionProcessUnit.cs" />
     <Compile Include="Views\ViewA.xaml.cs">
       <DependentUpon>ViewA.xaml</DependentUpon>
     </Compile>

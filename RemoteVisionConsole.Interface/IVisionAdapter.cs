@@ -39,6 +39,24 @@
 
         void SaveImage(TOutput[] imageData, int cavity);
 
-        TOutput[] ReadFile(string path);
+        Statistics Weight(Statistics statistics);
+
+        (TOutput[] data, int cavity) ReadFile(string path);
+
+        GraphicMetaData GraphicMetaData { get; set; }
+    }
+
+    public class GraphicMetaData
+    {
+        public DataSampleType SampleType { get; set; }
+        public int ScanLineSize { get; set; }
+        public bool ShouldDisplay { get; set; }
+    }
+
+    public enum DataSampleType
+    {
+        OneDimension,
+        TwoDimension,
+        TwoDimensionRGB
     }
 }
