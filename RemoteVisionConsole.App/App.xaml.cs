@@ -17,7 +17,6 @@ namespace RemoteVisionConsole.App
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            Module.ViewModels.ViewAViewModel.Test();
 
         }
     }

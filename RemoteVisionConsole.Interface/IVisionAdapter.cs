@@ -6,7 +6,10 @@
     /// <typeparam name="TOutput">The type of array that is accepted by <see cref="IVisionProcessor{TData}"/></typeparam>
     public interface IVisionAdapter<TOutput>
     {
-        object Name { get; set; }
+        string Name { get; }
+
+        GraphicMetaData GraphicMetaData { get; }
+
 
         /// <summary>
         /// Convert byte array to any type of array for <see cref="IVisionProcessor{TData}"/>
@@ -43,7 +46,6 @@
 
         (TOutput[] data, int cavity) ReadFile(string path);
 
-        GraphicMetaData GraphicMetaData { get; set; }
     }
 
     public class GraphicMetaData

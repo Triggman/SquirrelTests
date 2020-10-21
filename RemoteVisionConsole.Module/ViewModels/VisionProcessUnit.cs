@@ -8,6 +8,7 @@ using RemoteVisionConsole.Interface;
 using System;
 using System.Configuration;
 using System.Diagnostics;
+using System.Threading;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {
@@ -38,10 +39,12 @@ namespace RemoteVisionConsole.Module.ViewModels
             // Setup server
             var serverAddress = ConfigurationManager.AppSettings[$"ServerAddress-{_visionAdapter.Name}"] ?? "tcp://localhost:6000";
             _serverSocket = new ResponseSocket(serverAddress);
-            _serverSocket.ReceiveReady += ProcessDataFromZeroMQ;
+            new Thread(ListenForProcessDataFromZeroMQ) { IsBackground = true }.Start();
         }
 
         #endregion
+
+        #region api
 
         public void ProcessDataFromFile(string filePath)
         {
@@ -49,23 +52,33 @@ namespace RemoteVisionConsole.Module.ViewModels
             ProcessData(data, cavity, DataSourceType.DataFile);
         }
 
-        #region impl
-        private void ProcessDataFromZeroMQ(object sender, NetMQSocketEventArgs e)
+        public void Stop()
         {
-            var server = e.Socket;
-            var message = server.ReceiveMultipartMessage();
-            var sourceId = message[0].ConvertToString();
+            _serverSocket.Close();
+        }
 
-            var shouldProcess = _visionAdapter.IsInterestingData(sourceId);
-            if (!shouldProcess)
+        #endregion
+
+        #region impl
+        private void ListenForProcessDataFromZeroMQ()
+        {
+
+            while (true)
             {
-                LogInfo($"source id({sourceId}) is not an interesting id");
-                return;
-            }
+                var message = _serverSocket.ReceiveMultipartMessage();
+                var sourceId = message[0].ConvertToString();
 
-            var cavity = message[1].ConvertToInt32();
-            var data = message[2].Buffer;
-            ProcessData(_visionAdapter.ConvertInput(data), cavity, DataSourceType.ZeroMQ);
+                var shouldProcess = _visionAdapter.IsInterestingData(sourceId);
+                if (!shouldProcess)
+                {
+                    LogInfo($"source id({sourceId}) is not an interesting id");
+                    return;
+                }
+
+                var cavity = int.Parse(message[1].ConvertToString());
+                var data = message[2].Buffer;
+                ProcessData(_visionAdapter.ConvertInput(data), cavity, DataSourceType.ZeroMQ);
+            }
         }
 
         private void ProcessDataFromDataEvent((byte[] data, int cavity, string sourceId) input)
@@ -100,12 +113,12 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void DisplayStatisticResults(Statistics statistics)
         {
-            throw new NotImplementedException();
+            //TODO:
         }
 
         private void ShowImage(TData[] displayData, GraphicMetaData graphicMetaData)
         {
-            throw new NotImplementedException();
+            //TODO:
         }
 
         private void ReportResult(Statistics statistics, string resultType, DataSourceType dataSource)
@@ -117,7 +130,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                 var json = JsonConvert.SerializeObject(new StatisticsResults(statistics.DoubleResults, statistics.IntegerResults, statistics.TextResults));
                 _serverSocket.SendMoreFrame(resultType).SendFrame(json);
             }
-            LogInfo("Reported statistaic results");
+            LogInfo("Reported statistic results");
         }
 
         private void LogInfo(string message)

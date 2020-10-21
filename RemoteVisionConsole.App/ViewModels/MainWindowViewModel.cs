@@ -1,4 +1,7 @@
-﻿using Prism.Mvvm;
+﻿using Prism.Events;
+using Prism.Mvvm;
+using RemoteVisionConsole.Module;
+using RemoteVisionConsole.Module.ViewModels;
 
 namespace RemoteVisionConsole.App.ViewModels
 {
@@ -11,9 +14,13 @@ namespace RemoteVisionConsole.App.ViewModels
             set { SetProperty(ref _title, value); }
         }
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(IEventAggregator ea)
         {
+            var assemblyPath = @"C:\Users\afterbunny\source\repos\RemoteVisionConsole\RemoteVisionModule.Tests\bin\Debug\RemoteVisionModule.Tests.dll";
+            var typeSourceAdapter = new TypeSource { AssemblyFilePath = assemblyPath, Namespace = "RemoteVisionModule.Tests.Mocks", TypeName = "VisionAdapterMock" };
+            var typeSourceProcessor = new TypeSource { AssemblyFilePath = assemblyPath, Namespace = "RemoteVisionModule.Tests.Mocks", TypeName = "VisionProcessorMock" };
 
+            var unit = new VisionProcessUnit<byte>(ea, typeSourceProcessor, typeSourceAdapter);
         }
     }
 }
