@@ -1,4 +1,5 @@
-﻿using NetMQ;
+﻿using LoggingConsole.Interface;
+using NetMQ;
 using NetMQ.Sockets;
 using Newtonsoft.Json;
 using Prism.Commands;
@@ -31,10 +32,6 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         #endregion
 
-        #region events
-        public event Action<string> Info;
-
-        #endregion
 
         #region props
         private WriteableBitmap _displayImage;
@@ -92,7 +89,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         public void Stop()
         {
-            _serverSocket.Close();
+            _serverSocket?.Close();
         }
 
         #endregion
@@ -124,7 +121,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                 var shouldProcess = _visionAdapter.IsInterestingData(sourceId);
                 if (!shouldProcess)
                 {
-                    LogInfo($"source id({sourceId}) is not an interesting id");
+                    Log(new LoggingMessageItem($"过滤非感兴趣输入ID({sourceId})", $"source id({sourceId}) is not an interesting id"));
                     return;
                 }
 
@@ -139,7 +136,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             var shouldProcess = _visionAdapter.IsInterestingData(input.sourceId);
             if (!shouldProcess)
             {
-                LogInfo($"source id({input.sourceId}) is not an interesting id");
+                Log(new LoggingMessageItem($"过滤非感兴趣输入ID({input.sourceId})", $"source id({input.sourceId}) is not an interesting id"));
                 return;
             }
 
@@ -148,12 +145,14 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void ProcessData(TData[] data, int cavity, DataSourceType dataSource)
         {
-            LogInfo($"Start processing data of length({data.Length}) of cavity({cavity}) from data source({dataSource})");
+            Log(new LoggingMessageItem($"正在处理来自{dataSource}, 长度为{data.Length}, 夹具编号为{cavity}的数据", $"Start processing data of length({data.Length}) of cavity({cavity}) from data source({dataSource})"));
+
             var stopwatch = Stopwatch.StartNew();
             var result = _visionProcessor.Process(data, cavity);
             var resultType = _visionAdapter.GetResultType(result.Statistics);
             var weightedStatistics = _visionAdapter.Weight(result.Statistics);
-            LogInfo($"Data process finished in {stopwatch.ElapsedMilliseconds} ms");
+            var ms = stopwatch.ElapsedMilliseconds;
+            Log(new LoggingMessageItem($"计算耗时{ms}ms", $"Data process finished in {ms} ms"));
 
             if (dataSource != DataSourceType.DataFile) ReportResult(weightedStatistics, resultType, dataSource);
 
@@ -268,12 +267,12 @@ namespace RemoteVisionConsole.Module.ViewModels
                 var json = JsonConvert.SerializeObject(new StatisticsResults(statistics.DoubleResults, statistics.IntegerResults, statistics.TextResults));
                 _serverSocket.SendMoreFrame(resultType).SendFrame(json);
             }
-            LogInfo("Reported statistic results");
+            Log(new LoggingMessageItem("发送计算结果", "Reported statistic results"));
         }
 
-        private void LogInfo(string message)
+        private void Log(LoggingMessageItem messageItem)
         {
-            Info?.Invoke($"{_visionAdapter.Name}: {message}");
+            RemoteVisionConsoleModule.Log(messageItem);
         }
         #endregion
     }
