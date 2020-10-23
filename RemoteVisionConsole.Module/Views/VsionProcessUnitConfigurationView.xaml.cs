@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace RemoteVisionConsole.Module.Views
 {
     /// <summary>
-    /// Interaction logic for ViewA.xaml
+    /// Interaction logic for VsionProcessUnitConfigurationView.xaml
     /// </summary>
-    public partial class ViewA : UserControl
+    public partial class VsionProcessUnitConfigurationView : UserControl
     {
-        public ViewA()
+        public VsionProcessUnitConfigurationView()
         {
             InitializeComponent();
         }

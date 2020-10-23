@@ -51,7 +51,8 @@
     public class GraphicMetaData
     {
         public DataSampleType SampleType { get; set; }
-        public int ScanLineSize { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
         public bool ShouldDisplay { get; set; }
     }
 

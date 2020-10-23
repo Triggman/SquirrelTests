@@ -7,7 +7,7 @@ namespace RemoteVisionModule.Tests.Mocks
     public class VisionAdapterMock : IVisionAdapter<byte>
     {
         public string Name { get; } = "VisionAdapterMock";
-        public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData { SampleType = DataSampleType.TwoDimension, ScanLineSize = 100, ShouldDisplay = true };
+        public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData { SampleType = DataSampleType.TwoDimension, Width = 100, Height = 100, ShouldDisplay = true };
 
         public byte[] ConvertInput(byte[] input)
         {

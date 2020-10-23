@@ -1,0 +1,55 @@
+﻿<UserControl
+    x:Class="RemoteVisionConsole.Module.Views.VisionProcessUnitTabsHostView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:RemoteVisionConsole.Module.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:module="clr-namespace:RemoteVisionConsole.Module"
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:viewModel="clr-namespace:RemoteVisionConsole.Module.ViewModels"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+   
+        <DataTemplate DataType="{x:Type viewModel:VisionProcessUnitByte}">
+            <local:VisionProcessUnitView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModel:VisionProcessUnitFloat}">
+            <local:VisionProcessUnitView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModel:VisionProcessUnitShort}">
+            <local:VisionProcessUnitView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewModel:VisionProcessUnitUShort}">
+            <local:VisionProcessUnitView />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModel:VsionProcessUnitConfigurationViewModel}">
+            <local:VsionProcessUnitConfigurationView />
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <TabControl  ItemsSource="{Binding TabItems}">
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <ContentControl Content="{Binding ViewModel}"/>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Title}"/>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+        </TabControl>
+        <Button
+            Margin="20"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Command="{Binding AddTabItemCommand}"
+            Content="Add Tab" />
+    </Grid>
+</UserControl>
