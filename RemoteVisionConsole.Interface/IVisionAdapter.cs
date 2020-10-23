@@ -8,6 +8,8 @@
     {
         string Name { get; }
 
+        string ZeroMQAddress { get; }
+
         GraphicMetaData GraphicMetaData { get; }
 
 

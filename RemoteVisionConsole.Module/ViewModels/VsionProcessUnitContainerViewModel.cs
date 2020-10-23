@@ -62,11 +62,11 @@ namespace RemoteVisionConsole.Module.ViewModels
         /// </summary>
         /// <param name="processorType"></param>
         /// <param name="adapterType"></param>
-        public VsionProcessUnitContainerViewModel(Type processorType, Type adapterType, Type dataType, IEventAggregator ea, IDialogService dialogService)
+        public VsionProcessUnitContainerViewModel(TypeSource processorType, TypeSource adapterType, Type dataType, IEventAggregator ea, IDialogService dialogService)
         {
             _ea = ea;
             _dialogService = dialogService;
-            var (vm, unitName) = CreateUnit(processorType, adapterType, dataType, ea);
+            var (vm, unitName) = CreateUnit(processorType, adapterType, dataType, ea, _dialogService);
             ViewModel = vm;
             Title = unitName;
         }
@@ -75,13 +75,13 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         #region impl
 
-        private static (object unit, string unitName) CreateUnit(Type processorType, Type adapterType, Type dataType, IEventAggregator ea)
+        private static (object unit, string unitName) CreateUnit(TypeSource processorType, TypeSource adapterType, Type dataType, IEventAggregator ea, IDialogService dialogService)
         {
             object vm;
-            if (dataType == typeof(byte)) vm = new VisionProcessUnitByte(ea, processorType, adapterType);
-            else if (dataType == typeof(float)) vm = new VisionProcessUnitFloat(ea, processorType, adapterType);
-            else if (dataType == typeof(short)) vm = new VisionProcessUnitShort(ea, processorType, adapterType);
-            else if (dataType == typeof(ushort)) vm = new VisionProcessUnitUShort(ea, processorType, adapterType);
+            if (dataType == typeof(byte)) vm = new VisionProcessUnitByte(ea, dialogService, processorType, adapterType);
+            else if (dataType == typeof(float)) vm = new VisionProcessUnitFloat(ea, dialogService, processorType, adapterType);
+            else if (dataType == typeof(short)) vm = new VisionProcessUnitShort(ea, dialogService, processorType, adapterType);
+            else if (dataType == typeof(ushort)) vm = new VisionProcessUnitUShort(ea, dialogService, processorType, adapterType);
             else throw new InvalidDataException($"Vision processor of type({dataType}) has not implemented yet");
 
             var unitName = (string)vm.GetType().GetProperty("Name").GetValue(vm);
@@ -91,7 +91,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private void OnConfigFinished(TypeSource processorTypeSource, TypeSource adapterTypeSource, Type dataType)
         {
             // Change view model to VisionProcessUnit
-            var (vm, unitName) = CreateUnit(processorTypeSource.Type, adapterTypeSource.Type, dataType, _ea);
+            var (vm, unitName) = CreateUnit(processorTypeSource, adapterTypeSource, dataType, _ea, _dialogService);
             ViewModel = vm;
             Title = unitName;
 

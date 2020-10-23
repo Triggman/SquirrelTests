@@ -1,8 +1,10 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
 using Newtonsoft.Json;
+using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
+using Prism.Services.Dialogs;
 using RemoteVisionConsole.Data;
 using RemoteVisionConsole.Interface;
 using System;
@@ -10,6 +12,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -19,6 +22,9 @@ namespace RemoteVisionConsole.Module.ViewModels
     {
         #region private fields
         private readonly IEventAggregator _ea;
+        private readonly IDialogService _dialogService;
+        private readonly TypeSource _processorTypeSource;
+        private readonly TypeSource _adapterTypeSource;
         private readonly IVisionAdapter<TData> _visionAdapter;
         private readonly IVisionProcessor<TData> _visionProcessor;
         private readonly ResponseSocket _serverSocket;
@@ -39,24 +45,40 @@ namespace RemoteVisionConsole.Module.ViewModels
         }
 
         public string Name { get; }
+
+        public string ServerAddress { get; }
+
+        public ICommand ShowPropertiesCommand { get; }
         #endregion
 
         #region ctor
-        public VisionProcessUnitViewModel(IEventAggregator ea, Type processorType, Type adapterType)
+        public VisionProcessUnitViewModel(IEventAggregator ea, IDialogService dialogService, TypeSource processorTypeSource, TypeSource adapterTypeSource)
         {
             _ea = ea;
-            _visionProcessor = (IVisionProcessor<TData>)Activator.CreateInstance(processorType);
-            _visionAdapter = (IVisionAdapter<TData>)Activator.CreateInstance(adapterType);
+            _dialogService = dialogService;
+            _processorTypeSource = processorTypeSource;
+            _adapterTypeSource = adapterTypeSource;
+            _visionProcessor = (IVisionProcessor<TData>)Activator.CreateInstance(processorTypeSource.Type);
+            _visionAdapter = (IVisionAdapter<TData>)Activator.CreateInstance(adapterTypeSource.Type);
             Name = _visionAdapter.Name;
 
             _ea.GetEvent<DataEvent>().Subscribe(ProcessDataFromDataEvent);
 
+            ShowPropertiesCommand = new DelegateCommand(ShowProperties);
+
 
             // Setup server
-            var serverAddress = ConfigurationManager.AppSettings[$"ServerAddress-{_visionAdapter.Name}"] ?? "tcp://localhost:6000";
-            _serverSocket = new ResponseSocket(serverAddress);
-            new Thread(ListenForProcessDataFromZeroMQ) { IsBackground = true }.Start();
+            var enableZeroMQText = ConfigurationManager.AppSettings["EnableZeroMQ"];
+            var enableZeroMQ = !string.IsNullOrEmpty(enableZeroMQText) && bool.Parse(enableZeroMQText);
+
+            if (enableZeroMQ)
+            {
+                ServerAddress = ConfigurationManager.AppSettings[$"ServerAddress-{_visionAdapter.Name}"] ?? _visionAdapter.ZeroMQAddress ?? "tcp://localhost:6000";
+                _serverSocket = new ResponseSocket(ServerAddress);
+                new Thread(ListenForProcessDataFromZeroMQ) { IsBackground = true }.Start();
+            }
         }
+
 
         #endregion
 
@@ -76,6 +98,21 @@ namespace RemoteVisionConsole.Module.ViewModels
         #endregion
 
         #region impl
+
+
+        private void ShowProperties()
+        {
+            var dialogParams = new DialogParameters {
+                { "serverAddress", ServerAddress},
+                { "adapterAssembly", _adapterTypeSource.AssemblyFilePath},
+                { "adapterType", _adapterTypeSource.TypeName},
+                { "processorAssembly", _processorTypeSource.AssemblyFilePath},
+                { "processorType", _processorTypeSource.TypeName},
+            };
+
+            _dialogService.ShowDialog("VisionProcessUnitPropertyDialog", dialogParams, r => { });
+        }
+
         private void ListenForProcessDataFromZeroMQ()
         {
 
@@ -243,29 +280,29 @@ namespace RemoteVisionConsole.Module.ViewModels
 
     public class VisionProcessUnitByte : VisionProcessUnitViewModel<byte>
     {
-        public VisionProcessUnitByte(IEventAggregator ea, Type processorType, Type adapterType) : base(ea, processorType, adapterType)
+        public VisionProcessUnitByte(IEventAggregator ea, IDialogService dialogService, TypeSource processorTypeSource, TypeSource adapterTypeSource) : base(ea, dialogService, processorTypeSource, adapterTypeSource)
         {
         }
     }
 
     public class VisionProcessUnitFloat : VisionProcessUnitViewModel<float>
     {
-        public VisionProcessUnitFloat(IEventAggregator ea, Type processorType, Type adapterType) : base(ea, processorType, adapterType)
+        public VisionProcessUnitFloat(IEventAggregator ea, IDialogService dialogService, TypeSource processorTypeSource, TypeSource adapterTypeSource) : base(ea, dialogService, processorTypeSource, adapterTypeSource)
         {
         }
-    }  
-    
+    }
+
     public class VisionProcessUnitShort : VisionProcessUnitViewModel<short>
     {
-        public VisionProcessUnitShort(IEventAggregator ea, Type processorType, Type adapterType) : base(ea, processorType, adapterType)
+        public VisionProcessUnitShort(IEventAggregator ea, IDialogService dialogService, TypeSource processorTypeSource, TypeSource adapterTypeSource) : base(ea, dialogService, processorTypeSource, adapterTypeSource)
         {
         }
-    }  
-    
-    
+    }
+
+
     public class VisionProcessUnitUShort : VisionProcessUnitViewModel<ushort>
     {
-        public VisionProcessUnitUShort(IEventAggregator ea, Type processorType, Type adapterType) : base(ea, processorType, adapterType)
+        public VisionProcessUnitUShort(IEventAggregator ea, IDialogService dialogService, TypeSource processorTypeSource, TypeSource adapterTypeSource) : base(ea, dialogService, processorTypeSource, adapterTypeSource)
         {
         }
     }

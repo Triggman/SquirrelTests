@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
+    <Compile Include="DialogViewModelBase.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Helper\Helpers.cs" />
     <Compile Include="Helper\ImageHelper.cs" />
@@ -71,14 +72,19 @@
     </Compile>
     <Compile Include="RemoteVisionConsoleEvents.cs" />
     <Compile Include="TypeSource.cs" />
+    <Compile Include="ViewModels\PropertyItem.cs" />
     <Compile Include="ViewModels\VisionConsoleNotificationDialogViewModel.cs" />
     <Compile Include="ViewModels\VisionProcessUnitConfig.cs" />
+    <Compile Include="ViewModels\VisionProcessUnitPropertyDialogViewModel.cs" />
     <Compile Include="ViewModels\VisionProcessUnitTabsHostViewModel.cs" />
     <Compile Include="ViewModels\VisionProcessUnitViewModel.cs" />
     <Compile Include="ViewModels\VsionProcessUnitConfigurationViewModel.cs" />
     <Compile Include="ViewModels\VsionProcessUnitContainerViewModel.cs" />
     <Compile Include="Views\VisionConsoleNotificationDialog.xaml.cs">
       <DependentUpon>VisionConsoleNotificationDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\VisionProcessUnitPropertyDialog.xaml.cs">
+      <DependentUpon>VisionProcessUnitPropertyDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\VisionProcessUnitTabsHostView.xaml.cs">
       <DependentUpon>VisionProcessUnitTabsHostView.xaml</DependentUpon>
@@ -123,6 +129,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Views\VisionConsoleNotificationDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\VisionProcessUnitPropertyDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

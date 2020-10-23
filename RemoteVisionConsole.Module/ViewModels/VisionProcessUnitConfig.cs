@@ -14,19 +14,21 @@ namespace RemoteVisionConsole.Module.ViewModels
         public string ProcessorNamespace { get; set; }
         public string ProcessorTypeName { get; set; }
 
-        public (Type processorType, Type AdapterType, Type dataType) GetTypes()
+        public (TypeSource processorTypeSource, TypeSource adapterTypeSource, Type dataType) GetTypes()
         {
             var adapterType = SearchType(AdapterAssemblyPath, AdapterNamespace, AdapterTypeName);
             var processorType = SearchType(ProcessorAssemblyPath, ProcessorNamespace, ProcessorTypeName);
 
             var genericType = adapterType.GetInterfaces().First(t => t.Name.Contains("IVisionAdapter")).GetGenericArguments()[0];
 
-            return (processorType, adapterType, genericType);
+            return (new TypeSource { AssemblyFilePath = ProcessorAssemblyPath, Namespace = ProcessorNamespace, TypeName = ProcessorTypeName, Type = processorType },
+                new TypeSource { AssemblyFilePath = AdapterAssemblyPath, Namespace = AdapterNamespace, TypeName = AdapterTypeName, Type = adapterType }
+                , genericType);
         }
 
         private Type SearchType(string assemblyPath, string ns, string typeName)
         {
-            var assembly = Assembly.LoadFrom(AdapterAssemblyPath);
+            var assembly = Assembly.LoadFrom(assemblyPath);
             return assembly.GetTypes().Where(t => t.Namespace == ns).Single(t => t.Name == typeName);
         }
     }

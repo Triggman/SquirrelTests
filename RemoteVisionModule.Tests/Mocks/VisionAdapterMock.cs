@@ -8,6 +8,7 @@ namespace RemoteVisionModule.Tests.Mocks
     {
         public string Name { get; } = "VisionAdapterMock";
         public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData { SampleType = DataSampleType.TwoDimension, Width = 100, Height = 100, ShouldDisplay = true };
+        public string ZeroMQAddress { get; } = "tcp://localhost:6001";
 
         public byte[] ConvertInput(byte[] input)
         {
