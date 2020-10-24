@@ -100,7 +100,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void SelectAdapterAssembly()
         {
-            var path = Helpers.GetFileFromDialog(Directory.GetCurrentDirectory(), "dll files (*.dll)|*.dll");
+            var path = Helpers.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll"}, "dll"));
             if (string.IsNullOrEmpty(path)) return;
 
             AdapterAssemblyPath = path;
@@ -108,7 +108,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void SelectProcessorAssembly()
         {
-            var path = Helpers.GetFileFromDialog(Directory.GetCurrentDirectory(), "dll files (*.dll)|*.dll");
+            var path = Helpers.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll" }, "dll"));
             if (string.IsNullOrEmpty(path)) return;
 
             ProcessorAssemblyPath = path;

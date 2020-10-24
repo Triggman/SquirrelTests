@@ -16,6 +16,8 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal">
             <Button Command="{Binding ShowPropertiesCommand}" Content="Properties" />
+            <Button Command="{Binding RunSingleFileCommand}" Content="Run single file" Margin="5 0"/>
+            <Button Command="{Binding RunFolderCommand}" Content="Run folder" Margin="5 0"/>
         </StackPanel>
 
         <Grid Grid.Row="1">

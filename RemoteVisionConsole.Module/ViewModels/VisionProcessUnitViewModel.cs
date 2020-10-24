@@ -8,11 +8,13 @@ using Prism.Mvvm;
 using Prism.Services.Dialogs;
 using RemoteVisionConsole.Data;
 using RemoteVisionConsole.Interface;
+using RemoteVisionConsole.Module.Helper;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -56,6 +58,8 @@ namespace RemoteVisionConsole.Module.ViewModels
         public string ServerAddress { get; }
 
         public ICommand ShowPropertiesCommand { get; }
+        public ICommand RunSingleFileCommand { get; }
+        public ICommand RunFolderCommand { get; }
         #endregion
 
         #region ctor
@@ -72,6 +76,9 @@ namespace RemoteVisionConsole.Module.ViewModels
             _ea.GetEvent<DataEvent>().Subscribe(ProcessDataFromDataEvent);
 
             ShowPropertiesCommand = new DelegateCommand(ShowProperties);
+            RunSingleFileCommand = new DelegateCommand(RunSingleFile);
+            RunFolderCommand = new DelegateCommand(RunFolder);
+
 
 
             // Setup server
@@ -87,15 +94,13 @@ namespace RemoteVisionConsole.Module.ViewModels
         }
 
 
+
+
         #endregion
 
         #region api
 
-        public void ProcessDataFromFile(string filePath)
-        {
-            var (data, cavity) = _visionAdapter.ReadFile(filePath);
-            ProcessData(data, cavity, DataSourceType.DataFile);
-        }
+
 
         public void Stop()
         {
@@ -106,6 +111,48 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         #region impl
 
+        private void RunFolder()
+        {
+            var dir = Helpers.GetDirFromDialog();
+            if (!string.IsNullOrEmpty(dir))
+            {
+                var allFiles = Directory.GetFiles(dir);
+                var filesThatMatch = allFiles;
+                if (_visionAdapter.ImageFileFilter.HasValue) filesThatMatch = allFiles.
+                        Where(f => _visionAdapter.ImageFileFilter.Value.extensions.Any(ex => Path.GetExtension(f).Replace(".", "").ToUpper() == ex.ToUpper())).ToArray();
+
+                if (filesThatMatch.Length == 0)
+                {
+                    Warn("没有找到符合格式的文件");
+                    return;
+                }
+
+                Log(new LoggingMessageItem($"读取{filesThatMatch.Length}个文件", $"{filesThatMatch.Length} files are read"));
+                foreach (var file in filesThatMatch)
+                {
+                    ProcessDataFromFile(file);
+                }
+            }
+        }
+
+        private void RunSingleFile()
+        {
+            var selectedFile = Helpers.GetFileFromDialog(pattern: _visionAdapter.ImageFileFilter);
+            if (!string.IsNullOrEmpty(selectedFile))
+            {
+                ProcessDataFromFile(selectedFile);
+            }
+        }
+
+
+        private void ProcessDataFromFile(string filePath)
+        {
+            var fileName = Path.GetFileName(filePath);
+            Log(new LoggingMessageItem($"正在离线运行图片{fileName}", $"Running image offline: {fileName}"));
+
+            var (data, cavity) = _visionAdapter.ReadFile(filePath);
+            ProcessData(data, cavity, DataSourceType.DataFile);
+        }
 
         private void ShowProperties()
         {
@@ -215,7 +262,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
             DisplayData.Add(rowData);
 
-            if (DisplayData.Count > 10) DisplayData = new ObservableCollection<Dictionary<string, object>>(DisplayData.Skip(5));
+            if (DisplayData.Count > 100) DisplayData = new ObservableCollection<Dictionary<string, object>>(DisplayData.Skip(50));
         }
 
         private void ShowImage(TData[] displayData, GraphicMetaData graphicMetaData)
@@ -289,7 +336,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private WriteableBitmap CreateDisplayImage(GraphicMetaData graphicMetaData, byte[] pixelData)
         {
             var writeableBitmap = new WriteableBitmap(graphicMetaData.Width, graphicMetaData.Height, 96.0, 96.0, PixelFormats.Rgb24, BitmapPalettes.Halftone256Transparent);
-            writeableBitmap.WritePixels(new Int32Rect(0, 0, graphicMetaData.Width, graphicMetaData.Height), pixelData, writeableBitmap.BackBufferStride, 0);
+            writeableBitmap.WritePixels(new Int32Rect(0, 0, graphicMetaData.Width, graphicMetaData.Height), pixelData, graphicMetaData.Width * 3, 0);
             return writeableBitmap;
         }
 
@@ -313,6 +360,11 @@ namespace RemoteVisionConsole.Module.ViewModels
         private void Log(LoggingMessageItem messageItem)
         {
             RemoteVisionConsoleModule.Log(messageItem);
+        }
+
+        private void Warn(string message)
+        {
+            _dialogService.ShowDialog("VisionConsoleNotificationDialog", new DialogParameters { { "message", message } }, r => { });
         }
         #endregion
     }

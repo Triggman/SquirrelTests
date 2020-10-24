@@ -10,8 +10,9 @@ namespace RemoteVisionModule.Tests.Mocks
         private readonly Random _random = new Random();
 
         public string Name { get; } = "VisionAdapterMock";
-        public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData { SampleType = DataSampleType.TwoDimension, Width = 5000, Height = 5000, ShouldDisplay = true };
+        public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData { SampleType = DataSampleType.TwoDimension, Width = 1419, Height = 1001, ShouldDisplay = true };
         public string ZeroMQAddress { get; } = "tcp://localhost:6001";
+        public (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; } = (new[] { "tif", "tiff" }, "Tif Files");
 
         public byte[] ConvertInput(byte[] input)
         {
