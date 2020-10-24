@@ -166,7 +166,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
             if (dataSource != DataSourceType.DataFile) ReportResult(weightedStatistics, resultType, dataSource);
 
-            DisplayStatisticResults(weightedStatistics);
+            DisplayStatisticResults(weightedStatistics, cavity);
 
             if (_visionAdapter.GraphicMetaData.ShouldDisplay)
             {
@@ -183,9 +183,14 @@ namespace RemoteVisionConsole.Module.ViewModels
             throw new NotImplementedException();
         }
 
-        private void DisplayStatisticResults(Statistics statistics)
+        private void DisplayStatisticResults(Statistics statistics, int cavity)
         {
-            var rowData = new Dictionary<string, object>();
+            var rowData = new Dictionary<string, object>()
+            {
+                ["Time"] = DateTime.Now.ToString("HH:mm:ss fff"),
+                ["Cavity"] = cavity
+            };
+
             if (statistics.FloatResults != null)
             {
                 foreach (var item in statistics.FloatResults)

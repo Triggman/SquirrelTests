@@ -9,10 +9,15 @@
     prism:ViewModelLocator.AutoWireViewModel="True">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="7*"/>
-            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="7*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
-        <ContentControl Grid.Column="0" prism:RegionManager.RegionName="VisionRegion"/>
-        <ContentControl Grid.Column="1" prism:RegionManager.RegionName="LogRegion"/>
+        <ContentControl Grid.Column="0" prism:RegionManager.RegionName="VisionRegion" />
+        <GridSplitter
+            Grid.Column="1"
+            Width="2"
+            HorizontalAlignment="Stretch" />
+        <ContentControl Grid.Column="2" prism:RegionManager.RegionName="LogRegion" />
     </Grid>
 </Window>

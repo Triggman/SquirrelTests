@@ -83,6 +83,7 @@
     <Compile Include="Views\DataSheet.xaml.cs">
       <DependentUpon>DataSheet.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\PanAndZoomBorder.cs" />
     <Compile Include="Views\VisionConsoleNotificationDialog.xaml.cs">
       <DependentUpon>VisionConsoleNotificationDialog.xaml</DependentUpon>
     </Compile>
