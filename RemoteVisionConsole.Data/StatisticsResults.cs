@@ -16,7 +16,7 @@ namespace RemoteVisionConsole.Data
             TextResults = new List<TextData>();
         }
 
-        public StatisticsResults(Dictionary<string, double> doubleDict, Dictionary<string, int> intDict, Dictionary<string, string> textDict)
+        public StatisticsResults(Dictionary<string, float> doubleDict, Dictionary<string, int> intDict, Dictionary<string, string> textDict)
         {
 
             DoubleResults = new List<DoubleData>();

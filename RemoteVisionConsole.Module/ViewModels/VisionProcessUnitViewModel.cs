@@ -9,8 +9,11 @@ using Prism.Services.Dialogs;
 using RemoteVisionConsole.Data;
 using RemoteVisionConsole.Interface;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
@@ -39,6 +42,13 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             get { return _displayImage; }
             set { SetProperty(ref _displayImage, value); }
+        }
+
+        private ObservableCollection<Dictionary<string, object>> _displayData = new ObservableCollection<Dictionary<string, object>>();
+        public ObservableCollection<Dictionary<string, object>> DisplayData
+        {
+            get { return _displayData; }
+            set { SetProperty(ref _displayData, value); }
         }
 
         public string Name { get; }
@@ -112,7 +122,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void ListenForProcessDataFromZeroMQ()
         {
-
+            Log(new LoggingMessageItem($"启动ZeroMQ服务器({ServerAddress})", $"Started ZeroMQ server at {ServerAddress}"));
             while (true)
             {
                 var message = _serverSocket.ReceiveMultipartMessage();
@@ -175,7 +185,32 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void DisplayStatisticResults(Statistics statistics)
         {
-            //TODO:
+            var rowData = new Dictionary<string, object>();
+            if (statistics.FloatResults != null)
+            {
+                foreach (var item in statistics.FloatResults)
+                {
+                    rowData[item.Key] = item.Value;
+                }
+            }
+            if (statistics.IntegerResults != null)
+            {
+                foreach (var item in statistics.IntegerResults)
+                {
+                    rowData[item.Key] = item.Value;
+                }
+            }
+            if (statistics.TextResults != null)
+            {
+                foreach (var item in statistics.TextResults)
+                {
+                    rowData[item.Key] = item.Value;
+                }
+            }
+
+            DisplayData.Add(rowData);
+
+            if (DisplayData.Count > 10) DisplayData = new ObservableCollection<Dictionary<string, object>>(DisplayData.Skip(5));
         }
 
         private void ShowImage(TData[] displayData, GraphicMetaData graphicMetaData)
@@ -220,7 +255,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void ShowByteImage(byte[] displayData, GraphicMetaData graphicMetaData)
         {
-            byte[] pixelData = null;
+            byte[] pixelData;
             if (graphicMetaData.SampleType == DataSampleType.TwoDimension)
             {
                 pixelData = new byte[displayData.Length * 3];
@@ -264,7 +299,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             else if (dataSource == DataSourceType.ZeroMQ)
             {
                 // Serialize statistics 
-                var json = JsonConvert.SerializeObject(new StatisticsResults(statistics.DoubleResults, statistics.IntegerResults, statistics.TextResults));
+                var json = JsonConvert.SerializeObject(new StatisticsResults(statistics.FloatResults, statistics.IntegerResults, statistics.TextResults));
                 _serverSocket.SendMoreFrame(resultType).SendFrame(json);
             }
             Log(new LoggingMessageItem("发送计算结果", "Reported statistic results"));

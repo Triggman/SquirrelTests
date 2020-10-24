@@ -80,6 +80,9 @@
     <Compile Include="ViewModels\VisionProcessUnitViewModel.cs" />
     <Compile Include="ViewModels\VsionProcessUnitConfigurationViewModel.cs" />
     <Compile Include="ViewModels\VsionProcessUnitContainerViewModel.cs" />
+    <Compile Include="Views\DataSheet.xaml.cs">
+      <DependentUpon>DataSheet.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\VisionConsoleNotificationDialog.xaml.cs">
       <DependentUpon>VisionConsoleNotificationDialog.xaml</DependentUpon>
     </Compile>
@@ -132,6 +135,10 @@
     <PackageReference Include="Prism.Wpf" Version="7.2.0.1422" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Views\DataSheet.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\VisionConsoleNotificationDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

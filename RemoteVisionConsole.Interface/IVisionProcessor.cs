@@ -23,7 +23,7 @@ namespace RemoteVisionConsole.Interface
 
     public class Statistics
     {
-        public Dictionary<string, double> DoubleResults { get; set; }
+        public Dictionary<string, float> FloatResults { get; set; }
         public Dictionary<string, int> IntegerResults { get; set; }
         public Dictionary<string, string> TextResults { get; set; }
     }

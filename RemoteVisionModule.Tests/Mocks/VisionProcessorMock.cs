@@ -12,7 +12,7 @@ namespace RemoteVisionModule.Tests.Mocks
                 DisplayData = data,
                 Statistics = new Statistics
                 {
-                    DoubleResults = new Dictionary<string, double>
+                    FloatResults = new Dictionary<string, float>
                     {
                         ["Value1"] = 1
                     }

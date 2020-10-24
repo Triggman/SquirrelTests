@@ -1,11 +1,14 @@
 ﻿using RemoteVisionConsole.Interface;
 using RemoteVisionConsole.Module.Helper;
 using System;
+using System.Collections.Generic;
 
 namespace RemoteVisionModule.Tests.Mocks
 {
     public class VisionAdapterMock : IVisionAdapter<byte>
     {
+        private readonly Random _random = new Random();
+
         public string Name { get; } = "VisionAdapterMock";
         public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData { SampleType = DataSampleType.TwoDimension, Width = 100, Height = 100, ShouldDisplay = true };
         public string ZeroMQAddress { get; } = "tcp://localhost:6001";
@@ -17,7 +20,7 @@ namespace RemoteVisionModule.Tests.Mocks
 
         public string GetResultType(Statistics statistics)
         {
-            if (statistics.DoubleResults["Value1"] > 0) return "OK";
+            if (statistics.FloatResults["Value1"] > 0) return "OK";
             return "NG";
         }
 
@@ -44,7 +47,12 @@ namespace RemoteVisionModule.Tests.Mocks
 
         public Statistics Weight(Statistics statistics)
         {
-            return statistics;
+            return new Statistics
+            {
+                FloatResults = new Dictionary<string, float> { ["Value1"] = (float)_random.NextDouble() },
+                IntegerResults = new Dictionary<string, int> { ["Value2"] = _random.Next() },
+                TextResults = new Dictionary<string, string> { ["Value1Result"] = "OK", ["Value2Result"] = "NG" },
+            };
         }
 
         private void Log(string message)
