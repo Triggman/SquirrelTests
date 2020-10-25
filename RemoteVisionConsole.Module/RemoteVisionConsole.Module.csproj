@@ -56,6 +56,7 @@
     <Compile Include="Enums.cs" />
     <Compile Include="Helper\Helpers.cs" />
     <Compile Include="Helper\ImageHelper.cs" />
+    <Compile Include="ProcessUnitUserSetting.cs" />
     <Compile Include="RemoteVisionConsoleModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -73,6 +74,7 @@
     <Compile Include="RemoteVisionConsoleEvents.cs" />
     <Compile Include="TypeSource.cs" />
     <Compile Include="ViewModels\PropertyItem.cs" />
+    <Compile Include="ViewModels\UserSettingDialogViewModel.cs" />
     <Compile Include="ViewModels\VisionConsoleNotificationDialogViewModel.cs" />
     <Compile Include="ViewModels\VisionProcessUnitConfig.cs" />
     <Compile Include="ViewModels\VisionProcessUnitPropertyDialogViewModel.cs" />
@@ -84,6 +86,9 @@
       <DependentUpon>DataSheet.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\PanAndZoomBorder.cs" />
+    <Compile Include="Views\UserSettingDialog.xaml.cs">
+      <DependentUpon>UserSettingDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\VisionConsoleNotificationDialog.xaml.cs">
       <DependentUpon>VisionConsoleNotificationDialog.xaml</DependentUpon>
     </Compile>
@@ -124,8 +129,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Afterbunny.UI.WPF.Framework">
+      <Version>1.0.8</Version>
+    </PackageReference>
     <PackageReference Include="BitMiracle.LibTiff.NET">
       <Version>2.4.639</Version>
+    </PackageReference>
+    <PackageReference Include="CygiaSqliteAccess.Proxy">
+      <Version>1.0.5</Version>
     </PackageReference>
     <PackageReference Include="NetMQ">
       <Version>4.0.1.6</Version>
@@ -137,6 +148,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Views\DataSheet.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserSettingDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

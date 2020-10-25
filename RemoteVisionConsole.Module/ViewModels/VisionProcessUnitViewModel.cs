@@ -1,4 +1,6 @@
-﻿using LoggingConsole.Interface;
+﻿using CygiaSqliteAccess.Proxy;
+using CygiaSqliteAccess.Proxy.Proxy;
+using LoggingConsole.Interface;
 using NetMQ;
 using NetMQ.Sockets;
 using Newtonsoft.Json;
@@ -21,6 +23,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Xml.Serialization;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {
@@ -34,6 +37,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private readonly IVisionAdapter<TData> _visionAdapter;
         private readonly IVisionProcessor<TData> _visionProcessor;
         private readonly ResponseSocket _serverSocket;
+        private ProcessUnitUserSetting _userSetting;
 
         #endregion
 
@@ -47,6 +51,13 @@ namespace RemoteVisionConsole.Module.ViewModels
         }
 
         private ObservableCollection<Dictionary<string, object>> _displayData = new ObservableCollection<Dictionary<string, object>>();
+        private string _userSettingPath;
+        private string _tableNameRawOnline;
+        private string _tableNameWeightedOnline;
+        private string _tableNameRawOffline;
+        private string _tableNameWeightedOffline;
+        private bool _databaseServiceInstalled = true;
+
         public ObservableCollection<Dictionary<string, object>> DisplayData
         {
             get { return _displayData; }
@@ -60,6 +71,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         public ICommand ShowPropertiesCommand { get; }
         public ICommand RunSingleFileCommand { get; }
         public ICommand RunFolderCommand { get; }
+        public ICommand OpenSettingDialogCommand { get; }
         #endregion
 
         #region ctor
@@ -78,7 +90,11 @@ namespace RemoteVisionConsole.Module.ViewModels
             ShowPropertiesCommand = new DelegateCommand(ShowProperties);
             RunSingleFileCommand = new DelegateCommand(RunSingleFile);
             RunFolderCommand = new DelegateCommand(RunFolder);
+            OpenSettingDialogCommand = new DelegateCommand(OpenSettingDialog);
 
+            _userSetting = LoadUserSetting(_visionAdapter.Name);
+
+            CreateDatabase();
 
 
             // Setup server
@@ -92,6 +108,8 @@ namespace RemoteVisionConsole.Module.ViewModels
                 new Thread(ListenForProcessDataFromZeroMQ) { IsBackground = true }.Start();
             }
         }
+
+
 
 
 
@@ -111,6 +129,72 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         #region impl
 
+        private void OpenSettingDialog()
+        {
+            var settingCopied = Helpers.CopyObject(_userSetting);
+            _dialogService.ShowDialog("UserSettingDialog",
+                new DialogParameters { { "setting", settingCopied } }, r =>
+                {
+                    if (r.Result == ButtonResult.OK)
+                    {
+                        _userSetting = r.Parameters.GetValue<ProcessUnitUserSetting>("setting");
+                        using (var writer = new StreamWriter(_userSettingPath))
+                        {
+                            var serializer = new XmlSerializer(typeof(ProcessUnitUserSetting));
+                            serializer.Serialize(writer, _userSetting);
+                        }
+                        Log("保存设置成功", "Save setting success");
+                    }
+                    else
+                    {
+                        Log("设置未保存", "Settings not save", LogLevel.Warn);
+                    }
+                });
+        }
+
+        private void CreateDatabase()
+        {
+            var projectName = _visionAdapter.ProjectName ?? "VisionConsole";
+            _tableNameRawOnline = $"{projectName}.{_visionAdapter.Name}_Raw_Online";
+            _tableNameWeightedOnline = $"{projectName}.{_visionAdapter.Name}_Weighted_Online";
+            _tableNameRawOffline = $"{projectName}.{_visionAdapter.Name}_Raw_Offline";
+            _tableNameWeightedOffline = $"{projectName}.{_visionAdapter.Name}_Weighted_Offline";
+
+
+            try
+            {
+                var proxy = new CygiaSqliteAccessProxy(EndPointType.TCP);
+                proxy.CreateTable(_tableNameRawOnline, _visionProcessor.OutputNames.floatNames, _visionProcessor.OutputNames.integerNames, _visionProcessor.OutputNames.textNames);
+                proxy.CreateTable(_tableNameRawOffline, _visionProcessor.OutputNames.floatNames, _visionProcessor.OutputNames.integerNames, _visionProcessor.OutputNames.textNames);
+                proxy.CreateTable(_tableNameWeightedOnline, _visionAdapter.OutputNames.floatNames, _visionAdapter.OutputNames.integerNames, _visionAdapter.OutputNames.textNames);
+                proxy.CreateTable(_tableNameWeightedOffline, _visionAdapter.OutputNames.floatNames, _visionAdapter.OutputNames.integerNames, _visionAdapter.OutputNames.textNames);
+            }
+            catch (System.ServiceModel.EndpointNotFoundException)
+            {
+                _databaseServiceInstalled = false;
+                Log("未安装服务CygiaSqliteAccess.Host.exe, \n请访问https://gitee.com/believingheart/cygia-sqlite-access-service/releases下载安装",
+                    "CygiaSqliteAccess.Host.exe not installed", LogLevel.Warn);
+            }
+        }
+
+
+        private ProcessUnitUserSetting LoadUserSetting(string name)
+        {
+            var settingDir = Path.Combine(Constants.AppDataDir, "UserSettings");
+            Directory.CreateDirectory(settingDir);
+
+            _userSettingPath = Path.Combine(settingDir, $"{name}.xml");
+
+            if (!File.Exists(_userSettingPath)) return new ProcessUnitUserSetting();
+
+            using (var reader = new StreamReader(_userSettingPath))
+            {
+                var serializer = new XmlSerializer(typeof(ProcessUnitUserSetting));
+                return serializer.Deserialize(reader) as ProcessUnitUserSetting;
+            }
+        }
+
+
         private void RunFolder()
         {
             var dir = Helpers.GetDirFromDialog();
@@ -127,7 +211,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                     return;
                 }
 
-                Log(new LoggingMessageItem($"读取{filesThatMatch.Length}个文件", $"{filesThatMatch.Length} files are read"));
+                Log($"读取{filesThatMatch.Length}个文件", $"{filesThatMatch.Length} files are read");
                 foreach (var file in filesThatMatch)
                 {
                     ProcessDataFromFile(file);
@@ -148,7 +232,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private void ProcessDataFromFile(string filePath)
         {
             var fileName = Path.GetFileName(filePath);
-            Log(new LoggingMessageItem($"正在离线运行图片{fileName}", $"Running image offline: {fileName}"));
+            Log($"正在离线运行图片{fileName}", $"Running image offline: {fileName}");
 
             var (data, cavity) = _visionAdapter.ReadFile(filePath);
             ProcessData(data, cavity, DataSourceType.DataFile);
@@ -169,7 +253,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void ListenForProcessDataFromZeroMQ()
         {
-            Log(new LoggingMessageItem($"启动ZeroMQ服务器({ServerAddress})", $"Started ZeroMQ server at {ServerAddress}"));
+            Log($"启动ZeroMQ服务器({ServerAddress})", $"Started ZeroMQ server at {ServerAddress}");
             while (true)
             {
                 var message = _serverSocket.ReceiveMultipartMessage();
@@ -178,7 +262,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                 var shouldProcess = _visionAdapter.IsInterestingData(sourceId);
                 if (!shouldProcess)
                 {
-                    Log(new LoggingMessageItem($"过滤非感兴趣输入ID({sourceId})", $"source id({sourceId}) is not an interesting id"));
+                    Log($"过滤非感兴趣输入ID({sourceId})", $"source id({sourceId}) is not an interesting id");
                     return;
                 }
 
@@ -193,7 +277,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             var shouldProcess = _visionAdapter.IsInterestingData(input.sourceId);
             if (!shouldProcess)
             {
-                Log(new LoggingMessageItem($"过滤非感兴趣输入ID({input.sourceId})", $"source id({input.sourceId}) is not an interesting id"));
+                Log($"过滤非感兴趣输入ID({input.sourceId})", $"source id({input.sourceId}) is not an interesting id");
                 return;
             }
 
@@ -202,14 +286,14 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void ProcessData(TData[] data, int cavity, DataSourceType dataSource)
         {
-            Log(new LoggingMessageItem($"正在处理来自{dataSource}, 长度为{data.Length}, 夹具编号为{cavity}的数据", $"Start processing data of length({data.Length}) of cavity({cavity}) from data source({dataSource})"));
+            Log($"正在处理来自{dataSource}, 长度为{data.Length}, 夹具编号为{cavity}的数据", $"Start processing data of length({data.Length}) of cavity({cavity}) from data source({dataSource})");
 
             var stopwatch = Stopwatch.StartNew();
             var result = _visionProcessor.Process(data, cavity);
             var resultType = _visionAdapter.GetResultType(result.Statistics);
             var weightedStatistics = _visionAdapter.Weight(result.Statistics);
             var ms = stopwatch.ElapsedMilliseconds;
-            Log(new LoggingMessageItem($"计算耗时{ms}ms", $"Data process finished in {ms} ms"));
+            Log($"计算耗时{ms}ms", $"Data process finished in {ms} ms");
 
             if (dataSource != DataSourceType.DataFile) ReportResult(weightedStatistics, resultType, dataSource);
 
@@ -223,6 +307,60 @@ namespace RemoteVisionConsole.Module.ViewModels
             }
 
             if (_visionAdapter.ShouldSaveImage(resultType)) _visionAdapter.SaveImage(data, cavity);
+
+            // Write to database
+            if (_databaseServiceInstalled)
+            {
+                // If save any data
+                if (_userSetting.SaveRawDataOffline || _userSetting.SaveRawDataOnline || _userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
+                {
+                    var proxy = new CygiaSqliteAccessProxy(EndPointType.TCP);
+                    // If save raw data
+                    if (_userSetting.SaveRawDataOffline || _userSetting.SaveRawDataOnline)
+                    {
+                        var integerFields = result.Statistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
+                        integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
+                        var rowDatas = new[] { new RowData {
+                DoubleFields = result.Statistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
+                IntegerFields = integerFields.ToArray(),
+                TextFields = result.Statistics.TextResults.Select(p=> new TextField{Name = p.Key, Value = p.Value}).ToArray(),
+                } };
+
+                        if (_userSetting.SaveRawDataOffline && dataSource == DataSourceType.DataFile)
+                        {
+                            Log("保存离线原始数据", "Saved offline raw data");
+                            proxy.Insert(_tableNameRawOffline, rowDatas);
+                        }
+                        if (_userSetting.SaveRawDataOnline && dataSource != DataSourceType.DataFile)
+                        {
+                            Log("保存在线原始数据", "Saved online raw data");
+                            proxy.Insert(_tableNameRawOnline, rowDatas);
+                        }
+                    }
+                    // If save weighted data
+                    if (_userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
+                    {
+                        var integerFields = weightedStatistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
+                        integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
+                        var rowDatas = new[] { new RowData {
+                DoubleFields = weightedStatistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
+                IntegerFields = integerFields.ToArray(),
+                TextFields = weightedStatistics.TextResults.Select(p=> new TextField{Name = p.Key, Value = p.Value}).ToArray(),
+                } };
+
+                        if (_userSetting.SaveWeightedDataOffline && dataSource == DataSourceType.DataFile)
+                        {
+                            Log("保存离线计算数据", "Saved offline weighted data");
+                            proxy.Insert(_tableNameWeightedOffline, rowDatas);
+                        }
+                        if (_userSetting.SaveWeightedDataOnline && dataSource != DataSourceType.DataFile)
+                        {
+                            Log("保存在线计算数据", "Saved oneline weighted data");
+                            proxy.Insert(_tableNameWeightedOnline, rowDatas);
+                        }
+                    }
+                }
+            }
         }
 
         private void ShowChart(TData[] displayData)
@@ -354,12 +492,12 @@ namespace RemoteVisionConsole.Module.ViewModels
                 var json = JsonConvert.SerializeObject(new StatisticsResults(statistics.FloatResults, statistics.IntegerResults, statistics.TextResults));
                 _serverSocket.SendMoreFrame(resultType).SendFrame(json);
             }
-            Log(new LoggingMessageItem("发送计算结果", "Reported statistic results"));
+            Log("发送计算结果", "Reported statistic results");
         }
 
-        private void Log(LoggingMessageItem messageItem)
+        private void Log(string displayMessage, string saveMessage, LogLevel logLevel = LogLevel.Info)
         {
-            RemoteVisionConsoleModule.Log(messageItem);
+            RemoteVisionConsoleModule.Log(new LoggingMessageItem($"视觉页面({_visionAdapter.Name}): {displayMessage}", $"VisionPage({_visionAdapter.Name}): {saveMessage}") { LogLevel = logLevel });
         }
 
         private void Warn(string message)

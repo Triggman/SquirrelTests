@@ -13,6 +13,8 @@ namespace RemoteVisionModule.Tests.Mocks
         public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData { SampleType = DataSampleType.TwoDimension, Width = 1419, Height = 1001, ShouldDisplay = true };
         public string ZeroMQAddress { get; } = "tcp://localhost:6001";
         public (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; } = (new[] { "tif", "tiff" }, "Tif Files");
+        public string ProjectName { get; } = "TestProject";
+        public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } = (new[] { "Value1" }, new[] { "Value2" }, new[] { "Value1Result", "Value2Result" });
 
         public byte[] ConvertInput(byte[] input)
         {

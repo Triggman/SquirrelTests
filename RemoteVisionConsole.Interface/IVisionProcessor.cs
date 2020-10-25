@@ -12,7 +12,7 @@ namespace RemoteVisionConsole.Interface
         /// <returns></returns>
         ProcessResult<TData> Process(TData[] data, int cavityIndex);
 
-
+        (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; }
     }
 
     public class ProcessResult<TData>
@@ -23,12 +23,12 @@ namespace RemoteVisionConsole.Interface
 
     public class Statistics
     {
-        public Dictionary<string, float> FloatResults { get; set; }
-        public Dictionary<string, int> IntegerResults { get; set; }
-        public Dictionary<string, string> TextResults { get; set; }
+        public Dictionary<string, float> FloatResults { get; set; } = new Dictionary<string, float>();
+        public Dictionary<string, int> IntegerResults { get; set; } = new Dictionary<string, int>();
+        public Dictionary<string, string> TextResults { get; set; } = new Dictionary<string, string>();
     }
 
-  
+
 
 
 

@@ -9,7 +9,10 @@
         string Name { get; }
 
         string ZeroMQAddress { get; }
+        string ProjectName { get; }
         (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; }
+        (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; }
+
 
 
         GraphicMetaData GraphicMetaData { get; }
