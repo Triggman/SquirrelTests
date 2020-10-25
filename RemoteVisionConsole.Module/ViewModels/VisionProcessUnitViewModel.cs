@@ -160,14 +160,18 @@ namespace RemoteVisionConsole.Module.ViewModels
             _tableNameRawOffline = $"{projectName}.{_visionAdapter.Name}_Raw_Offline";
             _tableNameWeightedOffline = $"{projectName}.{_visionAdapter.Name}_Weighted_Offline";
 
+            var integerNamesRaw = new List<string>() { "Cavity" };
+            if (_visionProcessor.OutputNames.integerNames != null) integerNamesRaw.AddRange(_visionProcessor.OutputNames.integerNames);
+            var integerNamesWeighted = new List<string>() { "Cavity" };
+            if (_visionAdapter.OutputNames.integerNames != null) integerNamesWeighted.AddRange(_visionAdapter.OutputNames.integerNames);
 
             try
             {
                 var proxy = new CygiaSqliteAccessProxy(EndPointType.TCP);
-                proxy.CreateTable(_tableNameRawOnline, _visionProcessor.OutputNames.floatNames, _visionProcessor.OutputNames.integerNames, _visionProcessor.OutputNames.textNames);
-                proxy.CreateTable(_tableNameRawOffline, _visionProcessor.OutputNames.floatNames, _visionProcessor.OutputNames.integerNames, _visionProcessor.OutputNames.textNames);
-                proxy.CreateTable(_tableNameWeightedOnline, _visionAdapter.OutputNames.floatNames, _visionAdapter.OutputNames.integerNames, _visionAdapter.OutputNames.textNames);
-                proxy.CreateTable(_tableNameWeightedOffline, _visionAdapter.OutputNames.floatNames, _visionAdapter.OutputNames.integerNames, _visionAdapter.OutputNames.textNames);
+                proxy.CreateTable(_tableNameRawOnline, _visionProcessor.OutputNames.floatNames, integerNamesRaw.ToArray(), _visionProcessor.OutputNames.textNames);
+                proxy.CreateTable(_tableNameRawOffline, _visionProcessor.OutputNames.floatNames, integerNamesRaw.ToArray(), _visionProcessor.OutputNames.textNames);
+                proxy.CreateTable(_tableNameWeightedOnline, _visionAdapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), _visionAdapter.OutputNames.textNames);
+                proxy.CreateTable(_tableNameWeightedOffline, _visionAdapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), _visionAdapter.OutputNames.textNames);
             }
             catch (System.ServiceModel.EndpointNotFoundException)
             {
@@ -321,6 +325,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                         var integerFields = result.Statistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
                         integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
                         var rowDatas = new[] { new RowData {
+                            CreationTime = DateTime.Now,
                 DoubleFields = result.Statistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
                 IntegerFields = integerFields.ToArray(),
                 TextFields = result.Statistics.TextResults.Select(p=> new TextField{Name = p.Key, Value = p.Value}).ToArray(),
@@ -343,6 +348,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                         var integerFields = weightedStatistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
                         integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
                         var rowDatas = new[] { new RowData {
+                            CreationTime = DateTime.Now,
                 DoubleFields = weightedStatistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
                 IntegerFields = integerFields.ToArray(),
                 TextFields = weightedStatistics.TextResults.Select(p=> new TextField{Name = p.Key, Value = p.Value}).ToArray(),
