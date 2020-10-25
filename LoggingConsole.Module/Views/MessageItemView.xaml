@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:LoggingConsole.Interface;assembly=LoggingConsole.Interface"
     xmlns:local="clr-namespace:LoggingConsole.Module.Views"
+    xmlns:bunny="http://afterbunny/2020/ui/wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
     d:DesignWidth="800"
@@ -16,7 +17,7 @@
             <TextBlock Text="{Binding DisplayMessage}">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
-                        <Setter Property="Foreground" Value="Black" />
+                        <Setter Property="Foreground" Value="{bunny:ThemeResource ResourceKey=ContentForeground}" />
                         <Style.Triggers>
                             <!--  Warn  -->
                             <DataTrigger Binding="{Binding Path=LogLevel}" Value="{x:Static enums:LogLevel.Warn}">

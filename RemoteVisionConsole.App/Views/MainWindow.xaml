@@ -2,11 +2,13 @@
     x:Class="RemoteVisionConsole.App.Views.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:bunny="http://afterbunny/2020/ui/wpf"
     xmlns:prism="http://prismlibrary.com/"
     Title="{Binding Title}"
     Width="525"
     Height="350"
-    prism:ViewModelLocator.AutoWireViewModel="True">
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    Style="{StaticResource AfterbunnyWindowStyle}">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="7*" />
@@ -17,7 +19,8 @@
         <GridSplitter
             Grid.Column="1"
             Width="2"
-            HorizontalAlignment="Stretch" />
+            HorizontalAlignment="Stretch"
+            Background="{bunny:ThemeResource ResourceKey=ControlContentBackground}" />
         <ContentControl Grid.Column="2" prism:RegionManager.RegionName="LogRegion" />
     </Grid>
 </Window>

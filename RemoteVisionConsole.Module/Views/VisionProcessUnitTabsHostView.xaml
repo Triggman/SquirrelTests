@@ -2,6 +2,7 @@
     x:Class="RemoteVisionConsole.Module.Views.VisionProcessUnitTabsHostView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:bunny="http://afterbunny/2020/ui/wpf"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:RemoteVisionConsole.Module.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -13,7 +14,7 @@
     prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
     <UserControl.Resources>
-   
+
         <DataTemplate DataType="{x:Type viewModel:VisionProcessUnitByte}">
             <local:VisionProcessUnitView />
         </DataTemplate>
@@ -33,15 +34,16 @@
     </UserControl.Resources>
 
     <Grid>
-        <TabControl  ItemsSource="{Binding TabItems}">
+        <TabControl ItemsSource="{Binding TabItems}">
+
             <TabControl.ContentTemplate>
                 <DataTemplate>
-                    <ContentControl Content="{Binding ViewModel}"/>
+                    <ContentControl Content="{Binding ViewModel}" />
                 </DataTemplate>
             </TabControl.ContentTemplate>
             <TabControl.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Title}"/>
+                    <TextBlock Text="{Binding Title}" />
                 </DataTemplate>
             </TabControl.ItemTemplate>
         </TabControl>

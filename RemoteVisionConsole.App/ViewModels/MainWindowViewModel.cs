@@ -5,7 +5,7 @@ namespace RemoteVisionConsole.App.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
-        private string _title = "Prism Application";
+        private string _title = "Remote vision console";
         public string Title
         {
             get { return _title; }

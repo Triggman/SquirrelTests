@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Afterbunny.UI.WPF;
+using Afterbunny.UI.WPF.Core;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -106,7 +108,9 @@ namespace RemoteVisionConsole.Module.Views
             Grid headerGrid = GenGridWithIndexedShareSizeGroups(rowData.Count);
             headerGrid.ShowGridLines = true;
             FillRow(rowData.Keys, headerGrid);
-            var border = new Border { Child = headerGrid, BorderThickness = new Thickness(0, 0, 0, 1), BorderBrush = Brushes.Black, Background = Brushes.AliceBlue };
+            var border = new Border { Child = headerGrid, BorderThickness = new Thickness(0, 0, 0, 1), Background = Brushes.AliceBlue };
+            border.SetResourceReference(Border.BorderBrushProperty, new ThemeResourceExtension { ResourceKey = ThemeResourceKey.ControlBorder });
+            border.SetResourceReference(Control.BackgroundProperty, new ThemeResourceExtension { ResourceKey = ThemeResourceKey.ControlBackground });
 
             stackPanel.Children.Add(border);
         }
