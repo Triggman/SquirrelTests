@@ -28,7 +28,7 @@ namespace LoggingConsole.Module
         }
 
 
-        public static void ConfigureLogging(List<AppenderParam> appenderParams, string regionToAttatch)
+        public static void ConfigModule(List<AppenderParam> appenderParams, string regionToAttatch)
         {
             var appenders = RollingFileAppenderManager.Config(appenderParams);
             _initParams = new MessageConsoleInitParam { Loggers = appenders };
