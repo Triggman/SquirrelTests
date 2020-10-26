@@ -24,10 +24,11 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="Select processor class" />
+                <TextBlock Grid.Row="0" Text="选择Processor类" />
                 <StackPanel Grid.Row="1" Orientation="Horizontal">
                     <TextBox
                         Width="250"
+                        VerticalContentAlignment="Center"
                         IsReadOnly="True"
                         Text="{Binding ProcessorAssemblyPath}" />
                     <Button
@@ -53,10 +54,11 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="Select adaptor class" />
+                <TextBlock Grid.Row="0" Text="选择Adapter类" />
                 <StackPanel Grid.Row="1" Orientation="Horizontal">
                     <TextBox
                         Width="250"
+                        VerticalContentAlignment="Center"
                         IsReadOnly="True"
                         Text="{Binding AdapterAssemblyPath}" />
                     <Button
