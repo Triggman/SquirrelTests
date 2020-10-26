@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Constants.cs" />
     <Compile Include="DialogViewModelBase.cs" />
+    <Compile Include="ComboBoxAssist.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Helper\Helpers.cs" />
     <Compile Include="Helper\ImageHelper.cs" />

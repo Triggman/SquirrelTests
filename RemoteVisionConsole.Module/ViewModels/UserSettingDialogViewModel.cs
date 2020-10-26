@@ -1,5 +1,6 @@
 ﻿using Prism.Commands;
 using Prism.Services.Dialogs;
+using RemoteVisionConsole.Module.Helper;
 using System.Windows.Input;
 
 namespace RemoteVisionConsole.Module.ViewModels
@@ -14,6 +15,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         }
 
         public ICommand OKCommand { get; }
+        public ICommand SelectImageSaveMainFolderCommand { get; }
 
         public UserSettingDialogViewModel()
         {
@@ -22,15 +24,25 @@ namespace RemoteVisionConsole.Module.ViewModels
                 var param = new DialogParameters { { "setting", ViewModel } };
                 RaiseRequestClose(new DialogResult(ButtonResult.OK, param));
             });
-        }
 
+            SelectImageSaveMainFolderCommand = new DelegateCommand(SelectImageSaveMainFolder);
+        }
 
         public override void OnDialogOpened(IDialogParameters parameters)
         {
             ViewModel = parameters.GetValue<ProcessUnitUserSetting>("setting");
             base.OnDialogOpened(parameters);
         }
-
+        private void SelectImageSaveMainFolder()
+        {
+            var selectedDir = Helpers.GetDirFromDialog();
+            if (string.IsNullOrEmpty(selectedDir)) return;
+            ViewModel.ImageSaveMainFolder = selectedDir;
+        }
 
     }
+
+
+
 }
+

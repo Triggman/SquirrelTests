@@ -1,4 +1,5 @@
-﻿using RemoteVisionConsole.Interface;
+﻿using RemoteVisionConsole.Data;
+using RemoteVisionConsole.Interface;
 using RemoteVisionConsole.Module.Helper;
 using System;
 using System.Collections.Generic;
@@ -38,15 +39,13 @@ namespace RemoteVisionModule.Tests.Mocks
             return (data, 1);
         }
 
-        public void SaveImage(byte[] imageData, int cavity)
+
+        public void SaveImage(byte[] imageData, string mainFolder, string subFolder, string fileName, string exceptionDetail)
         {
             Log("Saved image");
         }
 
-        public bool ShouldSaveImage(string resultType)
-        {
-            return true;
-        }
+
 
         public Statistics Weight(Statistics statistics)
         {
@@ -58,9 +57,19 @@ namespace RemoteVisionModule.Tests.Mocks
             };
         }
 
+        ResultType IVisionAdapter<byte>.GetResultType(Statistics statistics)
+        {
+            return ResultType.OK;
+        }
+
         private void Log(string message)
         {
             Console.WriteLine($"Vision adapter mock: {message}");
+        }
+
+        (byte[] data, int cavity, string sn) IVisionAdapter<byte>.ReadFile(string path)
+        {
+            throw new NotImplementedException();
         }
     }
 }

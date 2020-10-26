@@ -5,8 +5,8 @@
     xmlns:bunny="http://afterbunny/2020/ui/wpf"
     xmlns:prism="http://prismlibrary.com/"
     Title="{Binding Title}"
-    Width="525"
-    Height="350"
+    Width="1000"
+    Height="700"
     prism:ViewModelLocator.AutoWireViewModel="True"
     Style="{StaticResource AfterbunnyWindowStyle}">
     <Grid>
