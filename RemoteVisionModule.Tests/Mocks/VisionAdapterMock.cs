@@ -3,6 +3,8 @@ using RemoteVisionConsole.Interface;
 using RemoteVisionConsole.Module.Helper;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace RemoteVisionModule.Tests.Mocks
 {
@@ -14,7 +16,7 @@ namespace RemoteVisionModule.Tests.Mocks
         public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData
         {
             SampleType = DataSampleType.TwoDimension,
-            Dimensions = new (int, int)[] { (1419, 1001) },
+            Dimensions = new (int, int)[] { (1419, 1001), (320, 240) },
             ShouldDisplay = true
         };
         public string ZeroMQAddress { get; } = "tcp://localhost:6001";
@@ -37,8 +39,17 @@ namespace RemoteVisionModule.Tests.Mocks
 
         public (List<byte[]> data, int cavity, string sn) ReadFile(string path)
         {
-            var (data, samplesPerPixel, width) = ImageHelper.ReadByteTiff(path);
-            return (new List<byte[]> { data }, 1, null);
+            var dir = Directory.GetParent(path).FullName;
+            var fileName = Path.GetFileNameWithoutExtension(path);
+            var pattern = new Regex(@"^(\w+)(\d+)");
+            var index = int.Parse(pattern.Match(fileName).Groups[2].Value) + 1;
+            var fileNameBase = pattern.Match(fileName).Groups[1].Value;
+            var nextFile = Path.Combine(dir, $"{fileNameBase}{index}.tif");
+
+            var firstImage = ImageHelper.ReadByteTiff(path);
+            var secondImage = ImageHelper.ReadByteTiff(nextFile);
+
+            return (new List<byte[]> { firstImage.data, secondImage.data }, 1, null);
         }
 
 

@@ -563,7 +563,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void UpdateDisplayImage(WriteableBitmap image, byte[] rgbData, int width, int height)
         {
-            image.WritePixels(new Int32Rect(0, 0, width, height), rgbData, image.BackBufferStride, 0);
+            image.WritePixels(new Int32Rect(0, 0, width, height), rgbData, width * 3, 0);
         }
 
         private void ReportResult(Statistics statistics, ResultType resultType, DataSourceType dataSource)

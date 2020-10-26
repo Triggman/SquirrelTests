@@ -1,5 +1,4 @@
-﻿using System;
-using BitMiracle.LibTiff.Classic;
+﻿using BitMiracle.LibTiff.Classic;
 using NUnit.Framework;
 using RemoteVisionConsole.Module.Helper;
 
@@ -18,11 +17,11 @@ namespace RemoteVisionModule.Tests
             // convert bytes to short
             for (int i = 0; i < outputData.Length; i++)
             {
-                outputData[i] = (float) (data[i*samplesPerPixel] / 255.0 );
+                outputData[i] = (float)(data[i * samplesPerPixel] / 255.0);
             }
-            
+
             ImageHelper.SaveTiff(outputData, width, path);
-            
+
             // Read
             var (dataRead, widthRead) = ImageHelper.ReadFloatTiff(path);
             ImageHelper.SaveTiff(dataRead, widthRead, $"{fileName}Reload.tif");
@@ -42,9 +41,9 @@ namespace RemoteVisionModule.Tests
             }
 
             ImageHelper.SaveTiff(outputData, width, 1, Photometric.MINISBLACK, path);
-            
+
             // Read
-            var (dataRead,samplesPerPixelRead, widthRead) = ImageHelper.ReadByteTiff(path);
+            var (dataRead, samplesPerPixelRead, widthRead) = ImageHelper.ReadByteTiff(path);
             ImageHelper.SaveTiff(dataRead, widthRead, samplesPerPixelRead, Photometric.MINISBLACK, $"{fileName}Reload.tif");
         }
 
@@ -69,11 +68,11 @@ namespace RemoteVisionModule.Tests
             // convert bytes to short
             for (int i = 0; i < outputData.Length; i++)
             {
-                outputData[i] = (short) (data[i*samplesPerPixel] / 255.0 * ushort.MaxValue + short.MinValue);
+                outputData[i] = (short)(data[i * samplesPerPixel] / 255.0 * ushort.MaxValue + short.MinValue);
             }
-            
-            ImageHelper.SaveTiff(outputData, width,  path);
-            
+
+            ImageHelper.SaveTiff(outputData, width, path);
+
             // Read
             var (dataRead, widthRead) = ImageHelper.ReadUshortTiff(path);
             ImageHelper.SaveTiff(dataRead, widthRead, $"{fileName}Reload.tif");
@@ -90,11 +89,11 @@ namespace RemoteVisionModule.Tests
             // convert bytes to ushorts
             for (int i = 0; i < outputData.Length; i++)
             {
-                outputData[i] = (ushort) (data[i*samplesPerPixel] / 255.0 * ushort.MaxValue);
+                outputData[i] = (ushort)(data[i * samplesPerPixel] / 255.0 * ushort.MaxValue);
             }
-            
-            ImageHelper.SaveTiff(outputData, width,  path);
-            
+
+            ImageHelper.SaveTiff(outputData, width, path);
+
             // Read
             var (dataRead, widthRead) = ImageHelper.ReadUshortTiff(path);
             ImageHelper.SaveTiff(dataRead, widthRead, $"{fileName}Reload.tif");
@@ -102,7 +101,7 @@ namespace RemoteVisionModule.Tests
 
         private static (byte[] data, int samplesPerPixel, int width) LoadRbgData()
         {
-            return ImageHelper.ReadByteTiff("Sample Data/marbles.tif");
+            return ImageHelper.ReadByteTiff(@"C:\Users\afterbunny\source\repos\libtiff.net-master\Samples\Sample Data\pc260001.tif");
         }
     }
 }
