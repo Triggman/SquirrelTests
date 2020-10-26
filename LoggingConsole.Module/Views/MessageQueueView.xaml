@@ -19,22 +19,29 @@
         <Grid
             Grid.Row="0"
             Margin="10"
-            VerticalAlignment="Top"
-            >
+            VerticalAlignment="Top">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" FontSize="16" HorizontalAlignment="Center"  VerticalAlignment="Center" FontWeight="DemiBold" Text="{Binding Name}"/>
+            <TextBlock
+                Grid.Column="0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="16"
+                FontWeight="DemiBold"
+                Text="{Binding Name}" />
 
-            <CheckBox Grid.Column="1"
+            <CheckBox
+                Grid.Column="1"
                 Margin="0,0,5,0"
                 VerticalAlignment="Center"
                 Content="自动滚动"
                 IsChecked="{Binding RelativeSource={RelativeSource AncestorType=local:MessageQueueView}, Path=ShouldAutoScroll}" />
-            <Button Grid.Column="2"
+            <Button
+                Grid.Column="2"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
                 Command="{Binding ClearMessagesCommand}"

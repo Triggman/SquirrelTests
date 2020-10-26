@@ -1,4 +1,7 @@
-﻿namespace RemoteVisionConsole.Interface
+﻿using RemoteVisionConsole.Data;
+using System;
+
+namespace RemoteVisionConsole.Interface
 {
     /// <summary>
     /// Adapte input and output from <see cref="IVisionProcessor{TData}"/>
@@ -30,28 +33,21 @@
         /// </summary>
         /// <param name="statistics"></param>
         /// <returns></returns>
-        string GetResultType(Statistics statistics);
+        ResultType GetResultType(Statistics statistics);
 
         /// <summary>
-        /// Deduce whether image should be saved based on result from <see cref="GetResultType(Statistics)"/>
+        /// 
         /// </summary>
-        /// <param name="resultType"></param>
-        /// <returns></returns>
-        bool ShouldSaveImage(string resultType);
-
-        /// <summary>
-        /// Filter away data that are not interested by source id 
-        /// </summary>
-        /// <param name="sourceId"></param>
-        /// <returns></returns>
-        bool IsInterestingData(string sourceId);
-
-
-        void SaveImage(TOutput[] imageData, int cavity);
+        /// <param name="imageData"></param>
+        /// <param name="mainFolder"></param>
+        /// <param name="subFolder"></param>
+        /// <param name="fileName"></param>
+        /// <param name="exceptionDetail">null when no error occours during image processing</param>
+        void SaveImage(TOutput[] imageData, string mainFolder, string subFolder, string fileName, string exceptionDetail);
 
         Statistics Weight(Statistics statistics);
 
-        (TOutput[] data, int cavity) ReadFile(string path);
+        (TOutput[] data, int cavity, string sn) ReadFile(string path);
 
     }
 

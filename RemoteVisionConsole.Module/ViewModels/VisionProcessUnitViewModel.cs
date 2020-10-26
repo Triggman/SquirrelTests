@@ -38,6 +38,12 @@ namespace RemoteVisionConsole.Module.ViewModels
         private readonly IVisionProcessor<TData> _visionProcessor;
         private readonly ResponseSocket _serverSocket;
         private ProcessUnitUserSetting _userSetting;
+        private string _userSettingPath;
+        private string _tableNameRawOnline;
+        private string _tableNameWeightedOnline;
+        private string _tableNameRawOffline;
+        private string _tableNameWeightedOffline;
+        private bool _databaseServiceInstalled = true;
 
         #endregion
 
@@ -51,12 +57,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         }
 
         private ObservableCollection<Dictionary<string, object>> _displayData = new ObservableCollection<Dictionary<string, object>>();
-        private string _userSettingPath;
-        private string _tableNameRawOnline;
-        private string _tableNameWeightedOnline;
-        private string _tableNameRawOffline;
-        private string _tableNameWeightedOffline;
-        private bool _databaseServiceInstalled = true;
+
 
         public ObservableCollection<Dictionary<string, object>> DisplayData
         {
@@ -67,6 +68,8 @@ namespace RemoteVisionConsole.Module.ViewModels
         public string Name { get; }
 
         public string ServerAddress { get; }
+
+        public string ImageSaveFolderToday => Path.Combine(_userSetting.ImageSaveMainFolder, DateTime.Now.ToString("yyyy-MM-dd"));
 
         public ICommand ShowPropertiesCommand { get; }
         public ICommand RunSingleFileCommand { get; }
@@ -189,7 +192,10 @@ namespace RemoteVisionConsole.Module.ViewModels
 
             _userSettingPath = Path.Combine(settingDir, $"{name}.xml");
 
-            if (!File.Exists(_userSettingPath)) return new ProcessUnitUserSetting();
+            if (!File.Exists(_userSettingPath))
+            {
+                return new ProcessUnitUserSetting() { ImageSaveMainFolder = GetDefaultImageSaveDir() };
+            }
 
             using (var reader = new StreamReader(_userSettingPath))
             {
@@ -238,8 +244,8 @@ namespace RemoteVisionConsole.Module.ViewModels
             var fileName = Path.GetFileName(filePath);
             Log($"正在离线运行图片{fileName}", $"Running image offline: {fileName}");
 
-            var (data, cavity) = _visionAdapter.ReadFile(filePath);
-            ProcessData(data, cavity, DataSourceType.DataFile);
+            var (data, cavity, sn) = _visionAdapter.ReadFile(filePath);
+            ProcessData(data, cavity, sn, DataSourceType.DataFile);
         }
 
         private void ShowProperties()
@@ -261,39 +267,49 @@ namespace RemoteVisionConsole.Module.ViewModels
             while (true)
             {
                 var message = _serverSocket.ReceiveMultipartMessage();
-                var sourceId = message[0].ConvertToString();
-
-                var shouldProcess = _visionAdapter.IsInterestingData(sourceId);
-                if (!shouldProcess)
-                {
-                    Log($"过滤非感兴趣输入ID({sourceId})", $"source id({sourceId}) is not an interesting id");
-                    return;
-                }
+                var sn = message[0].ConvertToString();
 
                 var cavity = int.Parse(message[1].ConvertToString());
                 var data = message[2].Buffer;
-                ProcessData(_visionAdapter.ConvertInput(data), cavity, DataSourceType.ZeroMQ);
+                ProcessData(_visionAdapter.ConvertInput(data), cavity, sn, DataSourceType.ZeroMQ);
             }
         }
 
-        private void ProcessDataFromDataEvent((byte[] data, int cavity, string sourceId) input)
+        private void ProcessDataFromDataEvent((byte[] data, int cavity, string sn) input)
         {
-            var shouldProcess = _visionAdapter.IsInterestingData(input.sourceId);
-            if (!shouldProcess)
+            ProcessData(_visionAdapter.ConvertInput(input.data), input.cavity, input.sn, DataSourceType.DataEvent);
+        }
+
+        private void ProcessData(TData[] data, int cavity, string inputSn, DataSourceType dataSource)
+        {
+            var sn = inputSn ?? string.Empty;
+            Log($"正在处理来自{dataSource}, 长度为{data.Length}, 夹具编号为{cavity}的数据, sn为{sn}", $"Start processing data of length({data.Length}) of cavity({cavity}), sn({sn}) from data source({dataSource})");
+
+            var stopwatch = Stopwatch.StartNew();
+            ProcessResult<TData> result = null;
+            try
             {
-                Log($"过滤非感兴趣输入ID({input.sourceId})", $"source id({input.sourceId}) is not an interesting id");
+                result = _visionProcessor.Process(data, cavity);
+
+            }
+            catch (Exception ex)
+            {
+                // Save image file
+                var exDetail = $"{ex.GetType()} \n{ex.Message}\n {ex.StackTrace}";
+                if (dataSource != DataSourceType.DataFile) _visionAdapter.SaveImage(data, ImageSaveFolderToday, "ERROR", GetImageFileName(cavity, sn), exDetail);
+                else Log($"视觉处理出现异常: {exDetail}", $"Errored during vision processing: {exDetail}", LogLevel.Fatal);
+
+                // Report ex to ALC
+                if (dataSource == DataSourceType.DataEvent) _ea.GetEvent<VisionResultEvent>().Publish(new StatisticsResults() { ResultType = ResultType.ERROR });
+                if (dataSource == DataSourceType.ZeroMQ)
+                {
+                    var json = JsonConvert.SerializeObject(new StatisticsResults() { ResultType = ResultType.ERROR });
+                    _serverSocket.SendFrame(json);
+                }
+
                 return;
             }
 
-            ProcessData(_visionAdapter.ConvertInput(input.data), input.cavity, DataSourceType.DataEvent);
-        }
-
-        private void ProcessData(TData[] data, int cavity, DataSourceType dataSource)
-        {
-            Log($"正在处理来自{dataSource}, 长度为{data.Length}, 夹具编号为{cavity}的数据", $"Start processing data of length({data.Length}) of cavity({cavity}) from data source({dataSource})");
-
-            var stopwatch = Stopwatch.StartNew();
-            var result = _visionProcessor.Process(data, cavity);
             var resultType = _visionAdapter.GetResultType(result.Statistics);
             var weightedStatistics = _visionAdapter.Weight(result.Statistics);
             var ms = stopwatch.ElapsedMilliseconds;
@@ -310,7 +326,20 @@ namespace RemoteVisionConsole.Module.ViewModels
                 else ShowChart(result.DisplayData);
             }
 
-            if (_visionAdapter.ShouldSaveImage(resultType)) _visionAdapter.SaveImage(data, cavity);
+            if (dataSource != DataSourceType.DataFile && _userSetting.ImageSaveFilter != ImageSaveFilter.ErrorOnly)
+            {
+                var subFolder = string.Empty;
+                if (_userSetting.ImageSaveSchema == ImageSaveSchema.OkNgInOneFolder)
+                {
+                    subFolder = "OkAndNg";
+                }
+                else
+                {
+                    subFolder = resultType.ToString();
+                }
+
+                _visionAdapter.SaveImage(data, ImageSaveFolderToday, subFolder, GetImageFileName(cavity, sn), null);
+            }
 
             // Write to database
             if (_databaseServiceInstalled)
@@ -367,6 +396,25 @@ namespace RemoteVisionConsole.Module.ViewModels
                     }
                 }
             }
+        }
+
+        private string GetImageFileName(int cavity, string sn)
+        {
+            var snPart = string.IsNullOrEmpty(sn) ? "NoSN_" : $"{sn}_";
+
+            return $"{snPart}Cavity{cavity}";
+        }
+
+        private static string GetDefaultImageSaveDir()
+        {
+            // Determine log dir
+            // Log dir sits at the first drive that is larger than 100 GB behind c drive
+            var drives = DriveInfo.GetDrives();
+
+            var gb100 = 102400000000L;
+            var storageDrive = drives.FirstOrDefault(d => !d.Name.StartsWith("C") && d.TotalSize > gb100)?.Name;
+
+            return storageDrive ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "RemoteVisionConsoleImages");
         }
 
         private void ShowChart(TData[] displayData)
@@ -489,14 +537,15 @@ namespace RemoteVisionConsole.Module.ViewModels
             image.WritePixels(new Int32Rect(0, 0, width, height), rgbData, image.BackBufferStride, 0);
         }
 
-        private void ReportResult(Statistics statistics, string resultType, DataSourceType dataSource)
+        private void ReportResult(Statistics statistics, ResultType resultType, DataSourceType dataSource)
         {
-            if (dataSource == DataSourceType.DataEvent) _ea.GetEvent<VisionResultEvent>().Publish((statistics, resultType));
+            var statisticReuslts = new StatisticsResults(statistics.FloatResults, statistics.IntegerResults, statistics.TextResults) { ResultType = resultType };
+            if (dataSource == DataSourceType.DataEvent) _ea.GetEvent<VisionResultEvent>().Publish(statisticReuslts);
             else if (dataSource == DataSourceType.ZeroMQ)
             {
                 // Serialize statistics 
-                var json = JsonConvert.SerializeObject(new StatisticsResults(statistics.FloatResults, statistics.IntegerResults, statistics.TextResults));
-                _serverSocket.SendMoreFrame(resultType).SendFrame(json);
+                var json = JsonConvert.SerializeObject(statisticReuslts);
+                _serverSocket.SendFrame(json);
             }
             Log("发送计算结果", "Reported statistic results");
         }

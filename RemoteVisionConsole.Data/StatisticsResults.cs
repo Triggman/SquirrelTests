@@ -9,6 +9,8 @@ namespace RemoteVisionConsole.Data
         public List<IntegerData> IntegerResults { get; set; }
         public List<TextData> TextResults { get; set; }
 
+        public ResultType ResultType { get; set; }
+
         public StatisticsResults()
         {
             DoubleResults = new List<DoubleData>();

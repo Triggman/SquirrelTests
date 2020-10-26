@@ -27,12 +27,35 @@ namespace RemoteVisionConsole.Module
 
         private bool _saveWeightedDataOffline;
 
-  
+
 
         public bool SaveWeightedDataOffline
         {
             get { return _saveWeightedDataOffline; }
             set { SetProperty(ref _saveWeightedDataOffline, value); }
         }
+
+        private ImageSaveSchema _imageSaveSchema;
+        public ImageSaveSchema ImageSaveSchema
+        {
+            get { return _imageSaveSchema; }
+            set { SetProperty(ref _imageSaveSchema, value); }
+        }
+
+        private string _imageSaveMainFolder;
+
+        public string ImageSaveMainFolder
+        {
+            get { return _imageSaveMainFolder; }
+            set { SetProperty(ref _imageSaveMainFolder, value); }
+        }
+
+        private ImageSaveFilter _imageSaveFilter;
+        public ImageSaveFilter ImageSaveFilter
+        {
+            get { return _imageSaveFilter; }
+            set { SetProperty(ref _imageSaveFilter, value); }
+        }
+
     }
 }

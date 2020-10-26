@@ -44,6 +44,7 @@
     <Compile Include="DoubleData.cs" />
     <Compile Include="IntegerData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResultType.cs" />
     <Compile Include="StatisticsResults.cs" />
     <Compile Include="TextData.cs" />
   </ItemGroup>
