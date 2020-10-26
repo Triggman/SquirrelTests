@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Dynamic;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
+﻿using System.Windows.Controls;
 
 namespace RemoteVisionConsole.Module.Views
 {
@@ -17,10 +12,10 @@ namespace RemoteVisionConsole.Module.Views
         {
             InitializeComponent();
 
-            RenderOptions.SetBitmapScalingMode(LoadedImageImage, BitmapScalingMode.HighQuality);
+            //RenderOptions.SetBitmapScalingMode(LoadedImageImage, BitmapScalingMode.HighQuality);
 
         }
 
-   
+
     }
 }

@@ -11,36 +11,38 @@ namespace RemoteVisionModule.Tests.Mocks
         private readonly Random _random = new Random();
 
         public string Name { get; } = "VisionAdapterMock";
-        public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData { SampleType = DataSampleType.TwoDimension, Width = 1419, Height = 1001, ShouldDisplay = true };
+        public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData
+        {
+            SampleType = DataSampleType.TwoDimension,
+            Dimensions = new (int, int)[] { (1419, 1001) },
+            ShouldDisplay = true
+        };
         public string ZeroMQAddress { get; } = "tcp://localhost:6001";
         public (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; } = (new[] { "tif", "tiff" }, "Tif Files");
         public string ProjectName { get; } = "TestProject";
         public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } = (new[] { "Value1" }, new[] { "Value2" }, new[] { "Value1Result", "Value2Result" });
 
-        public byte[] ConvertInput(byte[] input)
+        public List<byte[]> ConvertInput(byte[] input)
         {
-            return input;
+            return new List<byte[]> { input };
         }
 
-        public string GetResultType(Statistics statistics)
+        public ResultType GetResultType(Statistics statistics)
         {
-            if (statistics.FloatResults["Value1"] > 0) return "OK";
-            return "NG";
+            if (statistics.FloatResults["Value1"] > 0) return ResultType.OK;
+            return ResultType.NG;
         }
 
-        public bool IsInterestingData(string sourceId)
-        {
-            return true;
-        }
 
-        public (byte[] data, int cavity) ReadFile(string path)
+
+        public (List<byte[]> data, int cavity, string sn) ReadFile(string path)
         {
             var (data, samplesPerPixel, width) = ImageHelper.ReadByteTiff(path);
-            return (data, 1);
+            return (new List<byte[]> { data }, 1, null);
         }
 
 
-        public void SaveImage(byte[] imageData, string mainFolder, string subFolder, string fileName, string exceptionDetail)
+        public void SaveImage(List<byte[]> imageData, string mainFolder, string subFolder, string fileName, string exceptionDetail)
         {
             Log("Saved image");
         }
@@ -57,19 +59,13 @@ namespace RemoteVisionModule.Tests.Mocks
             };
         }
 
-        ResultType IVisionAdapter<byte>.GetResultType(Statistics statistics)
-        {
-            return ResultType.OK;
-        }
+
 
         private void Log(string message)
         {
             Console.WriteLine($"Vision adapter mock: {message}");
         }
 
-        (byte[] data, int cavity, string sn) IVisionAdapter<byte>.ReadFile(string path)
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }

@@ -10,14 +10,14 @@ namespace RemoteVisionConsole.Interface
         /// <param name="data"></param>
         /// <param name="cavityIndex"></param>
         /// <returns></returns>
-        ProcessResult<TData> Process(TData[] data, int cavityIndex);
+        ProcessResult<TData> Process(List<TData[]> data, int cavityIndex);
 
         (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; }
     }
 
     public class ProcessResult<TData>
     {
-        public TData[] DisplayData { get; set; }
+        public List<TData[]> DisplayData { get; set; }
         public Statistics Statistics { get; set; }
     }
 

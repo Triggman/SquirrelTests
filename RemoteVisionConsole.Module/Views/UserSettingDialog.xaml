@@ -17,7 +17,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+        </Grid.RowDefinitions> 
 
 
         <GroupBox Grid.Row="0" Header="保存数据">

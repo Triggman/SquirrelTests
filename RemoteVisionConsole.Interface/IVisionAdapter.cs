@@ -1,5 +1,5 @@
 ﻿using RemoteVisionConsole.Data;
-using System;
+using System.Collections.Generic;
 
 namespace RemoteVisionConsole.Interface
 {
@@ -26,7 +26,7 @@ namespace RemoteVisionConsole.Interface
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        TOutput[] ConvertInput(byte[] input);
+        List<TOutput[]> ConvertInput(byte[] input);
 
         /// <summary>
         /// Deduce result type based on statistics result
@@ -43,19 +43,19 @@ namespace RemoteVisionConsole.Interface
         /// <param name="subFolder"></param>
         /// <param name="fileName"></param>
         /// <param name="exceptionDetail">null when no error occours during image processing</param>
-        void SaveImage(TOutput[] imageData, string mainFolder, string subFolder, string fileName, string exceptionDetail);
+        void SaveImage(List<TOutput[]> imageData, string mainFolder, string subFolder, string fileName, string exceptionDetail);
 
         Statistics Weight(Statistics statistics);
 
-        (TOutput[] data, int cavity, string sn) ReadFile(string path);
+        (List<TOutput[]> data, int cavity, string sn) ReadFile(string path);
 
     }
 
     public class GraphicMetaData
     {
         public DataSampleType SampleType { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public (int width, int height)[] Dimensions { get; set; }
+
         public bool ShouldDisplay { get; set; }
     }
 

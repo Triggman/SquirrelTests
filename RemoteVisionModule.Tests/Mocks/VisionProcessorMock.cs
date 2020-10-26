@@ -7,7 +7,7 @@ namespace RemoteVisionModule.Tests.Mocks
     {
         public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } = (new[] { "Value1" }, null, null);
 
-        public ProcessResult<byte> Process(byte[] data, int cavityIndex)
+        public ProcessResult<byte> Process(List<byte[]> data, int cavityIndex)
         {
             return new ProcessResult<byte>()
             {

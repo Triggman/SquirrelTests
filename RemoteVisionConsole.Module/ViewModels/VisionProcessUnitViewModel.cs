@@ -14,6 +14,7 @@ using RemoteVisionConsole.Module.Helper;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
@@ -49,11 +50,11 @@ namespace RemoteVisionConsole.Module.ViewModels
 
 
         #region props
-        private WriteableBitmap _displayImage;
-        public WriteableBitmap DisplayImage
+        private List<WriteableBitmap> _displayImages;
+        public List<WriteableBitmap> DisplayImages
         {
-            get { return _displayImage; }
-            set { SetProperty(ref _displayImage, value); }
+            get { return _displayImages; }
+            set { SetProperty(ref _displayImages, value); }
         }
 
         private ObservableCollection<Dictionary<string, object>> _displayData = new ObservableCollection<Dictionary<string, object>>();
@@ -110,12 +111,9 @@ namespace RemoteVisionConsole.Module.ViewModels
                 _serverSocket = new ResponseSocket(ServerAddress);
                 new Thread(ListenForProcessDataFromZeroMQ) { IsBackground = true }.Start();
             }
+
+            GenerateEmptyDisplayImages();
         }
-
-
-
-
-
 
         #endregion
 
@@ -131,6 +129,33 @@ namespace RemoteVisionConsole.Module.ViewModels
         #endregion
 
         #region impl
+
+        private void GenerateEmptyDisplayImages()
+        {
+            var displayImages = new List<WriteableBitmap>();
+            var r = (byte)153;
+            var g = (byte)208;
+            var b = (byte)112;
+            var color = new[] { r, g, b };
+
+            for (int imageIndex = 0; imageIndex < _visionAdapter.GraphicMetaData.Dimensions.Length; imageIndex++)
+            {
+                var width = _visionAdapter.GraphicMetaData.Dimensions[imageIndex].width;
+                var height = _visionAdapter.GraphicMetaData.Dimensions[imageIndex].height;
+                var pixelData = new byte[width * height * 3];
+                for (int i = 0; i < pixelData.Length; i++)
+                {
+                    var channel = i % 3;
+                    pixelData[i] = color[channel];
+                }
+
+
+                var image = CreateDisplayImage(width, height, pixelData, imageIndex);
+                displayImages.Add(image);
+            }
+
+            DisplayImages = displayImages;
+        }
 
         private void OpenSettingDialog()
         {
@@ -280,10 +305,10 @@ namespace RemoteVisionConsole.Module.ViewModels
             ProcessData(_visionAdapter.ConvertInput(input.data), input.cavity, input.sn, DataSourceType.DataEvent);
         }
 
-        private void ProcessData(TData[] data, int cavity, string inputSn, DataSourceType dataSource)
+        private void ProcessData(List<TData[]> data, int cavity, string inputSn, DataSourceType dataSource)
         {
             var sn = inputSn ?? string.Empty;
-            Log($"正在处理来自{dataSource}, 长度为{data.Length}, 夹具编号为{cavity}的数据, sn为{sn}", $"Start processing data of length({data.Length}) of cavity({cavity}), sn({sn}) from data source({dataSource})");
+            Log($"正在处理来自{dataSource}, 长度为{data.Count}, 夹具编号为{cavity}的数据, sn为{sn}", $"Start processing data of length({data.Count}) of cavity({cavity}), sn({sn}) from data source({dataSource})");
 
             var stopwatch = Stopwatch.StartNew();
             ProcessResult<TData> result = null;
@@ -322,7 +347,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             if (_visionAdapter.GraphicMetaData.ShouldDisplay)
             {
                 if (_visionAdapter.GraphicMetaData.SampleType != DataSampleType.OneDimension)
-                    ShowImage(result.DisplayData, _visionAdapter.GraphicMetaData);
+                    ShowImages(result.DisplayData, _visionAdapter.GraphicMetaData);
                 else ShowChart(result.DisplayData);
             }
 
@@ -417,7 +442,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             return storageDrive ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "RemoteVisionConsoleImages");
         }
 
-        private void ShowChart(TData[] displayData)
+        private void ShowChart(List<TData[]> displayData)
         {
             throw new NotImplementedException();
         }
@@ -457,78 +482,82 @@ namespace RemoteVisionConsole.Module.ViewModels
             if (DisplayData.Count > 100) DisplayData = new ObservableCollection<Dictionary<string, object>>(DisplayData.Skip(50));
         }
 
-        private void ShowImage(TData[] displayData, GraphicMetaData graphicMetaData)
+        private void ShowImages(List<TData[]> displayData, GraphicMetaData graphicMetaData)
         {
             Application.Current.Dispatcher?.InvokeAsync(() =>
             {
 
-                if (displayData is byte[] byteArray)
+                if (displayData[0] is byte[])
                 {
-                    ShowByteImage(byteArray, graphicMetaData);
+                    ShowByteImages(displayData.Cast<byte[]>().ToList(), graphicMetaData);
                 }
-                else if (displayData is float[] floatArray)
+                else if (displayData[0] is float[])
                 {
-                    ShowFloatImage(floatArray, graphicMetaData);
+                    ShowFloatImages(displayData.Cast<float[]>().ToList(), graphicMetaData);
                 }
-                else if (displayData is ushort[] ushortArray)
+                else if (displayData[0] is ushort[])
                 {
-                    ShowUShortImage(ushortArray, graphicMetaData);
+                    ShowUShortImages(displayData.Cast<ushort[]>().ToList(), graphicMetaData);
                 }
-                else if (displayData is short[] shortArray)
+                else if (displayData[0] is short[])
                 {
-                    ShowShortImage(shortArray, graphicMetaData);
+                    ShowShortImages(displayData.Cast<short[]>().ToList(), graphicMetaData);
                 }
 
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(DisplayImages)));
             });
         }
 
-        private void ShowShortImage(short[] shortArray, GraphicMetaData graphicMetaData)
+        private void ShowShortImages(List<short[]> shortArray, GraphicMetaData graphicMetaData)
         {
             throw new NotImplementedException();
         }
 
-        private void ShowUShortImage(ushort[] ushortArray, GraphicMetaData graphicMetaData)
+        private void ShowUShortImages(List<ushort[]> ushortArray, GraphicMetaData graphicMetaData)
         {
             throw new NotImplementedException();
         }
 
-        private void ShowFloatImage(float[] floatArray, GraphicMetaData graphicMetaData)
+        private void ShowFloatImages(List<float[]> floatArray, GraphicMetaData graphicMetaData)
         {
             throw new NotImplementedException();
         }
 
-        private void ShowByteImage(byte[] displayData, GraphicMetaData graphicMetaData)
+        private void ShowByteImages(List<byte[]> displayData, GraphicMetaData graphicMetaData)
         {
-            byte[] pixelData;
-            if (graphicMetaData.SampleType == DataSampleType.TwoDimension)
+            for (int imageIndex = 0; imageIndex < displayData.Count; imageIndex++)
             {
-                pixelData = new byte[displayData.Length * 3];
-                for (int i = 0; i < displayData.Length; i++)
+                byte[] pixelData;
+                var currentImageData = displayData[imageIndex];
+                if (graphicMetaData.SampleType == DataSampleType.TwoDimension)
                 {
-                    var start = i * 3;
-                    for (int offset = 0; offset < 3; offset++)
+                    pixelData = new byte[currentImageData.Length * 3];
+                    for (int i = 0; i < currentImageData.Length; i++)
                     {
-                        pixelData[start + offset] = displayData[i];
+                        var start = i * 3;
+                        for (int offset = 0; offset < 3; offset++)
+                        {
+                            pixelData[start + offset] = currentImageData[i];
+                        }
                     }
                 }
-            }
-            else
-            {
-                pixelData = displayData;
+                else
+                {
+                    pixelData = currentImageData;
+                }
+
+
+                UpdateDisplayImage(DisplayImages[imageIndex], pixelData, graphicMetaData.Dimensions[imageIndex].width, graphicMetaData.Dimensions[imageIndex].height);
+
             }
 
-            if (DisplayImage == null) DisplayImage = CreateDisplayImage(graphicMetaData, pixelData);
-            else
-            {
-                UpdateDisplayImage(DisplayImage, pixelData, graphicMetaData.Width, graphicMetaData.Height);
-            }
 
         }
 
-        private WriteableBitmap CreateDisplayImage(GraphicMetaData graphicMetaData, byte[] pixelData)
+        private WriteableBitmap CreateDisplayImage(int width, int height, byte[] pixelData, int imageIndex)
         {
-            var writeableBitmap = new WriteableBitmap(graphicMetaData.Width, graphicMetaData.Height, 96.0, 96.0, PixelFormats.Rgb24, BitmapPalettes.Halftone256Transparent);
-            writeableBitmap.WritePixels(new Int32Rect(0, 0, graphicMetaData.Width, graphicMetaData.Height), pixelData, graphicMetaData.Width * 3, 0);
+            var writeableBitmap = new WriteableBitmap(width, height, 96.0, 96.0, PixelFormats.Rgb24, BitmapPalettes.Halftone256Transparent);
+            writeableBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixelData, width * 3, 0);
             return writeableBitmap;
         }
 
