@@ -1,9 +1,12 @@
-﻿using Prism.Events;
+﻿using LoggingConsole.Interface;
+using Prism.Commands;
+using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Input;
 using System.Xml.Serialization;
 
 namespace RemoteVisionConsole.Module.ViewModels
@@ -18,6 +21,8 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         #region events
         public event Action<string> Error;
+        public event Action<VsionProcessUnitContainerViewModel> Deleted;
+
 
         #endregion
 
@@ -40,6 +45,8 @@ namespace RemoteVisionConsole.Module.ViewModels
             get { return _title; }
             set { SetProperty(ref _title, value); }
         }
+        public ICommand DeleteMeCommand { get; }
+
         #endregion
 
         #region ctor
@@ -55,6 +62,8 @@ namespace RemoteVisionConsole.Module.ViewModels
             ViewModel = configViewModel;
             _ea = ea;
             _dialogService = dialogService;
+
+            DeleteMeCommand = new DelegateCommand(DeleteMe);
         }
 
         /// <summary>
@@ -69,11 +78,37 @@ namespace RemoteVisionConsole.Module.ViewModels
             var (vm, unitName) = CreateUnit(processorType, adapterType, dataType, ea, _dialogService);
             ViewModel = vm;
             Title = unitName;
+
+            DeleteMeCommand = new DelegateCommand(DeleteMe);
+
         }
         #endregion
 
 
         #region impl
+
+
+        private void DeleteMe()
+        {
+            var prompt = string.Empty;
+            if (ViewModel is VsionProcessUnitConfigurationViewModel)
+            {
+                prompt = "是否删除为配置完成的页面?";
+            }
+            else
+            {
+                prompt = $"是否删除页面: {Title} ?";
+            }
+            _dialogService.ShowDialog("VisionConsoleConfirmDialog", new DialogParameters { { "content", prompt } }, r =>
+            {
+                if (r.Result == ButtonResult.OK)
+                {
+                    Log("页面已删除", $"Page({Title}) was deleted");
+                    Deleted?.Invoke(this);
+                }
+
+            });
+        }
 
         private static (object unit, string unitName) CreateUnit(TypeSource processorType, TypeSource adapterType, Type dataType, IEventAggregator ea, IDialogService dialogService)
         {
@@ -115,7 +150,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                 ProcessorAssemblyPath = processorTypeSource.AssemblyFilePath,
                 ProcessorNamespace = processorTypeSource.Namespace,
                 ProcessorTypeName = processorTypeSource.TypeName,
-
+                UnitName = unitName
             });
 
             using (var writer = new StreamWriter(Constants.ConfigFilePath))
@@ -124,6 +159,11 @@ namespace RemoteVisionConsole.Module.ViewModels
                 serializer.Serialize(writer, configItems);
             }
 
+        }
+
+        private void Log(string displayMessage, string saveMessage, LogLevel logLevel = LogLevel.Info)
+        {
+            RemoteVisionConsoleModule.Log(new LoggingMessageItem($"视觉页面({Title}): {displayMessage}", $"VisionPage({Title}): {saveMessage}") { LogLevel = logLevel });
         }
 
         private void Warn(string message)

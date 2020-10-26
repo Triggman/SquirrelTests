@@ -35,8 +35,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private readonly IDialogService _dialogService;
         private readonly TypeSource _processorTypeSource;
         private readonly TypeSource _adapterTypeSource;
-        private readonly IVisionAdapter<TData> _visionAdapter;
-        private readonly IVisionProcessor<TData> _visionProcessor;
+
         private readonly ResponseSocket _serverSocket;
         private ProcessUnitUserSetting _userSetting;
         private string _userSettingPath;
@@ -49,7 +48,12 @@ namespace RemoteVisionConsole.Module.ViewModels
         #endregion
 
 
+
         #region props
+
+        public IVisionAdapter<TData> Adapter { get; }
+        public IVisionProcessor<TData> Processor { get; }
+
         private List<WriteableBitmap> _displayImages;
         public List<WriteableBitmap> DisplayImages
         {
@@ -85,9 +89,9 @@ namespace RemoteVisionConsole.Module.ViewModels
             _dialogService = dialogService;
             _processorTypeSource = processorTypeSource;
             _adapterTypeSource = adapterTypeSource;
-            _visionProcessor = (IVisionProcessor<TData>)Activator.CreateInstance(processorTypeSource.Type);
-            _visionAdapter = (IVisionAdapter<TData>)Activator.CreateInstance(adapterTypeSource.Type);
-            Name = _visionAdapter.Name;
+            Processor = (IVisionProcessor<TData>)Activator.CreateInstance(processorTypeSource.Type);
+            Adapter = (IVisionAdapter<TData>)Activator.CreateInstance(adapterTypeSource.Type);
+            Name = Adapter.Name;
 
             _ea.GetEvent<DataEvent>().Subscribe(ProcessDataFromDataEvent);
 
@@ -96,7 +100,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             RunFolderCommand = new DelegateCommand(RunFolder);
             OpenSettingDialogCommand = new DelegateCommand(OpenSettingDialog);
 
-            _userSetting = LoadUserSetting(_visionAdapter.Name);
+            _userSetting = LoadUserSetting(Adapter.Name);
 
             CreateDatabase();
 
@@ -107,13 +111,14 @@ namespace RemoteVisionConsole.Module.ViewModels
 
             if (enableZeroMQ)
             {
-                ServerAddress = ConfigurationManager.AppSettings[$"ServerAddress-{_visionAdapter.Name}"] ?? _visionAdapter.ZeroMQAddress ?? "tcp://localhost:6000";
+                ServerAddress = ConfigurationManager.AppSettings[$"ServerAddress-{Adapter.Name}"] ?? Adapter.ZeroMQAddress ?? "tcp://localhost:6000";
                 _serverSocket = new ResponseSocket(ServerAddress);
                 new Thread(ListenForProcessDataFromZeroMQ) { IsBackground = true }.Start();
             }
 
             GenerateEmptyDisplayImages();
         }
+
 
         #endregion
 
@@ -130,6 +135,8 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         #region impl
 
+
+
         private void GenerateEmptyDisplayImages()
         {
             var displayImages = new List<WriteableBitmap>();
@@ -138,10 +145,10 @@ namespace RemoteVisionConsole.Module.ViewModels
             var b = (byte)112;
             var color = new[] { r, g, b };
 
-            for (int imageIndex = 0; imageIndex < _visionAdapter.GraphicMetaData.Dimensions.Length; imageIndex++)
+            for (int imageIndex = 0; imageIndex < Adapter.GraphicMetaData.Dimensions.Length; imageIndex++)
             {
-                var width = _visionAdapter.GraphicMetaData.Dimensions[imageIndex].width;
-                var height = _visionAdapter.GraphicMetaData.Dimensions[imageIndex].height;
+                var width = Adapter.GraphicMetaData.Dimensions[imageIndex].width;
+                var height = Adapter.GraphicMetaData.Dimensions[imageIndex].height;
                 var pixelData = new byte[width * height * 3];
                 for (int i = 0; i < pixelData.Length; i++)
                 {
@@ -182,24 +189,24 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void CreateDatabase()
         {
-            var projectName = _visionAdapter.ProjectName ?? "VisionConsole";
-            _tableNameRawOnline = $"{projectName}.{_visionAdapter.Name}_Raw_Online";
-            _tableNameWeightedOnline = $"{projectName}.{_visionAdapter.Name}_Weighted_Online";
-            _tableNameRawOffline = $"{projectName}.{_visionAdapter.Name}_Raw_Offline";
-            _tableNameWeightedOffline = $"{projectName}.{_visionAdapter.Name}_Weighted_Offline";
+            var projectName = Adapter.ProjectName ?? "VisionConsole";
+            _tableNameRawOnline = $"{projectName}.{Adapter.Name}_Raw_Online";
+            _tableNameWeightedOnline = $"{projectName}.{Adapter.Name}_Weighted_Online";
+            _tableNameRawOffline = $"{projectName}.{Adapter.Name}_Raw_Offline";
+            _tableNameWeightedOffline = $"{projectName}.{Adapter.Name}_Weighted_Offline";
 
             var integerNamesRaw = new List<string>() { "Cavity" };
-            if (_visionProcessor.OutputNames.integerNames != null) integerNamesRaw.AddRange(_visionProcessor.OutputNames.integerNames);
+            if (Processor.OutputNames.integerNames != null) integerNamesRaw.AddRange(Processor.OutputNames.integerNames);
             var integerNamesWeighted = new List<string>() { "Cavity" };
-            if (_visionAdapter.OutputNames.integerNames != null) integerNamesWeighted.AddRange(_visionAdapter.OutputNames.integerNames);
+            if (Adapter.OutputNames.integerNames != null) integerNamesWeighted.AddRange(Adapter.OutputNames.integerNames);
 
             try
             {
                 var proxy = new CygiaSqliteAccessProxy(EndPointType.TCP);
-                proxy.CreateTable(_tableNameRawOnline, _visionProcessor.OutputNames.floatNames, integerNamesRaw.ToArray(), _visionProcessor.OutputNames.textNames);
-                proxy.CreateTable(_tableNameRawOffline, _visionProcessor.OutputNames.floatNames, integerNamesRaw.ToArray(), _visionProcessor.OutputNames.textNames);
-                proxy.CreateTable(_tableNameWeightedOnline, _visionAdapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), _visionAdapter.OutputNames.textNames);
-                proxy.CreateTable(_tableNameWeightedOffline, _visionAdapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), _visionAdapter.OutputNames.textNames);
+                proxy.CreateTable(_tableNameRawOnline, Processor.OutputNames.floatNames, integerNamesRaw.ToArray(), Processor.OutputNames.textNames);
+                proxy.CreateTable(_tableNameRawOffline, Processor.OutputNames.floatNames, integerNamesRaw.ToArray(), Processor.OutputNames.textNames);
+                proxy.CreateTable(_tableNameWeightedOnline, Adapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), Adapter.OutputNames.textNames);
+                proxy.CreateTable(_tableNameWeightedOffline, Adapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), Adapter.OutputNames.textNames);
             }
             catch (System.ServiceModel.EndpointNotFoundException)
             {
@@ -237,8 +244,8 @@ namespace RemoteVisionConsole.Module.ViewModels
             {
                 var allFiles = Directory.GetFiles(dir);
                 var filesThatMatch = allFiles;
-                if (_visionAdapter.ImageFileFilter.HasValue) filesThatMatch = allFiles.
-                        Where(f => _visionAdapter.ImageFileFilter.Value.extensions.Any(ex => Path.GetExtension(f).Replace(".", "").ToUpper() == ex.ToUpper())).ToArray();
+                if (Adapter.ImageFileFilter.HasValue) filesThatMatch = allFiles.
+                        Where(f => Adapter.ImageFileFilter.Value.extensions.Any(ex => Path.GetExtension(f).Replace(".", "").ToUpper() == ex.ToUpper())).ToArray();
 
                 if (filesThatMatch.Length == 0)
                 {
@@ -256,7 +263,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void RunSingleFile()
         {
-            var selectedFile = Helpers.GetFileFromDialog(pattern: _visionAdapter.ImageFileFilter);
+            var selectedFile = Helpers.GetFileFromDialog(pattern: Adapter.ImageFileFilter);
             if (!string.IsNullOrEmpty(selectedFile))
             {
                 ProcessDataFromFile(selectedFile);
@@ -269,7 +276,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             var fileName = Path.GetFileName(filePath);
             Log($"正在离线运行图片{fileName}", $"Running image offline: {fileName}");
 
-            var (data, cavity, sn) = _visionAdapter.ReadFile(filePath);
+            var (data, cavity, sn) = Adapter.ReadFile(filePath);
             ProcessData(data, cavity, sn, DataSourceType.DataFile);
         }
 
@@ -296,13 +303,13 @@ namespace RemoteVisionConsole.Module.ViewModels
 
                 var cavity = int.Parse(message[1].ConvertToString());
                 var data = message[2].Buffer;
-                ProcessData(_visionAdapter.ConvertInput(data), cavity, sn, DataSourceType.ZeroMQ);
+                ProcessData(Adapter.ConvertInput(data), cavity, sn, DataSourceType.ZeroMQ);
             }
         }
 
         private void ProcessDataFromDataEvent((byte[] data, int cavity, string sn) input)
         {
-            ProcessData(_visionAdapter.ConvertInput(input.data), input.cavity, input.sn, DataSourceType.DataEvent);
+            ProcessData(Adapter.ConvertInput(input.data), input.cavity, input.sn, DataSourceType.DataEvent);
         }
 
         private void ProcessData(List<TData[]> data, int cavity, string inputSn, DataSourceType dataSource)
@@ -314,14 +321,14 @@ namespace RemoteVisionConsole.Module.ViewModels
             ProcessResult<TData> result = null;
             try
             {
-                result = _visionProcessor.Process(data, cavity);
+                result = Processor.Process(data, cavity);
 
             }
             catch (Exception ex)
             {
                 // Save image file
                 var exDetail = $"{ex.GetType()} \n{ex.Message}\n {ex.StackTrace}";
-                if (dataSource != DataSourceType.DataFile) _visionAdapter.SaveImage(data, ImageSaveFolderToday, "ERROR", GetImageFileName(cavity, sn), exDetail);
+                if (dataSource != DataSourceType.DataFile) Adapter.SaveImage(data, ImageSaveFolderToday, "ERROR", GetImageFileName(cavity, sn), exDetail);
                 else Log($"视觉处理出现异常: {exDetail}", $"Errored during vision processing: {exDetail}", LogLevel.Fatal);
 
                 // Report ex to ALC
@@ -335,8 +342,8 @@ namespace RemoteVisionConsole.Module.ViewModels
                 return;
             }
 
-            var resultType = _visionAdapter.GetResultType(result.Statistics);
-            var weightedStatistics = _visionAdapter.Weight(result.Statistics);
+            var resultType = Adapter.GetResultType(result.Statistics);
+            var weightedStatistics = Adapter.Weight(result.Statistics);
             var ms = stopwatch.ElapsedMilliseconds;
             Log($"计算耗时{ms}ms", $"Data process finished in {ms} ms");
 
@@ -344,10 +351,10 @@ namespace RemoteVisionConsole.Module.ViewModels
 
             DisplayStatisticResults(weightedStatistics, cavity);
 
-            if (_visionAdapter.GraphicMetaData.ShouldDisplay)
+            if (Adapter.GraphicMetaData.ShouldDisplay)
             {
-                if (_visionAdapter.GraphicMetaData.SampleType != DataSampleType.OneDimension)
-                    ShowImages(result.DisplayData, _visionAdapter.GraphicMetaData);
+                if (Adapter.GraphicMetaData.SampleType != DataSampleType.OneDimension)
+                    ShowImages(result.DisplayData, Adapter.GraphicMetaData);
                 else ShowChart(result.DisplayData);
             }
 
@@ -363,7 +370,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                     subFolder = resultType.ToString();
                 }
 
-                _visionAdapter.SaveImage(data, ImageSaveFolderToday, subFolder, GetImageFileName(cavity, sn), null);
+                Adapter.SaveImage(data, ImageSaveFolderToday, subFolder, GetImageFileName(cavity, sn), null);
             }
 
             // Write to database
@@ -581,7 +588,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void Log(string displayMessage, string saveMessage, LogLevel logLevel = LogLevel.Info)
         {
-            RemoteVisionConsoleModule.Log(new LoggingMessageItem($"视觉页面({_visionAdapter.Name}): {displayMessage}", $"VisionPage({_visionAdapter.Name}): {saveMessage}") { LogLevel = logLevel });
+            RemoteVisionConsoleModule.Log(new LoggingMessageItem($"视觉页面({Adapter.Name}): {displayMessage}", $"VisionPage({Adapter.Name}): {saveMessage}") { LogLevel = logLevel });
         }
 
         private void Warn(string message)

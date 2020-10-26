@@ -13,6 +13,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         public string ProcessorAssemblyPath { get; set; }
         public string ProcessorNamespace { get; set; }
         public string ProcessorTypeName { get; set; }
+        public string UnitName { get; set; }
 
         public (TypeSource processorTypeSource, TypeSource adapterTypeSource, Type dataType) GetTypes()
         {

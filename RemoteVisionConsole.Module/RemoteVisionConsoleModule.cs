@@ -22,6 +22,7 @@ namespace RemoteVisionConsole.Module
             containerRegistry.RegisterDialog<VisionConsoleNotificationDialog, VisionConsoleNotificationDialogViewModel>();
             containerRegistry.RegisterDialog<VisionProcessUnitPropertyDialog, VisionProcessUnitPropertyDialogViewModel>();
             containerRegistry.RegisterDialog<UserSettingDialog, UserSettingDialogViewModel>();
+            containerRegistry.RegisterDialog<VisionConsoleConfirmDialog, VisionConsoleConfirmDialogViewModel>();
         }
 
         internal static void Log(LoggingMessageItem logItem)

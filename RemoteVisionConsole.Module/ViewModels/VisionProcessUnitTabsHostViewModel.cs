@@ -17,7 +17,19 @@ namespace RemoteVisionConsole.Module.ViewModels
         private readonly IEventAggregator _ea;
         private readonly IDialogService _dialogService;
 
-        public ObservableCollection<VsionProcessUnitContainerViewModel> TabItems { get; set; }
+        private ObservableCollection<VsionProcessUnitContainerViewModel> _tabItems;
+        public ObservableCollection<VsionProcessUnitContainerViewModel> TabItems
+        {
+            get { return _tabItems; }
+            set { SetProperty(ref _tabItems, value); }
+        }
+
+        private VsionProcessUnitContainerViewModel _selectedTab;
+        public VsionProcessUnitContainerViewModel SelectedTab
+        {
+            get { return _selectedTab; }
+            set { SetProperty(ref _selectedTab, value); }
+        }
 
         public ICommand AddTabItemCommand { get; }
 
@@ -25,16 +37,19 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             _ea = ea;
             _dialogService = dialogService;
-            AddTabItemCommand = new DelegateCommand(AddTabItem, () => TabItems.Count(i => i.ViewModel is VsionProcessUnitConfigurationViewModel) == 0)
-                .ObservesProperty(() => TabItems.Count);
+            AddTabItemCommand = new DelegateCommand(AddTabItem);
 
+            Directory.CreateDirectory(Constants.AppDataDir);
             TabItems = LoadSavedTabItems();
 
         }
 
         private void AddTabItem()
         {
-            TabItems.Add(new VsionProcessUnitContainerViewModel(_ea, _dialogService));
+            var item = new VsionProcessUnitContainerViewModel(_ea, _dialogService);
+            AttatchDeleteEvent(item);
+            TabItems.Add(item);
+            SelectedTab = item;
         }
 
         private ObservableCollection<VsionProcessUnitContainerViewModel> LoadSavedTabItems()
@@ -43,12 +58,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             // Load configured tabs if any
             if (File.Exists(Constants.ConfigFilePath))
             {
-                List<VisionProcessUnitConfig> configItems;
-                using (var reader = new StreamReader(Constants.ConfigFilePath))
-                {
-                    var serializer = new XmlSerializer(typeof(List<VisionProcessUnitConfig>));
-                    configItems = (List<VisionProcessUnitConfig>)serializer.Deserialize(reader);
-                }
+                var configItems = ReadUnitConfigs();
 
                 foreach (var configItem in configItems)
                 {
@@ -62,7 +72,53 @@ namespace RemoteVisionConsole.Module.ViewModels
                 output.Add(new VsionProcessUnitContainerViewModel(_ea, _dialogService));
             }
 
+            foreach (var item in output)
+            {
+                AttatchDeleteEvent(item);
+            }
+
             return output;
+        }
+
+        private static List<VisionProcessUnitConfig> ReadUnitConfigs()
+        {
+            List<VisionProcessUnitConfig> configItems;
+            using (var reader = new StreamReader(Constants.ConfigFilePath))
+            {
+                var serializer = new XmlSerializer(typeof(List<VisionProcessUnitConfig>));
+                configItems = (List<VisionProcessUnitConfig>)serializer.Deserialize(reader);
+            }
+
+            return configItems;
+        }
+
+        private void AttatchDeleteEvent(VsionProcessUnitContainerViewModel item)
+        {
+            item.Deleted += i =>
+            {
+                TabItems.Remove(i);
+
+                // Remove setting
+                if (!(i.ViewModel is VsionProcessUnitConfigurationViewModel))
+                {
+                    var unitName = i.Title;
+                    var configs = ReadUnitConfigs();
+                    var configToRemove = configs.FirstOrDefault(c => c.UnitName == unitName);
+                    if (configToRemove != null)
+                    {
+                        configs.Remove(configToRemove);
+                        using (var writer = new StreamWriter(Constants.ConfigFilePath))
+                        {
+                            var serializer = new XmlSerializer(typeof(List<VisionProcessUnitConfig>));
+                            serializer.Serialize(writer, configs);
+                        }
+                    }
+                }
+
+                // Switch to last tab remaining
+                var lastTab = TabItems.LastOrDefault();
+                if (lastTab != null) SelectedTab = lastTab;
+            };
         }
 
         private void Warn(string message)

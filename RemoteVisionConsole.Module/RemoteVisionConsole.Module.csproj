@@ -76,6 +76,7 @@
     <Compile Include="TypeSource.cs" />
     <Compile Include="ViewModels\PropertyItem.cs" />
     <Compile Include="ViewModels\UserSettingDialogViewModel.cs" />
+    <Compile Include="ViewModels\VisionConsoleConfirmDialogViewModel.cs" />
     <Compile Include="ViewModels\VisionConsoleNotificationDialogViewModel.cs" />
     <Compile Include="ViewModels\VisionProcessUnitConfig.cs" />
     <Compile Include="ViewModels\VisionProcessUnitPropertyDialogViewModel.cs" />
@@ -89,6 +90,9 @@
     <Compile Include="Views\PanAndZoomBorder.cs" />
     <Compile Include="Views\UserSettingDialog.xaml.cs">
       <DependentUpon>UserSettingDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\VisionConsoleConfirmDialog.xaml.cs">
+      <DependentUpon>VisionConsoleConfirmDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\VisionConsoleNotificationDialog.xaml.cs">
       <DependentUpon>VisionConsoleNotificationDialog.xaml</DependentUpon>
@@ -153,6 +157,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\UserSettingDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\VisionConsoleConfirmDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
