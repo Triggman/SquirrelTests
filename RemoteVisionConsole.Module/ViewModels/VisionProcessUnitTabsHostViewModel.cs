@@ -62,8 +62,16 @@ namespace RemoteVisionConsole.Module.ViewModels
 
                 foreach (var configItem in configItems)
                 {
-                    var (processorType, adapterType, dataType) = configItem.GetTypes();
-                    output.Add(new VsionProcessUnitContainerViewModel(processorType, adapterType, dataType, _ea, _dialogService));
+                    try
+                    {
+                        var (processorType, adapterType, dataType) = configItem.GetTypes();
+                        output.Add(new VsionProcessUnitContainerViewModel(processorType, adapterType, dataType, _ea, _dialogService));
+                    }
+                    catch (FileNotFoundException e)
+                    {
+                        var prompt = $"dll文件({e.FileName})丢失, \n页面{configItem.UnitName}无法加载";
+                        Warn(prompt, $"dll file lost: {e.FileName}");
+                    }
                 }
             }
             // Add a default unconfigured tab
@@ -121,9 +129,10 @@ namespace RemoteVisionConsole.Module.ViewModels
             };
         }
 
-        private void Warn(string message)
+        private void Warn(string message, string saveMessage)
         {
             _dialogService.ShowDialog("VisionConsoleNotificationDialog", new DialogParameters { { "message", message } }, r => { });
+            RemoteVisionConsoleModule.Log(new LoggingConsole.Interface.LoggingMessageItem(message, saveMessage) { LogLevel = LoggingConsole.Interface.LogLevel.Fatal });
         }
     }
 }
