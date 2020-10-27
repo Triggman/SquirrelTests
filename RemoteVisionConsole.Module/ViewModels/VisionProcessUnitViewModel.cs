@@ -168,23 +168,23 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             var settingCopied = Helpers.CopyObject(_userSetting);
             _dialogService.ShowDialog("UserSettingDialog",
-                new DialogParameters { { "setting", settingCopied }, { "login", RemoteVisionConsoleModule.UserLogin} }, r =>
-                {
-                    if (r.Result == ButtonResult.OK)
-                    {
-                        _userSetting = r.Parameters.GetValue<ProcessUnitUserSetting>("setting");
-                        using (var writer = new StreamWriter(_userSettingPath))
-                        {
-                            var serializer = new XmlSerializer(typeof(ProcessUnitUserSetting));
-                            serializer.Serialize(writer, _userSetting);
-                        }
-                        Log("保存设置成功", "Save setting success");
-                    }
-                    else
-                    {
-                        Log("设置未保存", "Settings not save", LogLevel.Warn);
-                    }
-                });
+                new DialogParameters { { "setting", settingCopied }, { "login", RemoteVisionConsoleModule.UserLogin } }, r =>
+                 {
+                     if (r.Result == ButtonResult.OK)
+                     {
+                         _userSetting = r.Parameters.GetValue<ProcessUnitUserSetting>("setting");
+                         using (var writer = new StreamWriter(_userSettingPath))
+                         {
+                             var serializer = new XmlSerializer(typeof(ProcessUnitUserSetting));
+                             serializer.Serialize(writer, _userSetting);
+                         }
+                         Log("保存设置成功", "Save setting success");
+                     }
+                     else
+                     {
+                         Log("设置未保存", "Settings not save", LogLevel.Warn);
+                     }
+                 });
         }
 
         private void CreateDatabase()
@@ -515,19 +515,84 @@ namespace RemoteVisionConsole.Module.ViewModels
             });
         }
 
+        private static byte[] ScaleToDisplayRange(short[] inputArray, float min, float max)
+        {
+            var output = new byte[inputArray.Length];
+            var range = max - min;
+            for (int index = 0; index < inputArray.Length; index++)
+            {
+                var absValue = inputArray[index] - min;
+                var scaledValue = (byte)(absValue / range * 255);
+                output[index] = scaledValue;
+            }
+
+            return output;
+        }
+
+        private static byte[] ScaleToDisplayRange(ushort[] inputArray, float min, float max)
+        {
+            var output = new byte[inputArray.Length];
+            var range = max - min;
+            for (int index = 0; index < inputArray.Length; index++)
+            {
+                var absValue = inputArray[index] - min;
+                var scaledValue = (byte)(absValue / range * 255);
+                output[index] = scaledValue;
+            }
+
+            return output;
+        }
+
+        private static byte[] ScaleToDisplayRange(float[] inputArray, float min, float max)
+        {
+            var output = new byte[inputArray.Length];
+            var range = max - min;
+            for (int index = 0; index < inputArray.Length; index++)
+            {
+                var absValue = inputArray[index] - min;
+                var scaledValue = (byte)(absValue / range * 255);
+                output[index] = scaledValue;
+            }
+
+            return output;
+        }
+
+
         private void ShowShortImages(List<short[]> shortArray, GraphicMetaData graphicMetaData)
         {
-            throw new NotImplementedException();
+            var displayData = new List<byte[]>();
+            for (int imageIndex = 0; imageIndex < shortArray.Count; imageIndex++)
+            {
+                var scaledData = ScaleToDisplayRange(shortArray[imageIndex], Adapter.DataRange.min, Adapter.DataRange.max);
+                displayData.Add(scaledData);
+            }
+            ShowByteImages(displayData, graphicMetaData);
         }
+
+
 
         private void ShowUShortImages(List<ushort[]> ushortArray, GraphicMetaData graphicMetaData)
         {
-            throw new NotImplementedException();
+            var displayData = new List<byte[]>();
+            for (int imageIndex = 0; imageIndex < ushortArray.Count; imageIndex++)
+            {
+                var scaledData = ScaleToDisplayRange(ushortArray[imageIndex], Adapter.DataRange.min, Adapter.DataRange.max);
+                displayData.Add(scaledData);
+            }
+            ShowByteImages(displayData, graphicMetaData);
         }
+
+
 
         private void ShowFloatImages(List<float[]> floatArray, GraphicMetaData graphicMetaData)
         {
-            throw new NotImplementedException();
+            var displayData = new List<byte[]>();
+            for (int imageIndex = 0; imageIndex < floatArray.Count; imageIndex++)
+            {
+                var scaledData = ScaleToDisplayRange(floatArray[imageIndex], Adapter.DataRange.min, Adapter.DataRange.max);
+                displayData.Add(scaledData);
+            }
+            ShowByteImages(displayData, graphicMetaData);
         }
 
         private void ShowByteImages(List<byte[]> displayData, GraphicMetaData graphicMetaData)

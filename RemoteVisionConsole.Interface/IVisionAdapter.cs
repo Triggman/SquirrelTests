@@ -15,7 +15,7 @@ namespace RemoteVisionConsole.Interface
         string ProjectName { get; }
         (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; }
         (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; }
-
+        (float min, float max) DataRange { get; }
 
 
         GraphicMetaData GraphicMetaData { get; }
