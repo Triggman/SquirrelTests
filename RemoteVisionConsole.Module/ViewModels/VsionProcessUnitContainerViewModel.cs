@@ -1,4 +1,5 @@
 ﻿using LoggingConsole.Interface;
+using NetMQ;
 using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
@@ -6,6 +7,7 @@ using Prism.Services.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Input;
 using System.Xml.Serialization;
 
@@ -101,7 +103,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             var prompt = string.Empty;
             if (ViewModel is VsionProcessUnitConfigurationViewModel)
             {
-                prompt = "是否删除为配置完成的页面?";
+                prompt = "是否删除未配置完成的页面?";
             }
             else
             {
@@ -133,10 +135,19 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void OnConfigFinished(TypeSource processorTypeSource, TypeSource adapterTypeSource, Type dataType)
         {
-            // Change view model to VisionProcessUnit
-            var (vm, unitName) = CreateUnit(processorTypeSource, adapterTypeSource, dataType, _ea, _dialogService);
-            ViewModel = vm;
-            Title = unitName;
+            (object vm, string name) unit;
+            try
+            {
+                unit = CreateUnit(processorTypeSource, adapterTypeSource, dataType, _ea, _dialogService);
+
+            }
+            catch (AddressAlreadyInUseException ex)
+            {
+                var instance = Activator.CreateInstance(adapterTypeSource.Type);
+                var address = adapterTypeSource.Type.GetProperty("ZeroMQAddress").GetValue(instance);
+                Warn($"ZeroMQ服务器地址({address})已被占用, \n请重新选择ZeroMQ服务器地址");
+                return;
+            }
 
             // Append config
             List<VisionProcessUnitConfig> configItems;
@@ -150,6 +161,14 @@ namespace RemoteVisionConsole.Module.ViewModels
             }
             else configItems = new List<VisionProcessUnitConfig>();
 
+            // Check for duplication
+            if (configItems.Any(item => item.UnitName == unit.name))
+            {
+                Warn($"已存在同名的页面({unit.name}), \n请重新选择Adapter类或修改该Adapter类的Name属性");
+                return;
+            }
+
+
             configItems.Add(new VisionProcessUnitConfig
             {
                 AdapterAssemblyPath = adapterTypeSource.AssemblyFilePath,
@@ -158,7 +177,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                 ProcessorAssemblyPath = processorTypeSource.AssemblyFilePath,
                 ProcessorNamespace = processorTypeSource.Namespace,
                 ProcessorTypeName = processorTypeSource.TypeName,
-                UnitName = unitName
+                UnitName = unit.name
             });
 
             using (var writer = new StreamWriter(Constants.ConfigFilePath))
@@ -167,6 +186,9 @@ namespace RemoteVisionConsole.Module.ViewModels
                 serializer.Serialize(writer, configItems);
             }
 
+
+            ViewModel = unit.vm;
+            Title = unit.name;
         }
 
         private void Log(string displayMessage, string saveMessage, LogLevel logLevel = LogLevel.Info)

@@ -21,7 +21,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         /// Second type is adapter type
         /// Third type is data type
         /// </summary>
-        public event Action<TypeSource, TypeSource, Type> ProcessorAndAdapterMatched;
+        public Action<TypeSource, TypeSource, Type> ProcessorAndAdapterMatched { get; set; }
 
         public event Action<string> Error;
         #endregion

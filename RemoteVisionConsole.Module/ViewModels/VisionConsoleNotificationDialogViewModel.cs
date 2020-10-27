@@ -1,13 +1,12 @@
-﻿using Prism.Mvvm;
+﻿using Prism.Commands;
 using Prism.Services.Dialogs;
-using System;
+using System.Windows.Input;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {
     public class VisionConsoleNotificationDialogViewModel
-        : BindableBase, IDialogAware
+        : DialogViewModelBase
     {
-        public string Title { get; } = "Warning";
 
         private string _message;
         public string Message
@@ -16,18 +15,14 @@ namespace RemoteVisionConsole.Module.ViewModels
             set { SetProperty(ref _message, value); }
         }
 
-        public event Action<IDialogResult> RequestClose;
+        public ICommand OKCommand { get; set; }
 
-        public bool CanCloseDialog()
+        public VisionConsoleNotificationDialogViewModel()
         {
-            return true;
+            OKCommand = new DelegateCommand(() => { RaiseRequestClose(new DialogResult(ButtonResult.OK)); });
         }
 
-        public void OnDialogClosed()
-        {
-        }
-
-        public void OnDialogOpened(IDialogParameters parameters)
+        public override void OnDialogOpened(IDialogParameters parameters)
         {
             Message = parameters.GetValue<string>("message");
         }
