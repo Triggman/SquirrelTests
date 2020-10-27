@@ -47,7 +47,7 @@ namespace RemoteVisionConsole.Interface
 
         Statistics Weight(Statistics statistics);
 
-        (List<TOutput[]> data, int cavity, string sn) ReadFile(string path);
+        List<TOutput[]> ReadFile(string path);
 
     }
 

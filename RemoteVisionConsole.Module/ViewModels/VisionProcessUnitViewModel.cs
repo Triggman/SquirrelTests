@@ -19,6 +19,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
@@ -157,7 +158,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                 }
 
 
-                var image = CreateDisplayImage(width, height, pixelData, imageIndex);
+                var image = CreateDisplayImage(width, height, pixelData);
                 displayImages.Add(image);
             }
 
@@ -275,9 +276,41 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             var fileName = Path.GetFileName(filePath);
             Log($"正在离线运行图片{fileName}", $"Running image offline: {fileName}");
+            var (cavity, sn) = ParseCavitySN(Path.GetFileNameWithoutExtension(filePath));
 
-            var (data, cavity, sn) = Adapter.ReadFile(filePath);
+            var data = Adapter.ReadFile(filePath);
             ProcessData(data, cavity, sn, DataSourceType.DataFile);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fileName">
+        /// Standard pattern : {sn}_Cavity{cavity}
+        /// </param>
+        /// <returns></returns>
+        private (int cavity, string sn) ParseCavitySN(string fileName)
+        {
+            // Extract sn
+            var snPattern = new Regex(@"^(\w+)_");
+            var snResult = snPattern.Match(fileName);
+            var snExtracted = snResult.Success ? snResult.Groups[1].Value : "NoSN";
+
+            // Extract cavity
+            var cavityPattern = new Regex(@"Cavity(\d+)");
+            var cavityResult = cavityPattern.Match(fileName);
+            var cavityExtracted = cavityResult.Success ? int.Parse(cavityResult.Groups[1].Value) : 1;
+
+            // Warn if any parse not success
+            if (!snResult.Success || !cavityResult.Success)
+            {
+                var snWarn = snResult.Success ? string.Empty : "SN";
+                var cavityWarn = cavityResult.Success ? string.Empty : "Cavity";
+                var warnItems = string.Join(", ", new[] { snWarn, cavityWarn }.Where(t => !string.IsNullOrEmpty(t)));
+                Log($"以下文件名信息解析失败: {warnItems}", $"Parsing failures occurs for: {warnItems}", LogLevel.Warn);
+            }
+
+            return (cavityExtracted, snExtracted);
         }
 
         private void ShowProperties()
@@ -430,6 +463,14 @@ namespace RemoteVisionConsole.Module.ViewModels
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cavity"></param>
+        /// <param name="sn"></param>
+        /// <returns>
+        /// {sn}_Cavity{cavity}
+        /// </returns>
         private string GetImageFileName(int cavity, string sn)
         {
             var snPart = string.IsNullOrEmpty(sn) ? "NoSN_" : $"{sn}_";
@@ -626,7 +667,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         }
 
-        private WriteableBitmap CreateDisplayImage(int width, int height, byte[] pixelData, int imageIndex)
+        private WriteableBitmap CreateDisplayImage(int width, int height, byte[] pixelData)
         {
             var writeableBitmap = new WriteableBitmap(width, height, 96.0, 96.0, PixelFormats.Rgb24, BitmapPalettes.Halftone256Transparent);
             writeableBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixelData, width * 3, 0);

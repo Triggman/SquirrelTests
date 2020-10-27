@@ -38,7 +38,7 @@ namespace RemoteVisionModule.Tests.Mocks
 
 
 
-        public (List<byte[]> data, int cavity, string sn) ReadFile(string path)
+        public List<byte[]> ReadFile(string path)
         {
             var dir = Directory.GetParent(path).FullName;
             var fileName = Path.GetFileNameWithoutExtension(path);
@@ -50,7 +50,7 @@ namespace RemoteVisionModule.Tests.Mocks
             var firstImage = ImageHelper.ReadByteTiff(path);
             var secondImage = ImageHelper.ReadByteTiff(nextFile);
 
-            return (new List<byte[]> { firstImage.data, secondImage.data }, 1, null);
+            return new List<byte[]> { firstImage.data, secondImage.data };
         }
 
 
