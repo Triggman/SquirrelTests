@@ -22,5 +22,26 @@
             HorizontalAlignment="Stretch"
             Background="{bunny:ThemeResource ResourceKey=ControlContentBackground}" />
         <ContentControl Grid.Column="2" prism:RegionManager.RegionName="LogRegion" />
+        <ToggleButton
+            Grid.Column="0"
+            Grid.ColumnSpan="3"
+            Width="50"
+            Height="50"
+            Margin="30"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            IsChecked="{Binding LoginPageToggle}">
+            <ToggleButton.Style>
+                <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource AfterbunnyToggleButtonStyle}">
+                    <Setter Property="Content" Value="登录" />
+                    <Setter Property="bunny:ToggleButtonAssist.CornerRadius" Value="50"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter Property="Content" Value="主页" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ToggleButton.Style>
+        </ToggleButton>
     </Grid>
 </Window>

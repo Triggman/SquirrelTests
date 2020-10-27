@@ -25,19 +25,30 @@ namespace RemoteVisionConsole.Module
             containerRegistry.RegisterDialog<VisionConsoleConfirmDialog, VisionConsoleConfirmDialogViewModel>();
         }
 
+        public static void UpdateLoginState(bool login)
+        {
+            UserLogin = login;
+        }
+
         internal static void Log(LoggingMessageItem logItem)
         {
             MessageLogged?.Invoke(logItem);
         }
 
-        public static void ConfigureModule(Action<LoggingMessageItem> logMethod, string regionToAttach)
+        public static void ConfigureModule(Action<LoggingMessageItem> logMethod, string regionToAttach, bool requireLogin)
         {
             MessageLogged = logMethod;
             _regionToAttatch = regionToAttach;
+
+            _requireLogin = requireLogin;
+            UserLogin = !requireLogin;
+
             _configured = true;
         }
 
+        internal static bool UserLogin { get; private set; }
         private static bool _configured = false;
+        private static bool _requireLogin;
         private static Action<LoggingMessageItem> MessageLogged { get; set; }
         private static string _regionToAttatch;
     }

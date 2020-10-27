@@ -14,6 +14,13 @@ namespace RemoteVisionConsole.Module.ViewModels
             set { SetProperty(ref _viewModel, value); }
         }
 
+        private bool _userLogin;
+        public bool UserLogin
+        {
+            get { return _userLogin; }
+            set { SetProperty(ref _userLogin, value); }
+        }
+
         public ICommand OKCommand { get; }
         public ICommand SelectImageSaveMainFolderCommand { get; }
 
@@ -31,6 +38,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         public override void OnDialogOpened(IDialogParameters parameters)
         {
             ViewModel = parameters.GetValue<ProcessUnitUserSetting>("setting");
+            UserLogin = parameters.GetValue<bool>("login");
             base.OnDialogOpened(parameters);
         }
         private void SelectImageSaveMainFolder()

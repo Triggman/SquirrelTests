@@ -1,5 +1,8 @@
-﻿using Prism.Events;
+﻿using CygiaUserClientModule;
+using Prism.Events;
 using Prism.Mvvm;
+using Prism.Regions;
+using RemoteVisionConsole.Module;
 
 namespace RemoteVisionConsole.App.ViewModels
 {
@@ -12,9 +15,32 @@ namespace RemoteVisionConsole.App.ViewModels
             set { SetProperty(ref _title, value); }
         }
 
-        public MainWindowViewModel(IEventAggregator ea)
-        {
+        private bool _loginPageToggle;
+        private readonly IRegionManager _rm;
 
+        public bool LoginPageToggle
+        {
+            get { return _loginPageToggle; }
+            set
+            {
+                SetProperty(ref _loginPageToggle, value);
+                if (value) Navigate("UserManageView");
+                else Navigate("VisionProcessUnitTabsHostView");
+            }
+        }
+
+        private void Navigate(string viewPath)
+        {
+            _rm.RequestNavigate("VisionRegion", viewPath);
+        }
+
+        public MainWindowViewModel(IRegionManager rm, IEventAggregator ea)
+        {
+            _rm = rm;
+            ea.GetEvent<UserRoleEvent>().Subscribe(role => {
+                var login = role != "None";
+                RemoteVisionConsoleModule.UpdateLoginState(login);
+            });
         }
     }
 }

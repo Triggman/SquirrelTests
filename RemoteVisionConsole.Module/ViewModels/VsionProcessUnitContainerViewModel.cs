@@ -90,6 +90,14 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void DeleteMe()
         {
+            // Check for login
+            if (!RemoteVisionConsoleModule.UserLogin)
+            {
+                Warn("此操作需要登录");
+                return;
+            }
+
+            // Confirm delete
             var prompt = string.Empty;
             if (ViewModel is VsionProcessUnitConfigurationViewModel)
             {

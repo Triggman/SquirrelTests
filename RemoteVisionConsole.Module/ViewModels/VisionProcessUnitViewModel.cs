@@ -168,7 +168,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             var settingCopied = Helpers.CopyObject(_userSetting);
             _dialogService.ShowDialog("UserSettingDialog",
-                new DialogParameters { { "setting", settingCopied } }, r =>
+                new DialogParameters { { "setting", settingCopied }, { "login", RemoteVisionConsoleModule.UserLogin} }, r =>
                 {
                     if (r.Result == ButtonResult.OK)
                     {

@@ -1,4 +1,6 @@
-﻿using LoggingConsole.Interface;
+﻿using CygiaUserClientModule;
+using CygiaUserClientModule.Views;
+using LoggingConsole.Interface;
 using LoggingConsole.Module;
 using LoggingConsole.Module.RollingFileAppender;
 using Prism.Events;
@@ -28,6 +30,7 @@ namespace RemoteVisionConsole.App
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
+            containerRegistry.RegisterForNavigation<UserManageView>();
 
         }
 
@@ -41,8 +44,11 @@ namespace RemoteVisionConsole.App
             Action<LoggingMessageItem> logMethod =
                 logItem =>
                 ea.GetEvent<LogEvent>().Publish(("General", logItem));
-            RemoteVisionConsoleModule.ConfigureModule(logMethod, "VisionRegion");
+            RemoteVisionConsoleModule.ConfigureModule(logMethod, "VisionRegion", true);
             moduleCatalog.AddModule<RemoteVisionConsoleModule>();
+
+            moduleCatalog.AddModule<CygiaUserClientModuleModule>();
+
         }
 
     }

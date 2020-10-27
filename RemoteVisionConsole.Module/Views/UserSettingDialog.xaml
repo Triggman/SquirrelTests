@@ -12,10 +12,11 @@
     d:DesignWidth="800"
     prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
-    <Grid>
+    <Grid Height="400" IsHitTestVisible="{Binding UserLogin}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -74,5 +75,15 @@
             Content="OK"
             FontSize="20"
             FontWeight="DemiBold" />
+        <TextBlock
+            Grid.Row="3"
+            Margin="0,0,0,5"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            FontSize="20"
+            FontWeight="DemiBold"
+            Foreground="Red"
+            Text="修改需要登录"
+            Visibility="{Binding UserLogin, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Visible,TrueVisibility=Collapsed}}" />
     </Grid>
 </UserControl>
