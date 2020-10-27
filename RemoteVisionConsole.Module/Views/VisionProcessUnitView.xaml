@@ -24,11 +24,13 @@
             <Button
                 Margin="5,0,0,0"
                 Command="{Binding RunSingleFileCommand}"
-                Content="运行文件" />
+                Content="运行文件"
+                IsEnabled="{Binding IsIdle}" />
             <Button
                 Margin="5,0,0,0"
                 Command="{Binding RunFolderCommand}"
-                Content="运行文件夹" />
+                Content="运行文件夹"
+                IsEnabled="{Binding IsIdle}" />
         </StackPanel>
 
         <Grid x:Name="imagesContainer" Grid.Row="1">

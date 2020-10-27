@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -69,6 +70,13 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             get { return _displayData; }
             set { SetProperty(ref _displayData, value); }
+        }
+
+        private bool _isIdle;
+        public bool IsIdle
+        {
+            get { return _isIdle; }
+            set { SetProperty(ref _isIdle, value); }
         }
 
         public string Name { get; }
@@ -238,7 +246,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         }
 
 
-        private void RunFolder()
+        private async void RunFolder()
         {
             var dir = Helpers.GetDirFromDialog();
             if (!string.IsNullOrEmpty(dir))
@@ -257,29 +265,29 @@ namespace RemoteVisionConsole.Module.ViewModels
                 Log($"读取{filesThatMatch.Length}个文件", $"{filesThatMatch.Length} files are read");
                 foreach (var file in filesThatMatch)
                 {
-                    ProcessDataFromFile(file);
+                    await ProcessDataFromFile(file);
                 }
             }
         }
 
-        private void RunSingleFile()
+        private async void RunSingleFile()
         {
             var selectedFile = Helpers.GetFileFromDialog(pattern: Adapter.ImageFileFilter);
             if (!string.IsNullOrEmpty(selectedFile))
             {
-                ProcessDataFromFile(selectedFile);
+                await ProcessDataFromFile(selectedFile);
             }
         }
 
 
-        private void ProcessDataFromFile(string filePath)
+        private async Task ProcessDataFromFile(string filePath)
         {
             var fileName = Path.GetFileName(filePath);
             Log($"正在离线运行图片{fileName}", $"Running image offline: {fileName}");
             var (cavity, sn) = ParseCavitySN(Path.GetFileNameWithoutExtension(filePath));
 
             var data = Adapter.ReadFile(filePath);
-            ProcessData(data, cavity, sn, DataSourceType.DataFile);
+            await Task.Run(() => ProcessData(data, cavity, sn, DataSourceType.DataFile));
         }
 
         /// <summary>
@@ -347,119 +355,128 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void ProcessData(List<TData[]> data, int cavity, string inputSn, DataSourceType dataSource)
         {
-            var sn = inputSn ?? string.Empty;
-            Log($"正在处理来自{dataSource}, 长度为{data.Count}, 夹具编号为{cavity}的数据, sn为{sn}", $"Start processing data of length({data.Count}) of cavity({cavity}), sn({sn}) from data source({dataSource})");
+            IsIdle = false;
 
-            var stopwatch = Stopwatch.StartNew();
-            ProcessResult<TData> result = null;
             try
             {
-                result = Processor.Process(data, cavity);
+                var sn = inputSn ?? string.Empty;
+                Log($"正在处理来自{dataSource}, 长度为{data.Count}, 夹具编号为{cavity}的数据, sn为{sn}", $"Start processing data of length({data.Count}) of cavity({cavity}), sn({sn}) from data source({dataSource})");
 
-            }
-            catch (Exception ex)
-            {
-                // Save image file
-                var exDetail = $"{ex.GetType()} \n{ex.Message}\n {ex.StackTrace}";
-                if (dataSource != DataSourceType.DataFile) Adapter.SaveImage(data, ImageSaveFolderToday, "ERROR", GetImageFileName(cavity, sn), exDetail);
-                else Log($"视觉处理出现异常: {exDetail}", $"Errored during vision processing: {exDetail}", LogLevel.Fatal);
-
-                // Report ex to ALC
-                if (dataSource == DataSourceType.DataEvent) _ea.GetEvent<VisionResultEvent>().Publish(new StatisticsResults() { ResultType = ResultType.ERROR });
-                if (dataSource == DataSourceType.ZeroMQ)
+                var stopwatch = Stopwatch.StartNew();
+                ProcessResult<TData> result = null;
+                try
                 {
-                    var json = JsonConvert.SerializeObject(new StatisticsResults() { ResultType = ResultType.ERROR });
-                    _serverSocket.SendFrame(json);
+                    result = Processor.Process(data, cavity);
+
                 }
-
-                return;
-            }
-
-            var resultType = Adapter.GetResultType(result.Statistics);
-            var weightedStatistics = Adapter.Weight(result.Statistics);
-            var ms = stopwatch.ElapsedMilliseconds;
-            Log($"计算耗时{ms}ms", $"Data process finished in {ms} ms");
-
-            if (dataSource != DataSourceType.DataFile) ReportResult(weightedStatistics, resultType, dataSource);
-
-            DisplayStatisticResults(weightedStatistics, cavity);
-
-            if (Adapter.GraphicMetaData.ShouldDisplay)
-            {
-                if (Adapter.GraphicMetaData.SampleType != DataSampleType.OneDimension)
-                    ShowImages(result.DisplayData, Adapter.GraphicMetaData);
-                else ShowChart(result.DisplayData);
-            }
-
-            if (dataSource != DataSourceType.DataFile && _userSetting.ImageSaveFilter != ImageSaveFilter.ErrorOnly)
-            {
-                var subFolder = string.Empty;
-                if (_userSetting.ImageSaveSchema == ImageSaveSchema.OkNgInOneFolder)
+                catch (Exception ex)
                 {
-                    subFolder = "OkAndNg";
-                }
-                else
-                {
-                    subFolder = resultType.ToString();
-                }
+                    // Save image file
+                    var exDetail = $"{ex.GetType()} \n{ex.Message}\n {ex.StackTrace}";
+                    if (dataSource != DataSourceType.DataFile) Adapter.SaveImage(data, ImageSaveFolderToday, "ERROR", GetImageFileName(cavity, sn), exDetail);
+                    else Log($"视觉处理出现异常: {exDetail}", $"Errored during vision processing: {exDetail}", LogLevel.Fatal);
 
-                Adapter.SaveImage(data, ImageSaveFolderToday, subFolder, GetImageFileName(cavity, sn), null);
-            }
-
-            // Write to database
-            if (_databaseServiceInstalled)
-            {
-                // If save any data
-                if (_userSetting.SaveRawDataOffline || _userSetting.SaveRawDataOnline || _userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
-                {
-                    var proxy = new CygiaSqliteAccessProxy(EndPointType.TCP);
-                    // If save raw data
-                    if (_userSetting.SaveRawDataOffline || _userSetting.SaveRawDataOnline)
+                    // Report ex to ALC
+                    if (dataSource == DataSourceType.DataEvent) _ea.GetEvent<VisionResultEvent>().Publish(new StatisticsResults() { ResultType = ResultType.ERROR });
+                    if (dataSource == DataSourceType.ZeroMQ)
                     {
-                        var integerFields = result.Statistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
-                        integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
-                        var rowDatas = new[] { new RowData {
+                        var json = JsonConvert.SerializeObject(new StatisticsResults() { ResultType = ResultType.ERROR });
+                        _serverSocket.SendFrame(json);
+                    }
+
+                    return;
+                }
+
+                var resultType = Adapter.GetResultType(result.Statistics);
+                var weightedStatistics = Adapter.Weight(result.Statistics);
+                var ms = stopwatch.ElapsedMilliseconds;
+                Log($"计算耗时{ms}ms", $"Data process finished in {ms} ms");
+
+                if (dataSource != DataSourceType.DataFile) ReportResult(weightedStatistics, resultType, dataSource);
+
+                DisplayStatisticResults(weightedStatistics, cavity);
+
+                if (Adapter.GraphicMetaData.ShouldDisplay)
+                {
+                    if (Adapter.GraphicMetaData.SampleType != DataSampleType.OneDimension)
+                        ShowImages(result.DisplayData, Adapter.GraphicMetaData);
+                    else ShowChart(result.DisplayData);
+                }
+
+                if (dataSource != DataSourceType.DataFile && _userSetting.ImageSaveFilter != ImageSaveFilter.ErrorOnly)
+                {
+                    var subFolder = string.Empty;
+                    if (_userSetting.ImageSaveSchema == ImageSaveSchema.OkNgInOneFolder)
+                    {
+                        subFolder = "OkAndNg";
+                    }
+                    else
+                    {
+                        subFolder = resultType.ToString();
+                    }
+
+                    Adapter.SaveImage(data, ImageSaveFolderToday, subFolder, GetImageFileName(cavity, sn), null);
+                }
+
+                // Write to database
+                if (_databaseServiceInstalled)
+                {
+                    // If save any data
+                    if (_userSetting.SaveRawDataOffline || _userSetting.SaveRawDataOnline || _userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
+                    {
+                        var proxy = new CygiaSqliteAccessProxy(EndPointType.TCP);
+                        // If save raw data
+                        if (_userSetting.SaveRawDataOffline || _userSetting.SaveRawDataOnline)
+                        {
+                            var integerFields = result.Statistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
+                            integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
+                            var rowDatas = new[] { new RowData {
                             CreationTime = DateTime.Now,
                 DoubleFields = result.Statistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
                 IntegerFields = integerFields.ToArray(),
                 TextFields = result.Statistics.TextResults.Select(p=> new TextField{Name = p.Key, Value = p.Value}).ToArray(),
                 } };
 
-                        if (_userSetting.SaveRawDataOffline && dataSource == DataSourceType.DataFile)
-                        {
-                            Log("保存离线原始数据", "Saved offline raw data");
-                            proxy.Insert(_tableNameRawOffline, rowDatas);
+                            if (_userSetting.SaveRawDataOffline && dataSource == DataSourceType.DataFile)
+                            {
+                                Log("保存离线原始数据", "Saved offline raw data");
+                                proxy.Insert(_tableNameRawOffline, rowDatas);
+                            }
+                            if (_userSetting.SaveRawDataOnline && dataSource != DataSourceType.DataFile)
+                            {
+                                Log("保存在线原始数据", "Saved online raw data");
+                                proxy.Insert(_tableNameRawOnline, rowDatas);
+                            }
                         }
-                        if (_userSetting.SaveRawDataOnline && dataSource != DataSourceType.DataFile)
+                        // If save weighted data
+                        if (_userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
                         {
-                            Log("保存在线原始数据", "Saved online raw data");
-                            proxy.Insert(_tableNameRawOnline, rowDatas);
-                        }
-                    }
-                    // If save weighted data
-                    if (_userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
-                    {
-                        var integerFields = weightedStatistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
-                        integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
-                        var rowDatas = new[] { new RowData {
+                            var integerFields = weightedStatistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
+                            integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
+                            var rowDatas = new[] { new RowData {
                             CreationTime = DateTime.Now,
                 DoubleFields = weightedStatistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
                 IntegerFields = integerFields.ToArray(),
                 TextFields = weightedStatistics.TextResults.Select(p=> new TextField{Name = p.Key, Value = p.Value}).ToArray(),
                 } };
 
-                        if (_userSetting.SaveWeightedDataOffline && dataSource == DataSourceType.DataFile)
-                        {
-                            Log("保存离线计算数据", "Saved offline weighted data");
-                            proxy.Insert(_tableNameWeightedOffline, rowDatas);
-                        }
-                        if (_userSetting.SaveWeightedDataOnline && dataSource != DataSourceType.DataFile)
-                        {
-                            Log("保存在线计算数据", "Saved oneline weighted data");
-                            proxy.Insert(_tableNameWeightedOnline, rowDatas);
+                            if (_userSetting.SaveWeightedDataOffline && dataSource == DataSourceType.DataFile)
+                            {
+                                Log("保存离线计算数据", "Saved offline weighted data");
+                                proxy.Insert(_tableNameWeightedOffline, rowDatas);
+                            }
+                            if (_userSetting.SaveWeightedDataOnline && dataSource != DataSourceType.DataFile)
+                            {
+                                Log("保存在线计算数据", "Saved oneline weighted data");
+                                proxy.Insert(_tableNameWeightedOnline, rowDatas);
+                            }
                         }
                     }
                 }
+            }
+            finally
+            {
+                IsIdle = true;
             }
         }
 
