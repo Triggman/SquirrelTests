@@ -22,7 +22,7 @@ namespace RemoteVisionModule.Tests.Mocks
         public string ZeroMQAddress { get; } = "tcp://localhost:6001";
         public (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; } = (new[] { "tif", "tiff" }, "Tif Files");
         public string ProjectName { get; } = "TestProject";
-        public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } = (new[] { "Value1" }, new[] { "Value2" }, new[] { "Value1Result", "Value2Result" });
+        public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } = (new[] { "OutputFloatValue1" }, new[] { "Value2" }, new[] { "Value1Result", "Value2Result" });
         public (float min, float max) DataRange { get; }
         public bool EnableWeighting { get; } = true;
         public int WeightSetCount { get; } = 2;

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 using System.Xml.Serialization;
@@ -21,12 +20,11 @@ namespace RemoteVisionConsole.Module.ViewModels
         private List<WeightCollectionViewModel> _weights;
         private readonly IDialogService _dialogService;
         private string _methodHint;
-        private bool _weightNameExtractSuccess = false;
         private string _methodDir;
         private string _projectFilePath;
         private WeightConfigurationConstraint _constraint;
-        private string _weightNamesMessage;
-        private string _inputNamesMessage;
+        private string _weightNamesCsv;
+        private string _inputNamesCsv;
 
         #endregion
 
@@ -41,17 +39,6 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         public ICommand SaveProjectCommand { get; }
 
-        public string WeightNamesMessage
-        {
-            get => _weightNamesMessage;
-            set => SetProperty(ref _weightNamesMessage, value);
-        }
-
-        public string InputNamesMessage
-        {
-            get => _inputNamesMessage;
-            set => SetProperty(ref _inputNamesMessage, value);
-        }
 
         public string MethodHint
         {
@@ -59,7 +46,17 @@ namespace RemoteVisionConsole.Module.ViewModels
             set => SetProperty(ref _methodHint, value);
         }
 
+        public string WeightNamesCsv
+        {
+            get => _weightNamesCsv;
+            set => SetProperty(ref _weightNamesCsv, value);
+        }
 
+        public string InputNamesCsv
+        {
+            get => _inputNamesCsv;
+            set => SetProperty(ref _inputNamesCsv, value);
+        }
 
         public ObservableCollection<CalculationMethodItemViewModel> CalculationMethods { get; } =
             new ObservableCollection<CalculationMethodItemViewModel>();
@@ -72,9 +69,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         public WeightEditorDialogViewModel(IDialogService dialogService)
         {
             _dialogService = dialogService;
-            SaveProjectCommand = new DelegateCommand(SaveProject,
-                    () => Weights != null && Weights.Count > 0)
-                .ObservesProperty(() => Weights);
+            SaveProjectCommand = new DelegateCommand(SaveProject);
         }
 
         #endregion
@@ -110,6 +105,8 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void LoadMethods()
         {
+            InputNamesCsv = string.Join(", ", _constraint.InputNames);
+
             Directory.CreateDirectory(_methodDir);
             var methodFiles = Directory.GetFiles(_methodDir).Where(p => p.EndsWith(".calc")).ToArray();
 
@@ -144,8 +141,8 @@ namespace RemoteVisionConsole.Module.ViewModels
             if (TrySaveMethods())
             {
                 // Ask if the user want to preview
-                _dialogService.ShowDialog("ConfirmDialog",
-                    new DialogParameters() { { "Content", "Save success!\nDo you want to preview?" } },
+                _dialogService.ShowDialog("VisionConsoleConfirmDialog",
+                    new DialogParameters() { { "content", "Save success!\nDo you want to preview?" } },
                     result =>
                     {
                         if (result.Result == ButtonResult.OK)
@@ -172,63 +169,31 @@ namespace RemoteVisionConsole.Module.ViewModels
                                                 CalculationMethods.ToDictionary(m => m.OutputName,
                                                     m => m.MethodDefinition)
                                             }
-                                        }, result1 => { });
+                                        }, result1 => { FinishAndCloseDialog(); });
                                     }
                                 });
+                        }
+                        else
+                        {
+                            FinishAndCloseDialog();
                         }
                     });
             }
         }
 
-        private string GetRelativePath(string relativeTo, string path)
+        private void FinishAndCloseDialog()
         {
-            var relativeToConvert = Regex.Replace(relativeTo, @"\\+", "/");
-            var pathConvert = Regex.Replace(path, @"\\+", "/");
-            var start = relativeToConvert.Length;
-            var end = pathConvert.Length;
-
-            return path.Substring(start, end);
+            RaiseRequestClose(new DialogResult(ButtonResult.OK));
         }
 
         private bool TrySaveMethods()
         {
-            if (CalculationMethods.Count == 0 || CalculationMethods.All(m => m.Errored))
-            {
-                _dialogService.ShowDialog("NotificationDialog",
-                    new DialogParameters() { { "Content", "Please define at least one calculation method" } },
-                    result => { });
-                return false;
-            }
-
-            // Detect for duplication 
-            var outputNamesFilled = CalculationMethods.Where(m => !m.Errored).Select(m => m.OutputName).ToArray();
-            var outputNameSet = new HashSet<string>(outputNamesFilled);
-            if (outputNameSet.Count < outputNamesFilled.Length)
-            {
-                var duplicateNames = outputNameSet
-                    .Where(uniqueName => outputNamesFilled.Count(name => name == uniqueName) > 1).ToArray();
-
-                var methodsToBeDeleted = new List<CalculationMethodItemViewModel>();
-                foreach (var duplicateName in duplicateNames)
-                {
-                    methodsToBeDeleted.AddRange(CalculationMethods.Where(m => m.OutputName == duplicateName).Skip(1));
-                }
-
-                foreach (var method in methodsToBeDeleted)
-                {
-                    method.Errored = true;
-                }
-
-                _dialogService.ShowDialog("NotificationDialog",
-                    new DialogParameters() { { "Content", "Please remove duplications first" } }, result => { });
-                return false;
-            }
 
             var erroredMethods = CalculationMethods.Where(m => m.Errored).ToArray();
             if (erroredMethods.Length != 0)
             {
-                _dialogService.ShowDialog("NotificationDialog",
-                    new DialogParameters() { { "Content", "Please fix errored methods first" } },
+                _dialogService.ShowDialog("VisionConsoleNotificationDialog",
+                    new DialogParameters() { { "message", "Please fix errored methods first" } },
                     result => { });
                 return false;
             }
@@ -257,7 +222,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
                 var exceptionDetailsText = string.Join("\n", exceptionDetails);
                 var content = $"Exceptions occur while trying to run python scripts: \n{exceptionDetailsText}";
-                _dialogService.ShowDialog("NotificationDialog", new DialogParameters() { { "Content", content } },
+                _dialogService.ShowDialog("VisionConsoleNotificationDialog", new DialogParameters() { { "message", content } },
                     result => { });
 
                 // Mark methods with runtime exceptions
@@ -284,16 +249,16 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void TryGenerateMethodHint()
         {
-
+            var firstOutputName = _constraint.OutputNames[0];
             if (_constraint.InputNames.Length == 1)
             {
-                var methodHint = $"y1 = input.{_constraint.InputNames[0]} * weight.{_constraint.WeightNames[0]}";
+                var methodHint = $"{firstOutputName} = input.{_constraint.InputNames[0]} * weight.{_constraint.WeightNames[0]}";
                 if (_constraint.WeightNames.Length > 1) methodHint += $" + weight.{_constraint.WeightNames[1]}";
                 MethodHint = methodHint;
             }
             else
             {
-                var hint = $"y2 = pow(input.{_constraint.InputNames[0]}, 2) * weight.{_constraint.WeightNames[0]} + input.{_constraint.InputNames[1]}";
+                var hint = $"{firstOutputName} = pow(input.{_constraint.InputNames[0]}, 2) * weight.{_constraint.WeightNames[0]} + input.{_constraint.InputNames[1]}";
                 if (_constraint.WeightNames.Length > 1) hint += $" * weight.{_constraint.WeightNames[1]}";
                 MethodHint = hint;
             }
@@ -303,6 +268,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             Directory.CreateDirectory(_weightDir);
 
+            WeightNamesCsv = string.Join(", ", _constraint.WeightNames);
             var expectedWeightFilePaths = Enumerable.Range(0, _constraint.WeightSetCount)
                 .Select(index => Path.Combine(_weightDir, $"{index:D3}.weight")).ToArray();
 
@@ -361,19 +327,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             return successfulReadWeights.OrderBy(w => w.Name).ToList();
         }
 
-        private static Dictionary<string, string> GetOutputNameAndScriptsFromFiles(string scriptsDir, string extension)
-        {
-            var scriptFiles = Directory.GetFiles(scriptsDir).Where(f => f.EndsWith(extension)).ToArray();
-            var output = new Dictionary<string, string>();
-            foreach (var file in scriptFiles)
-            {
-                var outputVarName = Path.GetFileNameWithoutExtension(file);
-                var scriptContent = File.ReadAllText(file, Encoding.UTF8);
-                output[outputVarName] = scriptContent;
-            }
 
-            return output;
-        }
 
         public override void OnDialogOpened(IDialogParameters parameters)
         {
