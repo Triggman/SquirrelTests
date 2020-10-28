@@ -11,6 +11,7 @@ using Prism.Services.Dialogs;
 using RemoteVisionConsole.Data;
 using RemoteVisionConsole.Interface;
 using RemoteVisionConsole.Module.Helper;
+using RemoteVisionConsole.Module.Misc;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -149,10 +150,8 @@ namespace RemoteVisionConsole.Module.ViewModels
         private void GenerateEmptyDisplayImages()
         {
             var displayImages = new List<WriteableBitmap>();
-            var r = (byte)153;
-            var g = (byte)208;
-            var b = (byte)112;
-            var color = new[] { r, g, b };
+            var rgb = RemoteVisionConsoleModule.DefaultImageBackground;
+            var color = new[] { rgb.R, rgb.G, rgb.B };
 
             for (int imageIndex = 0; imageIndex < Adapter.GraphicMetaData.Dimensions.Length; imageIndex++)
             {

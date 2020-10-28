@@ -1,4 +1,5 @@
-﻿using CygiaUserClientModule;
+﻿using Afterbunny.UI.WPF.Core;
+using CygiaUserClientModule;
 using CygiaUserClientModule.Views;
 using LoggingConsole.Interface;
 using LoggingConsole.Module;
@@ -45,6 +46,7 @@ namespace RemoteVisionConsole.App
                 logItem =>
                 ea.GetEvent<LogEvent>().Publish(("General", logItem));
             RemoteVisionConsoleModule.ConfigureModule(logMethod, "VisionRegion", true);
+            RemoteVisionConsoleModule.SetDefaultImageBackground(Theme.PrimaryColor.R, Theme.PrimaryColor.G, Theme.PrimaryColor.B);
             moduleCatalog.AddModule<RemoteVisionConsoleModule>();
 
             moduleCatalog.AddModule<CygiaUserClientModuleModule>();

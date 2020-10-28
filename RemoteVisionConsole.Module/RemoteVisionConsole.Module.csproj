@@ -57,6 +57,7 @@
     <Compile Include="Enums.cs" />
     <Compile Include="Helper\Helpers.cs" />
     <Compile Include="Helper\ImageHelper.cs" />
+    <Compile Include="Misc\RGB.cs" />
     <Compile Include="ProcessUnitUserSetting.cs" />
     <Compile Include="RemoteVisionConsoleModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
