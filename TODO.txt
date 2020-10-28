@@ -1,0 +1,1 @@
+1. Handle weight-loading errors that are resulted from adapter and processor changes

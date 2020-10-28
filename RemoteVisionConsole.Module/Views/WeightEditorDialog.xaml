@@ -15,8 +15,8 @@
     mc:Ignorable="d">
 
 
-    <Grid>
-        <UniformGrid Grid.Row="1" Columns="2">
+    <Grid IsHitTestVisible="{Binding CanModify}">
+        <UniformGrid Columns="2">
             <UniformGrid.InputBindings>
                 <KeyBinding
                     Key="S"
@@ -125,7 +125,7 @@
                             <ItemsControl ItemsSource="{Binding CalculationMethods}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="viewModels:CalculationMethodItemViewModel">
-                                        <views:CalculationMethodItemView/>
+                                        <views:CalculationMethodItemView />
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -140,6 +140,16 @@
 
 
         </UniformGrid>
+
+        <TextBlock
+            Margin="100 0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            FontWeight="SemiBold"
+            Foreground="Red"
+            Text="登录后才能修改"
+            Visibility="{Binding CanModify, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Visible, TrueVisibility=Hidden}}" FontSize="20"/>
+
         <Button
             Margin="20,7"
             Padding="10"

@@ -25,6 +25,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private WeightConfigurationConstraint _constraint;
         private string _weightNamesCsv;
         private string _inputNamesCsv;
+        private bool _canModify;
 
         #endregion
 
@@ -57,6 +58,13 @@ namespace RemoteVisionConsole.Module.ViewModels
             get => _inputNamesCsv;
             set => SetProperty(ref _inputNamesCsv, value);
         }
+
+        public bool CanModify
+        {
+            get => _canModify;
+            set => SetProperty(ref _canModify, value);
+        }
+
 
         public ObservableCollection<CalculationMethodItemViewModel> CalculationMethods { get; } =
             new ObservableCollection<CalculationMethodItemViewModel>();
@@ -142,7 +150,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             {
                 // Ask if the user want to preview
                 _dialogService.ShowDialog("VisionConsoleConfirmDialog",
-                    new DialogParameters() { { "content", "Save success!\nDo you want to preview?" } },
+                    new DialogParameters() { { "content", "保存成功! 是否预览?" } },
                     result =>
                     {
                         if (result.Result == ButtonResult.OK)
@@ -193,7 +201,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             if (erroredMethods.Length != 0)
             {
                 _dialogService.ShowDialog("VisionConsoleNotificationDialog",
-                    new DialogParameters() { { "message", "Please fix errored methods first" } },
+                    new DialogParameters() { { "message", "请先解决红色高亮的错误" } },
                     result => { });
                 return false;
             }
@@ -221,7 +229,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                 }
 
                 var exceptionDetailsText = string.Join("\n", exceptionDetails);
-                var content = $"Exceptions occur while trying to run python scripts: \n{exceptionDetailsText}";
+                var content = $"试运行时出错: \n{exceptionDetailsText}";
                 _dialogService.ShowDialog("VisionConsoleNotificationDialog", new DialogParameters() { { "message", content } },
                     result => { });
 
@@ -332,8 +340,10 @@ namespace RemoteVisionConsole.Module.ViewModels
         public override void OnDialogOpened(IDialogParameters parameters)
         {
             _constraint = parameters.GetValue<WeightConfigurationConstraint>("Constraint");
+            CanModify = parameters.GetValue<bool>("Login");
             ReadProject(_constraint.ProjectFilePath);
         }
+
 
         #endregion
     }

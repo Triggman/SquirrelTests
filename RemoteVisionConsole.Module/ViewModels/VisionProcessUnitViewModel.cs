@@ -11,7 +11,7 @@ using Prism.Services.Dialogs;
 using RemoteVisionConsole.Data;
 using RemoteVisionConsole.Interface;
 using RemoteVisionConsole.Module.Helper;
-using RemoteVisionConsole.Module.Misc;
+using RemoteVisionConsole.Module.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,7 +28,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
-using RemoteVisionConsole.Module.Models;
 using UniversalWeightSystem.Framework.SDK;
 
 namespace RemoteVisionConsole.Module.ViewModels
@@ -147,7 +146,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             GenerateEmptyDisplayImages();
         }
 
-   
+
 
         #endregion
 
@@ -168,38 +167,46 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             var dir = Path.Combine(Constants.AppDataDir, $"WeightSettings/{adapterName}");
             Directory.CreateDirectory(dir);
-             _weightProjectFilePath = Path.Combine(dir, $"{adapterName}.uws");
+            _weightProjectFilePath = Path.Combine(dir, $"{adapterName}.uws");
 
-             if (!File.Exists(_weightProjectFilePath))
-             {
-                 var projectItem = new ProjectItem()
-                 {
-                     InputNamesCsv = string.Join(",", Processor.OutputNames.floatNames),
-                     WeightSets = Adapter.WeightSetCount,
-                     WeightNamesCsv = string.Join(",", Processor.WeightNames)
-                 };
-                 using (var writer = new StreamWriter(_weightProjectFilePath))
-                 {
-                     var serializer = new XmlSerializer(projectItem.GetType());
-                     serializer.Serialize(writer, projectItem);
-                 }
-             }
-             
-             // Check weight files
-             var weightFilesDir = Path.Combine(dir, "Weights");
-             Directory.CreateDirectory(weightFilesDir);
-             var weightFilesCount = Directory.GetFiles(weightFilesDir).Count(f => f.EndsWith("weight"));
-             if (weightFilesCount < Adapter.WeightSetCount) return false;
-             
-             // Check method files
-             var methodFilesDir = Path.Combine(dir, "Methods");
-             Directory.CreateDirectory(methodFilesDir);
-             var methodFileNames = Directory.GetFiles(methodFilesDir).Where(f => f.EndsWith("calc")).Select(Path.GetFileNameWithoutExtension).ToArray();
-             var predefinedMethodNames = Adapter.OutputNames.floatNames;
-             if (methodFileNames.Length < predefinedMethodNames.Length) return false;
+            if (!File.Exists(_weightProjectFilePath))
+            {
+                var projectItem = new ProjectItem()
+                {
+                    InputNamesCsv = string.Join(",", Processor.OutputNames.floatNames),
+                    WeightSets = Adapter.WeightSetCount,
+                    WeightNamesCsv = string.Join(",", Processor.WeightNames)
+                };
+                using (var writer = new StreamWriter(_weightProjectFilePath))
+                {
+                    var serializer = new XmlSerializer(projectItem.GetType());
+                    serializer.Serialize(writer, projectItem);
+                }
+            }
 
-             var allMethodsDefined = predefinedMethodNames.All(pre => methodFileNames.Contains(pre));
-             return allMethodsDefined;
+            // Check weight files
+            var weightFilesDir = Path.Combine(dir, "Weights");
+            Directory.CreateDirectory(weightFilesDir);
+            var weightFilesCount = Directory.GetFiles(weightFilesDir).Count(f => f.EndsWith("weight"));
+            if (weightFilesCount < Adapter.WeightSetCount)
+            {
+                Log("缺少权重文件, 请配置权重", "Weight files not enough", LogLevel.Fatal);
+                return false;
+            }
+
+            // Check method files
+            var methodFilesDir = Path.Combine(dir, "Methods");
+            Directory.CreateDirectory(methodFilesDir);
+            var methodFileNames = Directory.GetFiles(methodFilesDir).Where(f => f.EndsWith("calc")).Select(Path.GetFileNameWithoutExtension).ToArray();
+            var predefinedMethodNames = Adapter.OutputNames.floatNames;
+            if (methodFileNames.Length < predefinedMethodNames.Length)
+            {
+                Log("缺少权重计算文件, 请配置权重", "Weight method files not enough", LogLevel.Fatal);
+                return false;
+            }
+
+            var allMethodsDefined = predefinedMethodNames.All(pre => methodFileNames.Contains(pre));
+            return allMethodsDefined;
         }
         private void OpenWeightEditorDialog()
         {
@@ -210,13 +217,13 @@ namespace RemoteVisionConsole.Module.ViewModels
                 OutputNames = Adapter.OutputNames.floatNames,
                 WeightNames = Processor.WeightNames,
                 WeightSetCount = Adapter.WeightSetCount
-            }}}, r =>
+            } },{ "Login", RemoteVisionConsoleModule.UserLogin }}, r =>
             {
                 if (r.Result == ButtonResult.OK)
                 {
                     WeightsConfigured = true;
                 }
-                
+
             });
         }
 
@@ -434,7 +441,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                 Log("权重未分配, 数据处理无法进行", "Weights not configured, cancel processing");
                 return;
             }
-            
+
             IsIdle = false;
 
             try

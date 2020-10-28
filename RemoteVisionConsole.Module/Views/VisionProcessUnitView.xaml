@@ -24,8 +24,18 @@
             <Button
                 Margin="5,0,0,0"
                 Command="{Binding OpenWeightEditorDialogCommand}"
-                Visibility="{Binding Adapter.EnableWeighting, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Collapsed, TrueVisibility=Visible}}"
-                Content="设置权重" />
+                Visibility="{Binding Adapter.EnableWeighting, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Collapsed, TrueVisibility=Visible}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        Margin="5,0"
+                        VerticalAlignment="Center"
+                        Text="设置权重" />
+                    <bunny:SvgIcon
+                        Foreground="Red"
+                        IconKey="exclamation_sign"
+                        Visibility="{Binding WeightsConfigured, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Visible, TrueVisibility=Collapsed}}" />
+                </StackPanel>
+            </Button>
             <Button
                 Margin="5,0,0,0"
                 Command="{Binding RunSingleFileCommand}"
