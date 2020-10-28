@@ -17,20 +17,20 @@ namespace RemoteVisionConsole.Module.Misc
 
         public byte R
         {
-            get { return this._r; }
-            set { this._r = value; }
+            get => this._r;
+            set => this._r = value;
         }
 
         public byte G
         {
-            get { return this._g; }
-            set { this._g = value; }
+            get => this._g;
+            set => this._g = value;
         }
 
         public byte B
         {
-            get { return this._b; }
-            set { this._b = value; }
+            get => this._b;
+            set => this._b = value;
         }
 
         public bool Equals(RGB rgb)

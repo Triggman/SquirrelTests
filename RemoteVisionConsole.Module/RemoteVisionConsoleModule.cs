@@ -24,6 +24,7 @@ namespace RemoteVisionConsole.Module
             containerRegistry.RegisterDialog<VisionProcessUnitPropertyDialog, VisionProcessUnitPropertyDialogViewModel>();
             containerRegistry.RegisterDialog<UserSettingDialog, UserSettingDialogViewModel>();
             containerRegistry.RegisterDialog<VisionConsoleConfirmDialog, VisionConsoleConfirmDialogViewModel>();
+            containerRegistry.RegisterDialog<WeightEditorDialog, WeightEditorDialogViewModel>();
         }
 
         public static void UpdateLoginState(bool login)

@@ -23,6 +23,11 @@
                 Content="设置" />
             <Button
                 Margin="5,0,0,0"
+                Command="{Binding OpenWeightEditorDialogCommand}"
+                Visibility="{Binding Adapter.EnableWeighting, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Collapsed, TrueVisibility=Visible}}"
+                Content="设置权重" />
+            <Button
+                Margin="5,0,0,0"
                 Command="{Binding RunSingleFileCommand}"
                 Content="运行文件"
                 IsEnabled="{Binding IsIdle}" />

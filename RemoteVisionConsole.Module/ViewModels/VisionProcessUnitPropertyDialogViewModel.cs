@@ -1,5 +1,6 @@
 ﻿using Prism.Services.Dialogs;
 using System.Collections.Generic;
+using RemoteVisionConsole.Module.Models;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {
@@ -8,8 +9,8 @@ namespace RemoteVisionConsole.Module.ViewModels
         private IEnumerable<PropertyItem> _properties;
         public IEnumerable<PropertyItem> Properties
         {
-            get { return _properties; }
-            set { SetProperty(ref _properties, value); }
+            get => _properties;
+            set => SetProperty(ref _properties, value);
         }
 
         public override void OnDialogOpened(IDialogParameters parameters)

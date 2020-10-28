@@ -13,6 +13,7 @@ namespace RemoteVisionConsole.Interface
         ProcessResult<TData> Process(List<TData[]> data, int cavityIndex);
 
         (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; }
+        string[] WeightNames { get;  }
     }
 
     public class ProcessResult<TData>

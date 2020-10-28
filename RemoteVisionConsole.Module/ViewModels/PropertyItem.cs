@@ -1,6 +1,6 @@
 ﻿namespace RemoteVisionConsole.Module.ViewModels
 {
-    public class PropertyItem
+    public class  PropertyItem
     {
         public string Name { get; set; }
 

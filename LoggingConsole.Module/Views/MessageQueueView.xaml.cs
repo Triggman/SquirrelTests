@@ -35,8 +35,8 @@ namespace LoggingConsole.Module.Views
 
         public MessageQueueViewModel ViewModel
         {
-            get { return (MessageQueueViewModel)GetValue(ViewModelProperty); }
-            set { SetValue(ViewModelProperty, value); }
+            get => (MessageQueueViewModel)GetValue(ViewModelProperty);
+            set => SetValue(ViewModelProperty, value);
         }
 
         public static readonly DependencyProperty ShouldAutoScrollProperty = DependencyProperty.Register(
@@ -46,8 +46,8 @@ namespace LoggingConsole.Module.Views
 
         public bool ShouldAutoScroll
         {
-            get { return (bool)GetValue(ShouldAutoScrollProperty); }
-            set { SetValue(ShouldAutoScrollProperty, value); }
+            get => (bool)GetValue(ShouldAutoScrollProperty);
+            set => SetValue(ShouldAutoScrollProperty, value);
         }
 
         private static void OnViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

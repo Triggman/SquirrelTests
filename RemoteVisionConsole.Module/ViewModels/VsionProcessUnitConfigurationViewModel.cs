@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Input;
+using RemoteVisionConsole.Module.Models;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {
@@ -33,7 +34,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private string _adapterAssemblyPath;
         public string AdapterAssemblyPath
         {
-            get { return _adapterAssemblyPath; }
+            get => _adapterAssemblyPath;
             set
             {
                 SetProperty(ref _adapterAssemblyPath, value);
@@ -45,7 +46,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private string _processorAssemblyPath;
         public string ProcessorAssemblyPath
         {
-            get { return _processorAssemblyPath; }
+            get => _processorAssemblyPath;
             set
             {
                 SetProperty(ref _processorAssemblyPath, value);
@@ -57,29 +58,29 @@ namespace RemoteVisionConsole.Module.ViewModels
         private IEnumerable<TypeSource> _adapterTypeSources;
         public IEnumerable<TypeSource> AdapterTypeSources
         {
-            get { return _adapterTypeSources; }
-            set { SetProperty(ref _adapterTypeSources, value); }
+            get => _adapterTypeSources;
+            set => SetProperty(ref _adapterTypeSources, value);
         }
 
         private IEnumerable<TypeSource> _processorTypeSources;
         public IEnumerable<TypeSource> ProcessorTypeSources
         {
-            get { return _processorTypeSources; }
-            set { SetProperty(ref _processorTypeSources, value); }
+            get => _processorTypeSources;
+            set => SetProperty(ref _processorTypeSources, value);
         }
 
         private TypeSource _selectedAdapterTypeSource;
         public TypeSource SelectedAdapterTypeSource
         {
-            get { return _selectedAdapterTypeSource; }
-            set { SetProperty(ref _selectedAdapterTypeSource, value); }
+            get => _selectedAdapterTypeSource;
+            set => SetProperty(ref _selectedAdapterTypeSource, value);
         }
 
         private TypeSource _selectedProcessorTypeSource;
         public TypeSource SelectedProcessorTypeSource
         {
-            get { return _selectedProcessorTypeSource; }
-            set { SetProperty(ref _selectedProcessorTypeSource, value); }
+            get => _selectedProcessorTypeSource;
+            set => SetProperty(ref _selectedProcessorTypeSource, value);
         }
 
         public ICommand MatchProcessorAndAdapterCommand { get; }

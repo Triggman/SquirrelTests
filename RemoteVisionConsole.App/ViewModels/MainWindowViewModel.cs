@@ -11,8 +11,8 @@ namespace RemoteVisionConsole.App.ViewModels
         private string _title = "Remote vision console";
         public string Title
         {
-            get { return _title; }
-            set { SetProperty(ref _title, value); }
+            get => _title;
+            set => SetProperty(ref _title, value);
         }
 
         private bool _loginPageToggle;
@@ -20,7 +20,7 @@ namespace RemoteVisionConsole.App.ViewModels
 
         public bool LoginPageToggle
         {
-            get { return _loginPageToggle; }
+            get => _loginPageToggle;
             set
             {
                 SetProperty(ref _loginPageToggle, value);

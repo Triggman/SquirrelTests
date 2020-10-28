@@ -2,6 +2,7 @@
 using Prism.Services.Dialogs;
 using RemoteVisionConsole.Module.Helper;
 using System.Windows.Input;
+using RemoteVisionConsole.Module.Models;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {
@@ -10,15 +11,15 @@ namespace RemoteVisionConsole.Module.ViewModels
         private ProcessUnitUserSetting _viewModel;
         public ProcessUnitUserSetting ViewModel
         {
-            get { return _viewModel; }
-            set { SetProperty(ref _viewModel, value); }
+            get => _viewModel;
+            set => SetProperty(ref _viewModel, value);
         }
 
         private bool _userLogin;
         public bool UserLogin
         {
-            get { return _userLogin; }
-            set { SetProperty(ref _userLogin, value); }
+            get => _userLogin;
+            set => SetProperty(ref _userLogin, value);
         }
 
         public ICommand OKCommand { get; }

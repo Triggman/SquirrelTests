@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Xml.Serialization;
+using RemoteVisionConsole.Module.Models;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {
@@ -37,15 +38,15 @@ namespace RemoteVisionConsole.Module.ViewModels
         /// </summary>
         public object ViewModel
         {
-            get { return _viewModel; }
-            set { SetProperty(ref _viewModel, value); }
+            get => _viewModel;
+            set => SetProperty(ref _viewModel, value);
         }
 
         private string _title = "NotConfigured";
         public string Title
         {
-            get { return _title; }
-            set { SetProperty(ref _title, value); }
+            get => _title;
+            set => SetProperty(ref _title, value);
         }
         public ICommand DeleteMeCommand { get; }
 

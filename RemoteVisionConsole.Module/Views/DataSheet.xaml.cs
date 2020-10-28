@@ -28,8 +28,8 @@ namespace RemoteVisionConsole.Module.Views
 
         public IEnumerable<Dictionary<string, object>> ItemsSource
         {
-            get { return (IEnumerable<Dictionary<string, object>>)GetValue(ItemsSourceProperty); }
-            set { SetValue(ItemsSourceProperty, value); }
+            get => (IEnumerable<Dictionary<string, object>>)GetValue(ItemsSourceProperty);
+            set => SetValue(ItemsSourceProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ItemsSource.  This enables animation, styling, binding, etc...

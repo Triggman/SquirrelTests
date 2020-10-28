@@ -52,13 +52,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Constants.cs" />
-    <Compile Include="DialogViewModelBase.cs" />
-    <Compile Include="ComboBoxAssist.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="Helper\ComboBoxAssist.cs" />
     <Compile Include="Helper\Helpers.cs" />
     <Compile Include="Helper\ImageHelper.cs" />
     <Compile Include="Misc\RGB.cs" />
-    <Compile Include="ProcessUnitUserSetting.cs" />
+    <Compile Include="Models\DialogViewModelBase.cs" />
+    <Compile Include="Models\ProcessUnitUserSetting.cs" />
+    <Compile Include="Models\TypeSource.cs" />
+    <Compile Include="Models\WeightConfigurationConstraint.cs" />
     <Compile Include="RemoteVisionConsoleModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -74,7 +76,9 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="RemoteVisionConsoleEvents.cs" />
-    <Compile Include="TypeSource.cs" />
+    <Compile Include="ViewModels\CalculationMethodItemViewModel.cs" />
+    <Compile Include="ViewModels\FillPreviewInputsDialogViewModel.cs" />
+    <Compile Include="ViewModels\PreviewDialogViewModel.cs" />
     <Compile Include="ViewModels\PropertyItem.cs" />
     <Compile Include="ViewModels\UserSettingDialogViewModel.cs" />
     <Compile Include="ViewModels\VisionConsoleConfirmDialogViewModel.cs" />
@@ -85,10 +89,16 @@
     <Compile Include="ViewModels\VisionProcessUnitViewModel.cs" />
     <Compile Include="ViewModels\VsionProcessUnitConfigurationViewModel.cs" />
     <Compile Include="ViewModels\VsionProcessUnitContainerViewModel.cs" />
+    <Compile Include="ViewModels\WeightCollectionViewModel.cs" />
+    <Compile Include="ViewModels\WeightItemViewModel.cs" />
+    <Compile Include="ViewModels\WeightEditorDialogViewModel.cs" />
+    <Compile Include="Views\CalculationMethodItemView.xaml.cs" />
     <Compile Include="Views\DataSheet.xaml.cs">
       <DependentUpon>DataSheet.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\FillPreviewInputsDialog.xaml.cs" />
     <Compile Include="Views\PanAndZoomBorder.cs" />
+    <Compile Include="Views\PreviewDialog.xaml.cs" />
     <Compile Include="Views\UserSettingDialog.xaml.cs">
       <DependentUpon>UserSettingDialog.xaml</DependentUpon>
     </Compile>
@@ -110,6 +120,9 @@
     <Compile Include="Views\VsionProcessUnitConfigurationView.xaml.cs">
       <DependentUpon>VsionProcessUnitConfigurationView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\WeightCollectionView.xaml.cs" />
+    <Compile Include="Views\WeightItemView.xaml.cs" />
+    <Compile Include="Views\WeightEditorDialog.xaml.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -151,6 +164,9 @@
       <Version>12.0.3</Version>
     </PackageReference>
     <PackageReference Include="Prism.Wpf" Version="7.2.0.1422" />
+    <PackageReference Include="UniversalWeightSystem.Framework.SDK">
+      <Version>1.0.6</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="Views\DataSheet.xaml">
@@ -185,6 +201,16 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Views\CalculationMethodItemView.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Views\FillPreviewInputsDialog.xaml" />
+    <Page Include="Views\PreviewDialog.xaml" />
+    <Page Include="Views\WeightCollectionView.xaml" />
+    <Page Include="Views\WeightItemView.xaml" />
+    <Page Include="Views\WeightEditorDialog.xaml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

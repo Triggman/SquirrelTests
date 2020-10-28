@@ -1,8 +1,8 @@
+using System;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
-using System;
 
-namespace RemoteVisionConsole.Module
+namespace RemoteVisionConsole.Module.Models
 {
 
 
@@ -12,16 +12,16 @@ namespace RemoteVisionConsole.Module
 
         public string IconSource
         {
-            get { return _iconSource; }
-            set { SetProperty(ref _iconSource, value); }
+            get => _iconSource;
+            set => SetProperty(ref _iconSource, value);
         }
 
         private string _title;
 
         public string Title
         {
-            get { return _title; }
-            set { SetProperty(ref _title, value); }
+            get => _title;
+            set => SetProperty(ref _title, value);
         }
 
         public event Action<IDialogResult> RequestClose;

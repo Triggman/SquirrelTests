@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="RemoteVisionConsole.Module.Views.FillPreviewInputsDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:bunny="http://afterbunny/2020/ui/wpf"
+             xmlns:mvvm="http://prismlibrary.com/"
+             xmlns:viewModels="clr-namespace:RemoteVisionConsole.Module.ViewModels"
+             mvvm:ViewModelLocator.AutoWireViewModel="True"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" mvvm:Dialog.WindowStartupLocation="CenterScreen">
+    
+    <mvvm:Dialog.WindowStyle>
+        <Style TargetType="Window">
+            <Setter Property="SizeToContent" Value="WidthAndHeight"/>
+        </Style>
+    </mvvm:Dialog.WindowStyle>
+    
+    <Grid Background="{bunny:ThemeResource ResourceKey=ContentBackground}" TextElement.Foreground="{bunny:ThemeResource ResourceKey=ControlForeground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <ItemsControl ItemsSource="{Binding InputItems}" Grid.Row="0" Margin="5">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="viewModels:InputItemViewModel">
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <TextBlock Text="{Binding Name}" Width="60" TextAlignment="Center"/>
+                        <TextBlock Text=" = "/>
+                        <TextBox Text="{Binding Value}" Width="80"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="2"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+        
+        <Grid Grid.Row="1" Margin="5">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <TextBlock Text="Select one set of weights: "/>
+                <ComboBox ItemsSource="{Binding WeightSetSelectionList}" SelectedIndex="{Binding SelectedIndex}"/>
+            </StackPanel>
+            
+            <Button HorizontalAlignment="Right" Content="OK" Width="60" Command="{Binding OkCommand}"/>
+        </Grid>
+    </Grid>
+</UserControl>

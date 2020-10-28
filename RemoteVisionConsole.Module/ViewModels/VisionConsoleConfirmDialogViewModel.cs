@@ -1,6 +1,7 @@
 ﻿using Prism.Commands;
 using Prism.Services.Dialogs;
 using System.Windows.Input;
+using RemoteVisionConsole.Module.Models;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {

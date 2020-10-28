@@ -95,10 +95,7 @@ namespace LoggingConsole.Module.ViewModels
         public ObservableCollection<LoggingMessageItem> DisplayItems
         {
             get => _displayItems;
-            set
-            {
-                SetProperty(ref _displayItems, value);
-            }
+            set => SetProperty(ref _displayItems, value);
         }
 
 
@@ -108,10 +105,7 @@ namespace LoggingConsole.Module.ViewModels
         public string NewestMessage
         {
             get => _newestMessage;
-            private set
-            {
-                SetProperty(ref _newestMessage, value);
-            }
+            private set => SetProperty(ref _newestMessage, value);
         }
 
         public ICommand ClearMessagesCommand { get; set; }

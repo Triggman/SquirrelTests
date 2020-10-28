@@ -13,12 +13,14 @@ namespace RemoteVisionConsole.Interface
 
         string ZeroMQAddress { get; }
         string ProjectName { get; }
+        bool EnableWeighting { get; }
         (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; }
         (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; }
         (float min, float max) DataRange { get; }
 
 
         GraphicMetaData GraphicMetaData { get; }
+        int WeightSetCount { get; }
 
 
         /// <summary>

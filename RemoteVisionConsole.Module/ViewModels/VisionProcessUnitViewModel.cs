@@ -28,6 +28,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
+using RemoteVisionConsole.Module.Models;
+using UniversalWeightSystem.Framework.SDK;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {
@@ -47,6 +49,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private string _tableNameRawOffline;
         private string _tableNameWeightedOffline;
         private bool _databaseServiceInstalled = true;
+        private string _weightProjectFilePath;
 
         #endregion
 
@@ -60,8 +63,8 @@ namespace RemoteVisionConsole.Module.ViewModels
         private List<WriteableBitmap> _displayImages;
         public List<WriteableBitmap> DisplayImages
         {
-            get { return _displayImages; }
-            set { SetProperty(ref _displayImages, value); }
+            get => _displayImages;
+            set => SetProperty(ref _displayImages, value);
         }
 
         private ObservableCollection<Dictionary<string, object>> _displayData = new ObservableCollection<Dictionary<string, object>>();
@@ -69,18 +72,28 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         public ObservableCollection<Dictionary<string, object>> DisplayData
         {
-            get { return _displayData; }
-            set { SetProperty(ref _displayData, value); }
+            get => _displayData;
+            set => SetProperty(ref _displayData, value);
         }
 
         private bool _isIdle;
+
         public bool IsIdle
         {
-            get { return _isIdle; }
-            set { SetProperty(ref _isIdle, value); }
+            get => _isIdle;
+            set => SetProperty(ref _isIdle, value);
+        }
+
+        private bool _weightsConfigured;
+
+        public bool WeightsConfigured
+        {
+            get => _weightsConfigured;
+            set => SetProperty(ref _weightsConfigured, value);
         }
 
         public string Name { get; }
+
 
         public string ServerAddress { get; }
 
@@ -90,6 +103,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         public ICommand RunSingleFileCommand { get; }
         public ICommand RunFolderCommand { get; }
         public ICommand OpenSettingDialogCommand { get; }
+        public ICommand OpenWeightEditorDialogCommand { get; }
         #endregion
 
         #region ctor
@@ -109,11 +123,15 @@ namespace RemoteVisionConsole.Module.ViewModels
             RunSingleFileCommand = new DelegateCommand(RunSingleFile);
             RunFolderCommand = new DelegateCommand(RunFolder);
             OpenSettingDialogCommand = new DelegateCommand(OpenSettingDialog);
+            OpenWeightEditorDialogCommand = new DelegateCommand(OpenWeightEditorDialog);
 
             _userSetting = LoadUserSetting(Adapter.Name);
 
             CreateDatabase();
-
+            if (Adapter.EnableWeighting)
+            {
+                WeightsConfigured = CheckIfWeightsAreConfigured(Adapter.Name);
+            }
 
             // Setup server
             var enableZeroMQText = ConfigurationManager.AppSettings["EnableZeroMQ"];
@@ -129,6 +147,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             GenerateEmptyDisplayImages();
         }
 
+   
 
         #endregion
 
@@ -144,6 +163,62 @@ namespace RemoteVisionConsole.Module.ViewModels
         #endregion
 
         #region impl
+
+        private bool CheckIfWeightsAreConfigured(string adapterName)
+        {
+            var dir = Path.Combine(Constants.AppDataDir, $"WeightSettings/{adapterName}");
+            Directory.CreateDirectory(dir);
+             _weightProjectFilePath = Path.Combine(dir, $"{adapterName}.uws");
+
+             if (!File.Exists(_weightProjectFilePath))
+             {
+                 var projectItem = new ProjectItem()
+                 {
+                     InputNamesCsv = string.Join(",", Processor.OutputNames.floatNames),
+                     WeightSets = Adapter.WeightSetCount,
+                     WeightNamesCsv = string.Join(",", Processor.WeightNames)
+                 };
+                 using (var writer = new StreamWriter(_weightProjectFilePath))
+                 {
+                     var serializer = new XmlSerializer(projectItem.GetType());
+                     serializer.Serialize(writer, projectItem);
+                 }
+             }
+             
+             // Check weight files
+             var weightFilesDir = Path.Combine(dir, "Weights");
+             Directory.CreateDirectory(weightFilesDir);
+             var weightFilesCount = Directory.GetFiles(weightFilesDir).Count(f => f.EndsWith("weight"));
+             if (weightFilesCount < Adapter.WeightSetCount) return false;
+             
+             // Check method files
+             var methodFilesDir = Path.Combine(dir, "Methods");
+             Directory.CreateDirectory(methodFilesDir);
+             var methodFileNames = Directory.GetFiles(methodFilesDir).Where(f => f.EndsWith("calc")).Select(Path.GetFileNameWithoutExtension).ToArray();
+             var predefinedMethodNames = Adapter.OutputNames.floatNames;
+             if (methodFileNames.Length < predefinedMethodNames.Length) return false;
+
+             var allMethodsDefined = predefinedMethodNames.All(pre => methodFileNames.Contains(pre));
+             return allMethodsDefined;
+        }
+        private void OpenWeightEditorDialog()
+        {
+            _dialogService.ShowDialog("WeightEditorDialog", new DialogParameters{{"Constraint", new WeightConfigurationConstraint()
+            {
+                ProjectFilePath = _weightProjectFilePath,
+                InputNames = Processor.OutputNames.floatNames,
+                OutputNames = Adapter.OutputNames.floatNames,
+                WeightNames = Processor.WeightNames,
+                WeightSetCount = Adapter.WeightSetCount
+            }}}, r =>
+            {
+                if (r.Result == ButtonResult.OK)
+                {
+                    WeightsConfigured = true;
+                }
+                
+            });
+        }
 
 
 
@@ -354,6 +429,12 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void ProcessData(List<TData[]> data, int cavity, string inputSn, DataSourceType dataSource)
         {
+            if (Adapter.EnableWeighting && !WeightsConfigured)
+            {
+                Log("权重未分配, 数据处理无法进行", "Weights not configured, cancel processing");
+                return;
+            }
+            
             IsIdle = false;
 
             try

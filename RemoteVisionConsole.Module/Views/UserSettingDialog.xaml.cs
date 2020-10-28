@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using RemoteVisionConsole.Module.Helper;
 
 namespace RemoteVisionConsole.Module.Views
 {

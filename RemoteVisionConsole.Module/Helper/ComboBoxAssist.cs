@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Windows.Controls;
 
-namespace RemoteVisionConsole.Module
+namespace RemoteVisionConsole.Module.Helper
 {
 
     public static class ComboBoxAssist

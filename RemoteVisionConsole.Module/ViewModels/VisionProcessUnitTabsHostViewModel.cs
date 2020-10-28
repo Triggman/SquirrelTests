@@ -20,15 +20,15 @@ namespace RemoteVisionConsole.Module.ViewModels
         private ObservableCollection<VsionProcessUnitContainerViewModel> _tabItems;
         public ObservableCollection<VsionProcessUnitContainerViewModel> TabItems
         {
-            get { return _tabItems; }
-            set { SetProperty(ref _tabItems, value); }
+            get => _tabItems;
+            set => SetProperty(ref _tabItems, value);
         }
 
         private VsionProcessUnitContainerViewModel _selectedTab;
         public VsionProcessUnitContainerViewModel SelectedTab
         {
-            get { return _selectedTab; }
-            set { SetProperty(ref _selectedTab, value); }
+            get => _selectedTab;
+            set => SetProperty(ref _selectedTab, value);
         }
 
         public ICommand AddTabItemCommand { get; }
