@@ -75,7 +75,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             set => SetProperty(ref _displayData, value);
         }
 
-        private bool _isIdle;
+        private bool _isIdle = true;
 
         public bool IsIdle
         {
@@ -830,12 +830,12 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void ReportResult(Statistics statistics, ResultType resultType, DataSourceType dataSource)
         {
-            var statisticReuslts = new StatisticsResults(statistics.FloatResults, statistics.IntegerResults, statistics.TextResults) { ResultType = resultType };
-            if (dataSource == DataSourceType.DataEvent) _ea.GetEvent<VisionResultEvent>().Publish(statisticReuslts);
+            var statisticResults = new StatisticsResults(statistics.FloatResults, statistics.IntegerResults, statistics.TextResults) { ResultType = resultType };
+            if (dataSource == DataSourceType.DataEvent) _ea.GetEvent<VisionResultEvent>().Publish(statisticResults);
             else if (dataSource == DataSourceType.ZeroMQ)
             {
                 // Serialize statistics 
-                var json = JsonConvert.SerializeObject(statisticReuslts);
+                var json = JsonConvert.SerializeObject(statisticResults);
                 _serverSocket.SendFrame(json);
             }
             Log("发送计算结果", "Reported statistic results");
