@@ -165,48 +165,93 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private bool CheckIfWeightsAreConfigured(string adapterName)
         {
+            // Check for adapter and processor definition errors
+            if (Adapter.OutputNames.floatNames == null || Adapter.OutputNames.floatNames.Length == 0)
+            {
+                Log("Adapter.OutputNames.floatNames未正确定义",
+                    "Adapter.OutputNames.floatNames has not been properly defined", LogLevel.Fatal);
+                return false;
+            }
+
+            if (Adapter.WeightSetCount < 1)
+            {
+                Log("Adapter.WeightSetCount未正确定义",
+                    "Adapter.WeightSetCount has not been properly defined", LogLevel.Fatal);
+                return false;
+            }
+
+            if (Processor.WeightNames == null || Processor.WeightNames.Length == 0)
+            {
+                Log("Processor.WeightNames未正确定义",
+                    "Processor.WeightNames has not been properly defined", LogLevel.Fatal);
+                return false;
+            }
+            if (Processor.OutputNames.floatNames == null || Processor.OutputNames.floatNames.Length == 0)
+            {
+                Log("Processor.OutputNames.floatNames未正确定义",
+                    "Processor.OutputNames.floatNames has not been properly defined", LogLevel.Fatal);
+                return false;
+            }
+
             var dir = Path.Combine(Constants.AppDataDir, $"WeightSettings/{adapterName}");
             Directory.CreateDirectory(dir);
             _weightProjectFilePath = Path.Combine(dir, $"{adapterName}.uws");
 
             if (!File.Exists(_weightProjectFilePath))
             {
-                var projectItem = new ProjectItem()
-                {
-                    InputNamesCsv = string.Join(",", Processor.OutputNames.floatNames),
-                    WeightSets = Adapter.WeightSetCount,
-                    WeightNamesCsv = string.Join(",", Processor.WeightNames)
-                };
-                using (var writer = new StreamWriter(_weightProjectFilePath))
-                {
-                    var serializer = new XmlSerializer(projectItem.GetType());
-                    serializer.Serialize(writer, projectItem);
-                }
+                Log("权重未配置", "Weights not configured", LogLevel.Fatal);
+                return false;
             }
 
             // Check weight files
-            var weightFilesDir = Path.Combine(dir, "Weights");
-            Directory.CreateDirectory(weightFilesDir);
-            var weightFilesCount = Directory.GetFiles(weightFilesDir).Count(f => f.EndsWith("weight"));
-            if (weightFilesCount < Adapter.WeightSetCount)
+            var (loadedWeights, newlyAddedWeights) = Helpers.LoadWeights(dir, Processor.WeightNames, Adapter.WeightSetCount);
+            if (newlyAddedWeights != null && newlyAddedWeights.Any())
             {
-                Log("缺少权重文件, 请配置权重", "Weight files not enough", LogLevel.Fatal);
+                var weightNamesText = string.Join(", ", newlyAddedWeights);
+                Log($"存在未配置的权重:{weightNamesText}", $"Weights that are not set: {weightNamesText}", LogLevel.Fatal);
                 return false;
             }
+
+
 
             // Check method files
-            var methodFilesDir = Path.Combine(dir, "Methods");
-            Directory.CreateDirectory(methodFilesDir);
-            var methodFileNames = Directory.GetFiles(methodFilesDir).Where(f => f.EndsWith("calc")).Select(Path.GetFileNameWithoutExtension).ToArray();
-            var predefinedMethodNames = Adapter.OutputNames.floatNames;
-            if (methodFileNames.Length < predefinedMethodNames.Length)
+            var (loadedMethods, missingMethods) = Helpers.LoadMethods(dir, Adapter.OutputNames.floatNames);
+            if (missingMethods.Any())
             {
-                Log("缺少权重计算文件, 请配置权重", "Weight method files not enough", LogLevel.Fatal);
+                var missingMethodsText = string.Join(", ", missingMethods);
+                Log($"存在未配置的权重方法:{missingMethodsText}", $"Methods that are not set: {missingMethodsText}", LogLevel.Fatal);
                 return false;
             }
 
-            var allMethodsDefined = predefinedMethodNames.All(pre => methodFileNames.Contains(pre));
-            return allMethodsDefined;
+            // Try run weights
+            var firstSetOfWeights = loadedWeights[0].WeightItems.ToDictionary(item => item.Name, item => item.Weight);
+            var scriptOutputAndExpressions =
+                loadedMethods.ToDictionary(m => m.OutputName, m => m.MethodDefinition);
+            var random = new Random(42);
+            var testInputs = Processor.OutputNames.floatNames.ToDictionary(name => name, name => random.NextDouble());
+
+            var (output, exceptions) = WeightWeaver.Weight(testInputs, firstSetOfWeights, scriptOutputAndExpressions);
+
+            if (exceptions.Count == 0) return true;
+
+            if (exceptions.Values.All(e => e is DivideByZeroException))
+            {
+                Log("试运行计算时出现DivideByZeroException", "DivideByZeroException occurred while trying to run weights", LogLevel.Warn);
+                return true;
+            }
+
+            // Show exception details
+            var exceptionDetails = new List<string>();
+            foreach (var outputName in exceptions.Keys)
+            {
+                var exception = exceptions[outputName];
+                exceptionDetails.Add($"{outputName}: [{exception.GetType()}] {exception.Message}");
+            }
+
+            var exceptionDetailsText = string.Join("\n", exceptionDetails);
+            Log($"试运行时出错: \n{exceptionDetailsText}", $"Error occurs while trying to run weights: \n{exceptionDetailsText}", LogLevel.Fatal);
+
+            return false;
         }
         private void OpenWeightEditorDialog()
         {
@@ -798,7 +843,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void Log(string displayMessage, string saveMessage, LogLevel logLevel = LogLevel.Info)
         {
-            RemoteVisionConsoleModule.Log(new LoggingMessageItem($"视觉页面({Adapter.Name}): {displayMessage}", $"VisionPage({Adapter.Name}): {saveMessage}") { LogLevel = logLevel });
+            RemoteVisionConsoleModule.Log(new LoggingMessageItem($"({Adapter.Name}): {displayMessage}", $"VisionPage({Adapter.Name}): {saveMessage}") { LogLevel = logLevel });
         }
 
         private void Warn(string message)

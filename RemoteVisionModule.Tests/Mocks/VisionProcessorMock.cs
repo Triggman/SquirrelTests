@@ -5,8 +5,8 @@ namespace RemoteVisionModule.Tests.Mocks
 {
     public class VisionProcessorMock : IVisionProcessor<byte>
     {
-        public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } = (new[] { "Value1" }, null, null);
-        public string[] WeightNames { get; } = new[] {"w1", "w2"};
+        public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } = (new[] { "Value0" }, null, null);
+        public string[] WeightNames { get; } = new[] { "w1", "w3" };
 
         public ProcessResult<byte> Process(List<byte[]> data, int cavityIndex)
         {

@@ -4,13 +4,13 @@ using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
+using RemoteVisionConsole.Module.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Xml.Serialization;
-using RemoteVisionConsole.Module.Models;
 
 namespace RemoteVisionConsole.Module.ViewModels
 {
@@ -194,7 +194,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void Log(string displayMessage, string saveMessage, LogLevel logLevel = LogLevel.Info)
         {
-            RemoteVisionConsoleModule.Log(new LoggingMessageItem($"视觉页面({Title}): {displayMessage}", $"VisionPage({Title}): {saveMessage}") { LogLevel = logLevel });
+            RemoteVisionConsoleModule.Log(new LoggingMessageItem($"({Title}): {displayMessage}", $"VisionPage({Title}): {saveMessage}") { LogLevel = logLevel });
         }
 
         private void Warn(string message)

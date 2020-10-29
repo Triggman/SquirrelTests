@@ -1,11 +1,12 @@
 ﻿using Prism.Commands;
 using Prism.Services.Dialogs;
+using RemoteVisionConsole.Module.Helper;
 using RemoteVisionConsole.Module.Models;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows.Input;
 using System.Xml.Serialization;
 using UniversalWeightSystem.Framework.SDK;
@@ -106,28 +107,29 @@ namespace RemoteVisionConsole.Module.ViewModels
             _weightDir = Path.Combine(projectDir, "Weights");
             _methodDir = Path.Combine(projectDir, "Methods");
 
-            LoadWeights();
-            LoadMethods();
+            // Read weights
+            WeightNamesCsv = string.Join(", ", _constraint.WeightNames);
+            var weightsAndNewlyDefinedWeights =
+                Helpers.LoadWeights(projectDir, _constraint.WeightNames, _constraint.WeightSetCount);
+            Weights = weightsAndNewlyDefinedWeights.weightCollection;
+
+            // Read methods
+            InputNamesCsv = string.Join(", ", _constraint.InputNames);
+            var (loadedMethods, missingMethods) = Helpers.LoadMethods(projectDir, _constraint.OutputNames);
+            foreach (var loadedMethod in loadedMethods)
+            {
+                CalculationMethods.Add(loadedMethod);
+            }
+
+            foreach (var missingMethod in missingMethods)
+            {
+                CalculationMethods.Add(new CalculationMethodItemViewModel() { OutputName = missingMethod });
+            }
+
             TryGenerateMethodHint();
         }
 
-        private void LoadMethods()
-        {
-            InputNamesCsv = string.Join(", ", _constraint.InputNames);
 
-            Directory.CreateDirectory(_methodDir);
-            var methodFiles = Directory.GetFiles(_methodDir).Where(p => p.EndsWith(".calc")).ToArray();
-
-            foreach (var outputName in _constraint.OutputNames)
-            {
-                var file = methodFiles.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f) == outputName);
-                CalculationMethods.Add(new CalculationMethodItemViewModel()
-                {
-                    OutputName = outputName,
-                    MethodDefinition = file == null ? string.Empty : File.ReadAllText(file)
-                }); ;
-            }
-        }
 
         private void SaveProject()
         {
@@ -215,7 +217,8 @@ namespace RemoteVisionConsole.Module.ViewModels
             var firstSetOfWeights = _weights[0].WeightItems.ToDictionary(item => item.Name, item => item.Weight);
             var scriptOutputAndExpressions =
                 CalculationMethods.ToDictionary(m => m.OutputName, m => m.MethodDefinition);
-            var testInputs = _constraint.InputNames.ToDictionary(name => name, name => 1d);
+            var random = new Random(42);
+            var testInputs = _constraint.InputNames.ToDictionary(name => name, name => random.NextDouble());
 
             var (output, exceptions) = WeightWeaver.Weight(testInputs, firstSetOfWeights, scriptOutputAndExpressions);
             if (exceptions.Count > 0)
@@ -272,68 +275,6 @@ namespace RemoteVisionConsole.Module.ViewModels
             }
         }
 
-        private void LoadWeights()
-        {
-            Directory.CreateDirectory(_weightDir);
-
-            WeightNamesCsv = string.Join(", ", _constraint.WeightNames);
-            var expectedWeightFilePaths = Enumerable.Range(0, _constraint.WeightSetCount)
-                .Select(index => Path.Combine(_weightDir, $"{index:D3}.weight")).ToArray();
-
-            var output = new List<WeightCollectionViewModel>();
-            for (var setIndex = 0; setIndex < expectedWeightFilePaths.Length; setIndex++)
-            {
-                var filePath = expectedWeightFilePaths[setIndex];
-                var fileExists = File.Exists(filePath);
-                var aSetOfWeightItems = fileExists
-                    ? ReadWeightsFromFile(filePath, _constraint.WeightNames)
-                    : CreateASetOfWeights(_constraint.WeightNames);
-                output.Add(new WeightCollectionViewModel(aSetOfWeightItems)
-                { Index = setIndex, NeedToSave = !fileExists });
-            }
-
-            Weights = output;
-        }
-
-
-
-        private static List<WeightItemViewModel> CreateASetOfWeights(string[] weightNames)
-        {
-            return weightNames.Select(name => new WeightItemViewModel() { Name = name }).ToList();
-        }
-
-        private static List<WeightItemViewModel> ReadWeightsFromFile(string filePath, string[] weightNames)
-        {
-            var rawLines = File.ReadAllLines(filePath);
-            var spaceFreeLines = rawLines.Select(line => Regex.Replace(line, @"\s+", "")).ToArray();
-            // variableName=number
-            var pattern = new Regex(@"^([a-zA-Z]\w*)=(-?[\d\.e]+)$");
-
-            var userDefinedHashSet = new HashSet<string>(weightNames);
-            var successfulReadWeights = new List<WeightItemViewModel>();
-            foreach (var line in spaceFreeLines)
-            {
-                var matchResult = pattern.Match(line);
-                if (!matchResult.Success) continue;
-                var weightName = matchResult.Groups[1].Value;
-                if (!userDefinedHashSet.Contains(weightName)) continue;
-                var weightValueText = matchResult.Groups[2].Value;
-                var isNumber = double.TryParse(weightValueText, out var weight);
-                if (isNumber) successfulReadWeights.Add(new WeightItemViewModel() { Name = weightName, Weight = weight });
-            }
-
-            if (successfulReadWeights.Count == 0)
-                return CreateASetOfWeights(weightNames);
-
-            // Look for missing weightItems
-            // And init missing weightItems with empty weight values
-            var loadedHashSet = new HashSet<string>(successfulReadWeights.Select(w => w.Name));
-            var missingWeights = weightNames.Where(name => !loadedHashSet.Contains(name))
-                .Select(name => new WeightItemViewModel() { Name = name });
-            successfulReadWeights.AddRange(missingWeights);
-
-            return successfulReadWeights.OrderBy(w => w.Name).ToList();
-        }
 
 
 
