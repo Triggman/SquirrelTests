@@ -87,6 +87,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private string _weightProjectFilePath;
         private Dictionary<int, Dictionary<string, double>> _weightCollectionByCavity;
         private Dictionary<string, string> _methodsByOutputName;
+        private bool _hasEverProcessedData;
 
         public bool WeightsConfigured
         {
@@ -133,7 +134,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             if (Adapter.EnableWeighting)
             {
                 WeightsConfigured = CheckIfWeightsAreConfigured(Adapter.Name);
-                if(WeightsConfigured) ReloadWeights();
+                if (WeightsConfigured) ReloadWeights();
             }
 
             // Setup server
@@ -320,22 +321,22 @@ namespace RemoteVisionConsole.Module.ViewModels
             var settingCopied = Helpers.CopyObject(_userSetting);
             _dialogService.ShowDialog("UserSettingDialog",
                 new DialogParameters { { "setting", settingCopied }, { "login", RemoteVisionConsoleModule.UserLogin } }, r =>
-                 {
-                     if (r.Result == ButtonResult.OK)
-                     {
-                         _userSetting = r.Parameters.GetValue<ProcessUnitUserSetting>("setting");
-                         using (var writer = new StreamWriter(_userSettingPath))
-                         {
-                             var serializer = new XmlSerializer(typeof(ProcessUnitUserSetting));
-                             serializer.Serialize(writer, _userSetting);
-                         }
-                         Log("保存设置成功", "Save setting success");
-                     }
-                     else
-                     {
-                         Log("设置未保存", "Settings not save", LogLevel.Warn);
-                     }
-                 });
+                {
+                    if (r.Result == ButtonResult.OK)
+                    {
+                        _userSetting = r.Parameters.GetValue<ProcessUnitUserSetting>("setting");
+                        using (var writer = new StreamWriter(_userSettingPath))
+                        {
+                            var serializer = new XmlSerializer(typeof(ProcessUnitUserSetting));
+                            serializer.Serialize(writer, _userSetting);
+                        }
+                        Log("保存设置成功", "Save setting success");
+                    }
+                    else
+                    {
+                        Log("设置未保存", "Settings not save", LogLevel.Warn);
+                    }
+                });
         }
 
         private void CreateDatabase()
@@ -503,6 +504,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             if (Adapter.EnableWeighting && !WeightsConfigured)
             {
                 Log("权重未分配, 数据处理无法进行", "Weights not configured, cancel processing", LogLevel.Fatal);
+                if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
                 return;
             }
 
@@ -511,7 +513,8 @@ namespace RemoteVisionConsole.Module.ViewModels
             try
             {
                 var sn = inputSn ?? string.Empty;
-                Log($"正在处理来自{dataSource}, 长度为{data.Count}, 夹具编号为{cavity}的数据, sn为{sn}", $"Start processing data of length({data.Count}) of cavity({cavity}), sn({sn}) from data source({dataSource})");
+                Log($"正在处理来自{dataSource}, 长度为{data.Count}, 夹具编号为{cavity}的数据, sn为{sn}",
+                    $"Start processing data of length({data.Count}) of cavity({cavity}), sn({sn}) from data source({dataSource})");
 
                 var stopwatch = Stopwatch.StartNew();
                 ProcessResult<TData> result = null;
@@ -524,15 +527,17 @@ namespace RemoteVisionConsole.Module.ViewModels
                 {
                     // Save image file
                     var exDetail = $"{ex.GetType()} \n{ex.Message}\n {ex.StackTrace}";
-                    if (dataSource != DataSourceType.DataFile) Adapter.SaveImage(data, ImageSaveFolderToday, "ERROR", GetImageFileName(cavity, sn), exDetail);
-                    else Log($"视觉处理出现异常: {exDetail}", $"Errored during vision processing: {exDetail}", LogLevel.Fatal);
+                    if (dataSource != DataSourceType.DataFile)
+                        Adapter.SaveImage(data, ImageSaveFolderToday, "ERROR", GetImageFileName(cavity, sn), exDetail);
+                    Log($"视觉处理出现异常: {exDetail}", $"Errored during vision processing: {exDetail}", LogLevel.Fatal);
 
                     // Report ex to ALC
-                    if (dataSource == DataSourceType.DataEvent) _ea.GetEvent<VisionResultEvent>().Publish(new StatisticsResults() { ResultType = ResultType.ERROR });
+                    if (dataSource == DataSourceType.DataEvent)
+                        _ea.GetEvent<VisionResultEvent>().Publish(new StatisticsResults()
+                        { ResultType = ResultType.ERROR });
                     if (dataSource == DataSourceType.ZeroMQ)
                     {
-                        var json = JsonConvert.SerializeObject(new StatisticsResults() { ResultType = ResultType.ERROR });
-                        _serverSocket.SendFrame(json);
+                        SendZeroMQError();
                     }
 
                     return;
@@ -540,10 +545,51 @@ namespace RemoteVisionConsole.Module.ViewModels
 
                 var statistics = result.Statistics;
                 var rawData = statistics.FloatResults;
+                // Check if processor give results that match what it promised
+                // at the first run
+                if (!_hasEverProcessedData)
+                {
+                    var namesAreEqual = CompareNames(Processor.OutputNames, rawData.Keys.ToArray());
+                    if (!namesAreEqual)
+                    {
+                        Log($"Processor的输出数据种类与其定义的不相符,\n 请检查类的定义和输出类型",
+                            $"The result of processor does not match what it promised", LogLevel.Fatal);
+                        if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
+                        return;
+                    }
+                }
+
                 statistics.FloatResults = Weight(statistics.FloatResults, cavity);
                 var resultType = Adapter.GetResultType(statistics);
                 var ms = stopwatch.ElapsedMilliseconds;
                 Log($"计算耗时{ms}ms", $"Data process finished in {ms} ms");
+
+                // Check if adapter give results that match what it promised
+                // at the first run
+                if (!_hasEverProcessedData)
+                {
+                    var promiseNamesAndActualNames = new List<(string kind, string[] promiseNames, string[] actualNames)>
+                    {
+                        ("AdapterFloatNames",Adapter.OutputNames.floatNames, statistics.FloatResults.Keys.ToArray()),
+                        ("AdapterIntegerNames",Adapter.OutputNames.integerNames, statistics.IntegerResults.Keys.ToArray()),
+                        ("AdapterTextNames",Adapter.OutputNames.textNames, statistics.TextResults.Keys.ToArray())
+                    };
+
+                    foreach (var (kind, promiseNames, actualNames) in promiseNamesAndActualNames)
+                    {
+                        var namesAreEqual = CompareNames(promiseNames, actualNames);
+                        if (!namesAreEqual)
+                        {
+                            Log($"{kind} 的输出数据种类与其定义的不相符,\n 请检查类的定义和输出类型",
+                                $"The result of {kind} does not match what it promised", LogLevel.Fatal);
+                            if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
+                            return;
+                        }
+                    }
+                }
+
+                _hasEverProcessedData = true;
+
 
                 if (dataSource != DataSourceType.DataFile) ReportResult(statistics, resultType, dataSource);
 
@@ -575,7 +621,8 @@ namespace RemoteVisionConsole.Module.ViewModels
                 if (_databaseServiceInstalled)
                 {
                     // If save any data
-                    if (_userSetting.SaveRawDataOffline || _userSetting.SaveRawDataOnline || _userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
+                    if (_userSetting.SaveRawDataOffline || _userSetting.SaveRawDataOnline ||
+                        _userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
                     {
                         var proxy = new CygiaSqliteAccessProxy(EndPointType.TCP);
                         // If save raw data
@@ -583,45 +630,59 @@ namespace RemoteVisionConsole.Module.ViewModels
                         {
                             var integerFields = new[] { new IntegerField() { Name = "Cavity", Value = cavity } };
                             var textFields = new[] { new TextField() { Name = "SN", Value = sn } };
-                            var rowDatas = new[] { new RowData {
-                            CreationTime = DateTime.Now,
-                DoubleFields = rawData.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
-                IntegerFields = integerFields,
-                TextFields = textFields
-                } };
+                            var rowDatas = new[]
+                            {
+                                new RowData
+                                {
+                                    CreationTime = DateTime.Now,
+                                    DoubleFields = rawData.Select(p => new DoubleField {Name = p.Key, Value = p.Value})
+                                        .ToArray(),
+                                    IntegerFields = integerFields,
+                                    TextFields = textFields
+                                }
+                            };
 
                             if (_userSetting.SaveRawDataOffline && dataSource == DataSourceType.DataFile)
                             {
                                 Log("保存离线原始数据", "Saved offline raw data");
                                 proxy.Insert(_tableNameRawOffline, rowDatas);
                             }
+
                             if (_userSetting.SaveRawDataOnline && dataSource != DataSourceType.DataFile)
                             {
                                 Log("保存在线原始数据", "Saved online raw data");
                                 proxy.Insert(_tableNameRawOnline, rowDatas);
                             }
                         }
+
                         // If save weighted data
                         if (_userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
                         {
-                            var integerFields = statistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
+                            var integerFields = statistics.IntegerResults
+                                .Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
                             integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
                             var textFields = statistics.TextResults
                                 .Select(p => new TextField { Name = p.Key, Value = p.Value }).ToList();
                             textFields.Insert(0, new TextField { Name = "SN", Value = sn });
 
-                            var rowDatas = new[] { new RowData {
-                            CreationTime = DateTime.Now,
-                DoubleFields = statistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
-                IntegerFields = integerFields.ToArray(),
-                TextFields = textFields.ToArray()
-                } };
+                            var rowDatas = new[]
+                            {
+                                new RowData
+                                {
+                                    CreationTime = DateTime.Now,
+                                    DoubleFields = statistics.FloatResults
+                                        .Select(p => new DoubleField {Name = p.Key, Value = p.Value}).ToArray(),
+                                    IntegerFields = integerFields.ToArray(),
+                                    TextFields = textFields.ToArray()
+                                }
+                            };
 
                             if (_userSetting.SaveWeightedDataOffline && dataSource == DataSourceType.DataFile)
                             {
                                 Log("保存离线计算数据", "Saved offline weighted data");
                                 proxy.Insert(_tableNameWeightedOffline, rowDatas);
                             }
+
                             if (_userSetting.SaveWeightedDataOnline && dataSource != DataSourceType.DataFile)
                             {
                                 Log("保存在线计算数据", "Saved online weighted data");
@@ -635,6 +696,35 @@ namespace RemoteVisionConsole.Module.ViewModels
             {
                 IsIdle = true;
             }
+
+        }
+
+        private void SendZeroMQError()
+        {
+            var json = JsonConvert.SerializeObject(new StatisticsResults() { ResultType = ResultType.ERROR });
+            _serverSocket.SendFrame(json);
+        }
+
+        /// <summary>
+        /// Compare two array of names
+        /// </summary>
+        /// <param name="promiseNames"></param>
+        /// <param name="actualNames"></param>
+        /// <returns>
+        /// true if all matched
+        /// </returns>
+        private bool CompareNames(string[] promiseNames, string[] actualNames)
+        {
+            if (promiseNames == null && actualNames == null) return true;
+
+            var twoArray = new[] { promiseNames, actualNames };
+            if (twoArray.Any(arr => arr == null)) return false;
+
+            if (promiseNames.Length == 0 && actualNames.Length == 0) return true;
+
+            if (promiseNames.Length != actualNames.Length) return false;
+
+            return promiseNames.All(pn => actualNames.Contains(pn));
         }
 
         private Dictionary<string, float> Weight(Dictionary<string, float> inputFloats, int cavity)
