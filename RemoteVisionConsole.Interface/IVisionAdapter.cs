@@ -47,8 +47,6 @@ namespace RemoteVisionConsole.Interface
         /// <param name="exceptionDetail">null when no error occours during image processing</param>
         void SaveImage(List<TOutput[]> imageData, string mainFolder, string subFolder, string fileName, string exceptionDetail);
 
-        Statistics Weight(Statistics statistics);
-
         List<TOutput[]> ReadFile(string path);
 
     }

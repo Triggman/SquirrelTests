@@ -1,1 +1,2 @@
 1. Handle weight-loading errors that are resulted from adapter and processor changes
+2. If first time run, check if processor promise to give results that he defines

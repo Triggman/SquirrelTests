@@ -48,7 +48,6 @@ namespace RemoteVisionConsole.Module.ViewModels
         private string _tableNameRawOffline;
         private string _tableNameWeightedOffline;
         private bool _databaseServiceInstalled = true;
-        private string _weightProjectFilePath;
 
         #endregion
 
@@ -84,6 +83,10 @@ namespace RemoteVisionConsole.Module.ViewModels
         }
 
         private bool _weightsConfigured;
+        private string _weightProjectDir;
+        private string _weightProjectFilePath;
+        private Dictionary<int, Dictionary<string, double>> _weightCollectionByCavity;
+        private Dictionary<string, string> _methodsByOutputName;
 
         public bool WeightsConfigured
         {
@@ -130,6 +133,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             if (Adapter.EnableWeighting)
             {
                 WeightsConfigured = CheckIfWeightsAreConfigured(Adapter.Name);
+                if(WeightsConfigured) ReloadWeights();
             }
 
             // Setup server
@@ -186,16 +190,16 @@ namespace RemoteVisionConsole.Module.ViewModels
                     "Processor.WeightNames has not been properly defined", LogLevel.Fatal);
                 return false;
             }
-            if (Processor.OutputNames.floatNames == null || Processor.OutputNames.floatNames.Length == 0)
+            if (Processor.OutputNames == null || Processor.OutputNames.Length == 0)
             {
-                Log("Processor.OutputNames.floatNames未正确定义",
-                    "Processor.OutputNames.floatNames has not been properly defined", LogLevel.Fatal);
+                Log("Processor.OutputNames未正确定义",
+                    "Processor.OutputNames has not been properly defined", LogLevel.Fatal);
                 return false;
             }
 
-            var dir = Path.Combine(Constants.AppDataDir, $"WeightSettings/{adapterName}");
-            Directory.CreateDirectory(dir);
-            _weightProjectFilePath = Path.Combine(dir, $"{adapterName}.uws");
+            _weightProjectDir = Path.Combine(Constants.AppDataDir, $"WeightSettings/{adapterName}");
+            Directory.CreateDirectory(_weightProjectDir);
+            _weightProjectFilePath = Path.Combine(_weightProjectDir, $"{adapterName}.uws");
 
             if (!File.Exists(_weightProjectFilePath))
             {
@@ -204,7 +208,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             }
 
             // Check weight files
-            var (loadedWeights, newlyAddedWeights) = Helpers.LoadWeights(dir, Processor.WeightNames, Adapter.WeightSetCount);
+            var (loadedWeights, newlyAddedWeights) = Helpers.LoadWeights(_weightProjectDir, Processor.WeightNames, Adapter.WeightSetCount);
             if (newlyAddedWeights != null && newlyAddedWeights.Any())
             {
                 var weightNamesText = string.Join(", ", newlyAddedWeights);
@@ -215,7 +219,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
 
             // Check method files
-            var (loadedMethods, missingMethods) = Helpers.LoadMethods(dir, Adapter.OutputNames.floatNames);
+            var (loadedMethods, missingMethods) = Helpers.LoadMethods(_weightProjectDir, Adapter.OutputNames.floatNames);
             if (missingMethods.Any())
             {
                 var missingMethodsText = string.Join(", ", missingMethods);
@@ -228,7 +232,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             var scriptOutputAndExpressions =
                 loadedMethods.ToDictionary(m => m.OutputName, m => m.MethodDefinition);
             var random = new Random(42);
-            var testInputs = Processor.OutputNames.floatNames.ToDictionary(name => name, name => random.NextDouble());
+            var testInputs = Processor.OutputNames.ToDictionary(name => name, name => random.NextDouble());
 
             var (output, exceptions) = WeightWeaver.Weight(testInputs, firstSetOfWeights, scriptOutputAndExpressions);
 
@@ -258,7 +262,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             _dialogService.ShowDialog("WeightEditorDialog", new DialogParameters{{"Constraint", new WeightConfigurationConstraint()
             {
                 ProjectFilePath = _weightProjectFilePath,
-                InputNames = Processor.OutputNames.floatNames,
+                InputNames = Processor.OutputNames,
                 OutputNames = Adapter.OutputNames.floatNames,
                 WeightNames = Processor.WeightNames,
                 WeightSetCount = Adapter.WeightSetCount
@@ -267,11 +271,23 @@ namespace RemoteVisionConsole.Module.ViewModels
                 if (r.Result == ButtonResult.OK)
                 {
                     WeightsConfigured = true;
+                    ReloadWeights();
                 }
 
             });
         }
 
+        private void ReloadWeights()
+        {
+            var (loadedWeightCollections, missingWeightNames) =
+                Helpers.LoadWeights(_weightProjectDir, Processor.WeightNames, Adapter.WeightSetCount);
+            _weightCollectionByCavity = loadedWeightCollections.ToDictionary(c => c.Index,
+                c => c.WeightItems.ToDictionary(i => i.Name, i => i.Weight));
+
+            var (loadedMethods, missingMethodNames) =
+                Helpers.LoadMethods(_weightProjectDir, Adapter.OutputNames.floatNames);
+            _methodsByOutputName = loadedMethods.ToDictionary(m => m.OutputName, m => m.MethodDefinition);
+        }
 
 
         private void GenerateEmptyDisplayImages()
@@ -330,18 +346,21 @@ namespace RemoteVisionConsole.Module.ViewModels
             _tableNameRawOffline = $"{projectName}.{Adapter.Name}_Raw_Offline";
             _tableNameWeightedOffline = $"{projectName}.{Adapter.Name}_Weighted_Offline";
 
-            var integerNamesRaw = new List<string>() { "Cavity" };
-            if (Processor.OutputNames.integerNames != null) integerNamesRaw.AddRange(Processor.OutputNames.integerNames);
+            var integerNamesRaw = new[] { "Cavity" };
+            var textNamesRaw = new[] { "SN" };
+
             var integerNamesWeighted = new List<string>() { "Cavity" };
             if (Adapter.OutputNames.integerNames != null) integerNamesWeighted.AddRange(Adapter.OutputNames.integerNames);
+            var textNamesWeighted = new List<string>() { "SN" };
+            if (Adapter.OutputNames.textNames != null) textNamesWeighted.AddRange(Adapter.OutputNames.textNames);
 
             try
             {
                 var proxy = new CygiaSqliteAccessProxy(EndPointType.TCP);
-                proxy.CreateTable(_tableNameRawOnline, Processor.OutputNames.floatNames, integerNamesRaw.ToArray(), Processor.OutputNames.textNames);
-                proxy.CreateTable(_tableNameRawOffline, Processor.OutputNames.floatNames, integerNamesRaw.ToArray(), Processor.OutputNames.textNames);
-                proxy.CreateTable(_tableNameWeightedOnline, Adapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), Adapter.OutputNames.textNames);
-                proxy.CreateTable(_tableNameWeightedOffline, Adapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), Adapter.OutputNames.textNames);
+                proxy.CreateTable(_tableNameRawOnline, Processor.OutputNames, integerNamesRaw, textNamesRaw);
+                proxy.CreateTable(_tableNameRawOffline, Processor.OutputNames, integerNamesRaw, textNamesRaw);
+                proxy.CreateTable(_tableNameWeightedOnline, Adapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), textNamesWeighted.ToArray());
+                proxy.CreateTable(_tableNameWeightedOffline, Adapter.OutputNames.floatNames, integerNamesWeighted.ToArray(), textNamesWeighted.ToArray());
             }
             catch (System.ServiceModel.EndpointNotFoundException)
             {
@@ -483,7 +502,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             if (Adapter.EnableWeighting && !WeightsConfigured)
             {
-                Log("权重未分配, 数据处理无法进行", "Weights not configured, cancel processing");
+                Log("权重未分配, 数据处理无法进行", "Weights not configured, cancel processing", LogLevel.Fatal);
                 return;
             }
 
@@ -519,14 +538,16 @@ namespace RemoteVisionConsole.Module.ViewModels
                     return;
                 }
 
-                var resultType = Adapter.GetResultType(result.Statistics);
-                var weightedStatistics = Adapter.Weight(result.Statistics);
+                var statistics = result.Statistics;
+                var rawData = statistics.FloatResults;
+                statistics.FloatResults = Weight(statistics.FloatResults, cavity);
+                var resultType = Adapter.GetResultType(statistics);
                 var ms = stopwatch.ElapsedMilliseconds;
                 Log($"计算耗时{ms}ms", $"Data process finished in {ms} ms");
 
-                if (dataSource != DataSourceType.DataFile) ReportResult(weightedStatistics, resultType, dataSource);
+                if (dataSource != DataSourceType.DataFile) ReportResult(statistics, resultType, dataSource);
 
-                DisplayStatisticResults(weightedStatistics, cavity);
+                DisplayStatisticResults(statistics, cavity, sn);
 
                 if (Adapter.GraphicMetaData.ShouldDisplay)
                 {
@@ -560,13 +581,13 @@ namespace RemoteVisionConsole.Module.ViewModels
                         // If save raw data
                         if (_userSetting.SaveRawDataOffline || _userSetting.SaveRawDataOnline)
                         {
-                            var integerFields = result.Statistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
-                            integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
+                            var integerFields = new[] { new IntegerField() { Name = "Cavity", Value = cavity } };
+                            var textFields = new[] { new TextField() { Name = "SN", Value = sn } };
                             var rowDatas = new[] { new RowData {
                             CreationTime = DateTime.Now,
-                DoubleFields = result.Statistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
-                IntegerFields = integerFields.ToArray(),
-                TextFields = result.Statistics.TextResults.Select(p=> new TextField{Name = p.Key, Value = p.Value}).ToArray(),
+                DoubleFields = rawData.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
+                IntegerFields = integerFields,
+                TextFields = textFields
                 } };
 
                             if (_userSetting.SaveRawDataOffline && dataSource == DataSourceType.DataFile)
@@ -583,13 +604,17 @@ namespace RemoteVisionConsole.Module.ViewModels
                         // If save weighted data
                         if (_userSetting.SaveWeightedDataOffline || _userSetting.SaveWeightedDataOnline)
                         {
-                            var integerFields = weightedStatistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
+                            var integerFields = statistics.IntegerResults.Select(p => new IntegerField { Name = p.Key, Value = p.Value }).ToList();
                             integerFields.Insert(0, new IntegerField { Name = "Cavity", Value = cavity });
+                            var textFields = statistics.TextResults
+                                .Select(p => new TextField { Name = p.Key, Value = p.Value }).ToList();
+                            textFields.Insert(0, new TextField { Name = "SN", Value = sn });
+
                             var rowDatas = new[] { new RowData {
                             CreationTime = DateTime.Now,
-                DoubleFields = weightedStatistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
+                DoubleFields = statistics.FloatResults.Select(p=> new DoubleField{Name = p.Key, Value = p.Value}).ToArray(),
                 IntegerFields = integerFields.ToArray(),
-                TextFields = weightedStatistics.TextResults.Select(p=> new TextField{Name = p.Key, Value = p.Value}).ToArray(),
+                TextFields = textFields.ToArray()
                 } };
 
                             if (_userSetting.SaveWeightedDataOffline && dataSource == DataSourceType.DataFile)
@@ -599,7 +624,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                             }
                             if (_userSetting.SaveWeightedDataOnline && dataSource != DataSourceType.DataFile)
                             {
-                                Log("保存在线计算数据", "Saved oneline weighted data");
+                                Log("保存在线计算数据", "Saved online weighted data");
                                 proxy.Insert(_tableNameWeightedOnline, rowDatas);
                             }
                         }
@@ -610,6 +635,20 @@ namespace RemoteVisionConsole.Module.ViewModels
             {
                 IsIdle = true;
             }
+        }
+
+        private Dictionary<string, float> Weight(Dictionary<string, float> inputFloats, int cavity)
+        {
+            if (!Adapter.EnableWeighting) return inputFloats;
+
+            var selectedWeightCollection = _weightCollectionByCavity[cavity];
+
+            var testInputs = inputFloats.ToDictionary(p => p.Key, p => (double)p.Value);
+
+            var (output, exceptions) = WeightWeaver.Weight(testInputs, selectedWeightCollection, _methodsByOutputName);
+
+            return output.ToDictionary(p => p.Key, p => (float)p.Value);
+
         }
 
         /// <summary>
@@ -644,12 +683,13 @@ namespace RemoteVisionConsole.Module.ViewModels
             throw new NotImplementedException();
         }
 
-        private void DisplayStatisticResults(Statistics statistics, int cavity)
+        private void DisplayStatisticResults(Statistics statistics, int cavity, string sn)
         {
             var rowData = new Dictionary<string, object>()
             {
                 ["Time"] = DateTime.Now.ToString("HH:mm:ss fff"),
-                ["Cavity"] = cavity
+                ["Cavity"] = cavity,
+                ["SN"] = sn
             };
 
             if (statistics.FloatResults != null)

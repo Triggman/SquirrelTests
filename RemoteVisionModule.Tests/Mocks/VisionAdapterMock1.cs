@@ -63,15 +63,6 @@ namespace RemoteVisionModule.Tests.Mocks
 
 
 
-        public Statistics Weight(Statistics statistics)
-        {
-            return new Statistics
-            {
-                FloatResults = new Dictionary<string, float> { ["Value1"] = (float)_random.NextDouble() },
-                IntegerResults = new Dictionary<string, int> { ["Value2"] = _random.Next() },
-                TextResults = new Dictionary<string, string> { ["Value1Result"] = "OK", ["Value2Result"] = "NG" },
-            };
-        }
 
 
 

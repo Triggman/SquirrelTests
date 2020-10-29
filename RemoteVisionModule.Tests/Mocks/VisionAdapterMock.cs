@@ -22,7 +22,7 @@ namespace RemoteVisionModule.Tests.Mocks
         public string ZeroMQAddress { get; } = "tcp://localhost:6001";
         public (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; } = (new[] { "tif", "tiff" }, "Tif Files");
         public string ProjectName { get; } = "TestProject";
-        public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } = (new[] { "OutputFloatValue" }, new[] { "Value2" }, new[] { "Value1Result", "Value2Result" });
+        public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } = (new[] { "OutputFloatValue" }, new[] { "OutputIntValue" }, new[] { "OutputText1", "OutputText2" });
         public (float min, float max) DataRange { get; }
         public bool EnableWeighting { get; } = true;
         public int WeightSetCount { get; } = 3;
@@ -34,7 +34,11 @@ namespace RemoteVisionModule.Tests.Mocks
 
         public ResultType GetResultType(Statistics statistics)
         {
-            if (statistics.FloatResults["Value1"] > 0) return ResultType.OK;
+            statistics.IntegerResults["OutputIntValue"] = DateTime.Now.Millisecond;
+            statistics.TextResults["OutputText1"] = DateTime.Now.Millisecond.ToString() + "MS";
+            statistics.TextResults["OutputText2"] = DateTime.Now.Second.ToString() + "S";
+
+            if (statistics.FloatResults["OutputFloatValue"] > 0) return ResultType.OK;
             return ResultType.NG;
         }
 
@@ -61,17 +65,6 @@ namespace RemoteVisionModule.Tests.Mocks
             Log("Saved image");
         }
 
-
-
-        public Statistics Weight(Statistics statistics)
-        {
-            return new Statistics
-            {
-                FloatResults = new Dictionary<string, float> { ["Value1"] = (float)_random.NextDouble() },
-                IntegerResults = new Dictionary<string, int> { ["Value2"] = _random.Next() },
-                TextResults = new Dictionary<string, string> { ["Value1Result"] = "OK", ["Value2Result"] = "NG" },
-            };
-        }
 
 
 
