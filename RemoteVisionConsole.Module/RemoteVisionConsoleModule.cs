@@ -2,10 +2,10 @@
 using Prism.Ioc;
 using Prism.Modularity;
 using Prism.Regions;
-using RemoteVisionConsole.Module.Misc;
 using RemoteVisionConsole.Module.ViewModels;
 using RemoteVisionConsole.Module.Views;
 using System;
+using Afterbunny.Windows.Helpers;
 
 namespace RemoteVisionConsole.Module
 {
@@ -53,15 +53,15 @@ namespace RemoteVisionConsole.Module
 
         public static void SetDefaultImageBackground(string hexColor)
         {
-            DefaultImageBackground = RGB.HexadecimalToRGB(hexColor);
+            DefaultImageBackground = WPFHelper.HexadecimalToRGB(hexColor);
         }
 
         public static void SetDefaultImageBackground(byte r, byte g, byte b)
         {
-            DefaultImageBackground = new RGB(r, g, b);
+            DefaultImageBackground = (r, g, b);
         }
 
-        internal static RGB DefaultImageBackground { get; set; } = RGB.HexadecimalToRGB("4CAB6F");
+        internal static (byte r, byte g, byte b) DefaultImageBackground { get; set; } = WPFHelper.HexadecimalToRGB("4CAB6F");
         internal static bool UserLogin { get; private set; }
         private static bool _configured = false;
         private static bool _requireLogin;

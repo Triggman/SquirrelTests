@@ -1,44 +1,13 @@
 ﻿using System;
+using System.Linq;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
-namespace RemoteVisionConsole.Module.Misc
+namespace Afterbunny.Windows.Helpers
 {
-    public struct RGB
+    public static class WPFHelper
     {
-        private byte _r;
-        private byte _g;
-        private byte _b;
-
-        public RGB(byte r, byte g, byte b)
-        {
-            this._r = r;
-            this._g = g;
-            this._b = b;
-        }
-
-        public byte R
-        {
-            get => this._r;
-            set => this._r = value;
-        }
-
-        public byte G
-        {
-            get => this._g;
-            set => this._g = value;
-        }
-
-        public byte B
-        {
-            get => this._b;
-            set => this._b = value;
-        }
-
-        public bool Equals(RGB rgb)
-        {
-            return (this.R == rgb.R) && (this.G == rgb.G) && (this.B == rgb.B);
-        }
-
-        public static RGB HexadecimalToRGB(string hex)
+        public static (byte r, byte g, byte b) HexadecimalToRGB(string hex)
         {
             if (hex.StartsWith("#"))
                 hex = hex.Remove(0, 1);
@@ -47,7 +16,14 @@ namespace RemoteVisionConsole.Module.Misc
             byte g = (byte)HexadecimalToDecimal(hex.Substring(2, 2));
             byte b = (byte)HexadecimalToDecimal(hex.Substring(4, 2));
 
-            return new RGB(r, g, b);
+            return (r, g, b);
+        }
+
+        public static void SetEnumBinding<T>(this ComboBox comboBox, string path) where T : struct, IConvertible
+        {
+            var itemsSource = Enum.GetValues(typeof(T)).Cast<T>();
+            comboBox.ItemsSource = itemsSource;
+            comboBox.SetBinding(Selector.SelectedItemProperty, path);
         }
 
         private static int HexadecimalToDecimal(string hex)
@@ -72,6 +48,4 @@ namespace RemoteVisionConsole.Module.Misc
             return (int)dec;
         }
     }
-
-
 }

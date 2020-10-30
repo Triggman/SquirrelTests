@@ -61,11 +61,8 @@
     </Compile>
     <Compile Include="Constants.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="Helper\ComboBoxAssist.cs" />
     <Compile Include="Helper\Helpers.cs" />
     <Compile Include="Helper\ImageHelper.cs" />
-    <Compile Include="Misc\RGB.cs" />
-    <Compile Include="Misc\ConcatStringConverter.cs" />
     <Compile Include="Models\DialogViewModelBase.cs" />
     <Compile Include="Models\ProcessUnitUserSetting.cs" />
     <Compile Include="Models\TypeSource.cs" />
@@ -147,6 +144,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Afterbunny.Windows.Helpers\Afterbunny.Windows.Helpers.csproj">
+      <Project>{BE1B8316-30F5-4469-9F86-D930998E7950}</Project>
+      <Name>Afterbunny.Windows.Helpers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LoggingConsole.Interface\LoggingConsole.Interface.csproj">
       <Project>{e1a3a34e-ae28-4bf7-9685-15a7f82ff7f5}</Project>
       <Name>LoggingConsole.Interface</Name>

@@ -1,4 +1,7 @@
-﻿using System.Windows;
+﻿using Afterbunny.Windows.Helpers;
+using RemoteVisionConsole.Module;
+using System;
+using System.Windows;
 
 namespace RemoteVisionConsole.App.Views
 {
@@ -10,6 +13,11 @@ namespace RemoteVisionConsole.App.Views
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void MainWindow_OnClosed(object sender, EventArgs e)
+        {
+            FileSystemHelper.RemoveOutdatedFiles(Constants.AppDataDir, TimeSpan.FromDays(30), "log");
         }
     }
 }

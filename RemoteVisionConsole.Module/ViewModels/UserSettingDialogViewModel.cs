@@ -2,6 +2,7 @@
 using Prism.Services.Dialogs;
 using RemoteVisionConsole.Module.Helper;
 using System.Windows.Input;
+using Afterbunny.Windows.Helpers;
 using RemoteVisionConsole.Module.Models;
 
 namespace RemoteVisionConsole.Module.ViewModels
@@ -44,7 +45,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         }
         private void SelectImageSaveMainFolder()
         {
-            var selectedDir = Helpers.GetDirFromDialog();
+            var selectedDir = FileSystemHelper.GetDirFromDialog();
             if (string.IsNullOrEmpty(selectedDir)) return;
             ViewModel.ImageSaveMainFolder = selectedDir;
         }

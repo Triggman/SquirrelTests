@@ -28,6 +28,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
+using Afterbunny.Windows.Helpers;
 using UniversalWeightSystem.Framework.SDK;
 
 namespace RemoteVisionConsole.Module.ViewModels
@@ -295,7 +296,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             var displayImages = new List<WriteableBitmap>();
             var rgb = RemoteVisionConsoleModule.DefaultImageBackground;
-            var color = new[] { rgb.R, rgb.G, rgb.B };
+            var color = new[] { rgb.r, rgb.g, rgb.b };
 
             for (int imageIndex = 0; imageIndex < Adapter.GraphicMetaData.Dimensions.Length; imageIndex++)
             {
@@ -394,7 +395,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private async void RunFolder()
         {
-            var dir = Helpers.GetDirFromDialog();
+            var dir = FileSystemHelper.GetDirFromDialog(cacheFile:Path.Combine(Constants.AppDataDir, $"Cache/{Adapter.Name}.RunFolder.RecentFolder"));
             if (!string.IsNullOrEmpty(dir))
             {
                 var allFiles = Directory.GetFiles(dir);
@@ -418,7 +419,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private async void RunSingleFile()
         {
-            var selectedFile = Helpers.GetFileFromDialog(pattern: Adapter.ImageFileFilter);
+            var selectedFile = FileSystemHelper.GetFileFromDialog(pattern: Adapter.ImageFileFilter, cacheFile:Path.Combine(Constants.AppDataDir, $"Cache/{Adapter.Name}.RunSingleFile.RecentFolder"));
             if (!string.IsNullOrEmpty(selectedFile))
             {
                 await ProcessDataFromFile(selectedFile);

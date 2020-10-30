@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Input;
+using Afterbunny.Windows.Helpers;
 using RemoteVisionConsole.Module.Models;
 
 namespace RemoteVisionConsole.Module.ViewModels
@@ -101,7 +102,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void SelectAdapterAssembly()
         {
-            var path = Helpers.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll"}, "dll"));
+            var path = FileSystemHelper.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll"}, "dll"));
             if (string.IsNullOrEmpty(path)) return;
 
             AdapterAssemblyPath = path;
@@ -109,7 +110,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void SelectProcessorAssembly()
         {
-            var path = Helpers.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll" }, "dll"));
+            var path = FileSystemHelper.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll" }, "dll"));
             if (string.IsNullOrEmpty(path)) return;
 
             ProcessorAssemblyPath = path;

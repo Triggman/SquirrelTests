@@ -1,5 +1,5 @@
-﻿using System.Windows.Controls;
-using RemoteVisionConsole.Module.Helper;
+﻿using Afterbunny.Windows.Helpers;
+using System.Windows.Controls;
 
 namespace RemoteVisionConsole.Module.Views
 {
@@ -11,8 +11,8 @@ namespace RemoteVisionConsole.Module.Views
         public UserSettingDialog()
         {
             InitializeComponent();
-            ComboBoxAssist.SetEnumBinding<ImageSaveFilter>(comboBoxImageSaveFilter, "ViewModel.ImageSaveFilter");
-            ComboBoxAssist.SetEnumBinding<ImageSaveSchema>(comboBoxImageSaveSchema, "ViewModel.ImageSaveSchema");
+            comboBoxImageSaveFilter.SetEnumBinding<ImageSaveFilter>("ViewModel.ImageSaveFilter");
+            comboBoxImageSaveSchema.SetEnumBinding<ImageSaveSchema>("ViewModel.ImageSaveSchema");
         }
     }
 }

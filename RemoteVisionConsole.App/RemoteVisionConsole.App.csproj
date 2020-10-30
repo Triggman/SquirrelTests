@@ -104,6 +104,10 @@
     <PackageReference Include="Prism.Unity" Version="7.2.0.1422" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Afterbunny.Windows.Helpers\Afterbunny.Windows.Helpers.csproj">
+      <Project>{BE1B8316-30F5-4469-9F86-D930998E7950}</Project>
+      <Name>Afterbunny.Windows.Helpers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LoggingConsole.Interface\LoggingConsole.Interface.csproj">
       <Project>{E1A3A34E-AE28-4BF7-9685-15A7F82FF7F5}</Project>
       <Name>LoggingConsole.Interface</Name>
