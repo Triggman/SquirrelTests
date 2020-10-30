@@ -1,4 +1,5 @@
-﻿using CygiaSqliteAccess.Proxy;
+﻿using Afterbunny.Windows.Helpers;
+using CygiaSqliteAccess.Proxy;
 using CygiaSqliteAccess.Proxy.Proxy;
 using LoggingConsole.Interface;
 using NetMQ;
@@ -28,7 +29,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
-using Afterbunny.Windows.Helpers;
 using UniversalWeightSystem.Framework.SDK;
 
 namespace RemoteVisionConsole.Module.ViewModels
@@ -49,6 +49,7 @@ namespace RemoteVisionConsole.Module.ViewModels
         private string _tableNameRawOffline;
         private string _tableNameWeightedOffline;
         private bool _databaseServiceInstalled = true;
+        private readonly Regex _namingPattern = new Regex(@"_?[a-zA-Z]+[\w_]*");
 
         #endregion
 
@@ -179,6 +180,24 @@ namespace RemoteVisionConsole.Module.ViewModels
                 return false;
             }
 
+            // Check for naming of Adapter.OutputNames
+            foreach (var name in Adapter.OutputNames.floatNames)
+            {
+                if (!VariableNameIsValid(name, "Adapter")) return false;
+            }
+
+            if (Adapter.OutputNames.integerNames != null)
+                foreach (var name in Adapter.OutputNames.integerNames)
+                {
+                    if (!VariableNameIsValid(name, "Adapter")) return false;
+                }
+
+            if (Adapter.OutputNames.textNames != null)
+                foreach (var name in Adapter.OutputNames.textNames)
+                {
+                    if (!VariableNameIsValid(name, "Adapter")) return false;
+                }
+
             if (Adapter.WeightSetCount < 1)
             {
                 Log("Adapter.WeightSetCount未正确定义",
@@ -198,6 +217,12 @@ namespace RemoteVisionConsole.Module.ViewModels
                     "Processor.OutputNames has not been properly defined", LogLevel.Fatal);
                 return false;
             }
+
+            foreach (var name in Processor.OutputNames)
+            {
+                if (!VariableNameIsValid(name, "Processor")) return false;
+            }
+
 
             _weightProjectDir = Path.Combine(Constants.AppDataDir, $"WeightSettings/{adapterName}");
             Directory.CreateDirectory(_weightProjectDir);
@@ -259,6 +284,19 @@ namespace RemoteVisionConsole.Module.ViewModels
 
             return false;
         }
+
+        private bool VariableNameIsValid(string name, string adapterOrProcessor)
+        {
+            if (!_namingPattern.IsMatch(name))
+            {
+                Log($"{adapterOrProcessor}的变量{name}不符合命名规范",
+                    $"Variable {name} from {adapterOrProcessor} does not match naming convention", LogLevel.Fatal);
+                return false;
+            }
+
+            return true;
+        }
+
         private void OpenWeightEditorDialog()
         {
             _dialogService.ShowDialog("WeightEditorDialog", new DialogParameters{{"Constraint", new WeightConfigurationConstraint()
@@ -395,7 +433,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private async void RunFolder()
         {
-            var dir = FileSystemHelper.GetDirFromDialog(cacheFile:Path.Combine(Constants.AppDataDir, $"Cache/{Adapter.Name}.RunFolder.RecentFolder"));
+            var dir = FileSystemHelper.GetDirFromDialog(cacheFile: Path.Combine(Constants.AppDataDir, $"Cache/{Adapter.Name}.RunFolder.RecentFolder"));
             if (!string.IsNullOrEmpty(dir))
             {
                 var allFiles = Directory.GetFiles(dir);
@@ -419,7 +457,7 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private async void RunSingleFile()
         {
-            var selectedFile = FileSystemHelper.GetFileFromDialog(pattern: Adapter.ImageFileFilter, cacheFile:Path.Combine(Constants.AppDataDir, $"Cache/{Adapter.Name}.RunSingleFile.RecentFolder"));
+            var selectedFile = FileSystemHelper.GetFileFromDialog(pattern: Adapter.ImageFileFilter, cacheFile: Path.Combine(Constants.AppDataDir, $"Cache/{Adapter.Name}.RunSingleFile.RecentFolder"));
             if (!string.IsNullOrEmpty(selectedFile))
             {
                 await ProcessDataFromFile(selectedFile);
@@ -884,7 +922,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             var displayData = new List<byte[]>();
             for (int imageIndex = 0; imageIndex < shortArray.Count; imageIndex++)
             {
-                var scaledData = ScaleToDisplayRange(shortArray[imageIndex], Adapter.DataRange.min, Adapter.DataRange.max);
+                var scaledData = ScaleToDisplayRange(shortArray[imageIndex], Adapter.GraphicMetaData.DataRange.min, Adapter.GraphicMetaData.DataRange.max);
                 displayData.Add(scaledData);
             }
             ShowByteImages(displayData, graphicMetaData);
@@ -897,7 +935,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             var displayData = new List<byte[]>();
             for (int imageIndex = 0; imageIndex < ushortArray.Count; imageIndex++)
             {
-                var scaledData = ScaleToDisplayRange(ushortArray[imageIndex], Adapter.DataRange.min, Adapter.DataRange.max);
+                var scaledData = ScaleToDisplayRange(ushortArray[imageIndex], Adapter.GraphicMetaData.DataRange.min, Adapter.GraphicMetaData.DataRange.max);
                 displayData.Add(scaledData);
             }
             ShowByteImages(displayData, graphicMetaData);
@@ -910,7 +948,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             var displayData = new List<byte[]>();
             for (int imageIndex = 0; imageIndex < floatArray.Count; imageIndex++)
             {
-                var scaledData = ScaleToDisplayRange(floatArray[imageIndex], Adapter.DataRange.min, Adapter.DataRange.max);
+                var scaledData = ScaleToDisplayRange(floatArray[imageIndex], Adapter.GraphicMetaData.DataRange.min, Adapter.GraphicMetaData.DataRange.max);
                 displayData.Add(scaledData);
             }
             ShowByteImages(displayData, graphicMetaData);
