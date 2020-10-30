@@ -11,6 +11,6 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" TextAlignment="Center"/>
-        <TextBox Grid.Column="1" Text="{Binding Weight, TargetNullValue=Uninitialized, Delay=400, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBox Grid.Column="1" Text="{Binding Weight, TargetNullValue=Uninitialized, UpdateSourceTrigger=LostFocus}"/>
     </Grid>
 </UserControl>

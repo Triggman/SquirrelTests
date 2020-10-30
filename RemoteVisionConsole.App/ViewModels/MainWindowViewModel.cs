@@ -39,6 +39,7 @@ namespace RemoteVisionConsole.App.ViewModels
             _rm = rm;
             ea.GetEvent<UserRoleEvent>().Subscribe(role => {
                 var login = role != "None";
+                if (login) LoginPageToggle = false;
                 RemoteVisionConsoleModule.UpdateLoginState(login);
             });
         }

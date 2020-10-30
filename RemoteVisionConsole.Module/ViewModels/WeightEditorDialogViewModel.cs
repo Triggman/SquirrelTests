@@ -1,5 +1,6 @@
 ﻿using Prism.Commands;
 using Prism.Services.Dialogs;
+using RemoteVisionConsole.Module.ChangeTracking;
 using RemoteVisionConsole.Module.Helper;
 using RemoteVisionConsole.Module.Models;
 using System;
@@ -27,6 +28,10 @@ namespace RemoteVisionConsole.Module.ViewModels
         private string _weightNamesCsv;
         private string _inputNamesCsv;
         private bool _canModify;
+        private string _changeHistoryFilePath;
+        private List<Commit> _changeHistory;
+        private string _weightProjectDir;
+        private readonly List<Change> _changes = new List<Change>();
 
         #endregion
 
@@ -38,8 +43,15 @@ namespace RemoteVisionConsole.Module.ViewModels
             set => SetProperty(ref _weights, value);
         }
 
+        public List<Commit> ChangeHistory
+        {
+            get => _changeHistory;
+            set => SetProperty(ref _changeHistory, value);
+        }
+
 
         public ICommand SaveProjectCommand { get; }
+        public ICommand ShowChangeHistoryCommand { get; }
 
 
         public string MethodHint
@@ -79,15 +91,46 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             _dialogService = dialogService;
             SaveProjectCommand = new DelegateCommand(SaveProject);
+            ShowChangeHistoryCommand = new DelegateCommand(ShowChangeHistory);
+
         }
+
+
 
         #endregion
 
         #region impl
 
+        private void ShowChangeHistory()
+        {
+            if (ChangeHistory.Any())
+                _dialogService.ShowDialog("CommitViewerDialog", new DialogParameters() { { "Commits", ChangeHistory } }, r => { });
+        }
+
         private void SaveWeights()
         {
+            // Load old values and compare for changes
+            var (oldValues, newlyDefinedWeights) = Helpers.LoadWeights(_weightProjectDir, _constraint.WeightNames, _constraint.WeightSetCount);
+            for (var index = 0; index < oldValues.Count; index++)
+            {
+                var weightCollectionOld = oldValues[index];
+                var weightCollectionNew = Weights[index];
+                var weightSetIndex = weightCollectionOld.Index;
 
+                for (var weightIndex = 0; weightIndex < weightCollectionOld.WeightItems.Count; weightIndex++)
+                {
+                    var oldWeightItem = weightCollectionOld.WeightItems[weightIndex];
+                    var newWeightItem = weightCollectionNew.WeightItems[weightIndex];
+                    var weightName = oldWeightItem.Name;
+                    if (Math.Abs(oldWeightItem.Weight - newWeightItem.Weight) > 0.00000000000001)
+                    {
+                        _changes.Add(new Change() { Name = $"{weightName} in weight set {weightSetIndex}", OldValue = oldWeightItem.Weight, NewValue = newWeightItem.Weight });
+                    }
+                }
+            }
+
+
+            // Save
             foreach (var weightCollection in Weights)
             {
                 var fileName = $"{weightCollection.Index:D3}.weight";
@@ -102,20 +145,20 @@ namespace RemoteVisionConsole.Module.ViewModels
         {
             _projectFilePath = path;
 
-            var projectDir = Directory.GetParent(path).FullName;
+            _weightProjectDir = Directory.GetParent(path).FullName;
 
-            _weightDir = Path.Combine(projectDir, "Weights");
-            _methodDir = Path.Combine(projectDir, "Methods");
+            _weightDir = Path.Combine(_weightProjectDir, "Weights");
+            _methodDir = Path.Combine(_weightProjectDir, "Methods");
 
             // Read weights
             WeightNamesCsv = string.Join(", ", _constraint.WeightNames);
             var weightsAndNewlyDefinedWeights =
-                Helpers.LoadWeights(projectDir, _constraint.WeightNames, _constraint.WeightSetCount);
+                Helpers.LoadWeights(_weightProjectDir, _constraint.WeightNames, _constraint.WeightSetCount);
             Weights = weightsAndNewlyDefinedWeights.weightCollection;
 
             // Read methods
             InputNamesCsv = string.Join(", ", _constraint.InputNames);
-            var (loadedMethods, missingMethods) = Helpers.LoadMethods(projectDir, _constraint.OutputNames);
+            var (loadedMethods, missingMethods) = Helpers.LoadMethods(_weightProjectDir, _constraint.OutputNames);
             foreach (var loadedMethod in loadedMethods)
             {
                 CalculationMethods.Add(loadedMethod);
@@ -179,20 +222,36 @@ namespace RemoteVisionConsole.Module.ViewModels
                                                 CalculationMethods.ToDictionary(m => m.OutputName,
                                                     m => m.MethodDefinition)
                                             }
-                                        }, result1 => { FinishAndCloseDialog(); });
+                                        }, result1 => { SaveChangeHistoryAndCloseDialog(); });
                                     }
                                 });
                         }
                         else
                         {
-                            FinishAndCloseDialog();
+                            SaveChangeHistoryAndCloseDialog();
                         }
                     });
             }
         }
 
-        private void FinishAndCloseDialog()
+        private void SaveChangeHistoryAndCloseDialog()
         {
+            // Record changes
+            if (_changes.Any())
+            {
+                var commit = new Commit() { Time = DateTime.Now, Changes = _changes };
+                ChangeHistory.Add(commit);
+                var historyToSave = ChangeHistory.Count > 50
+                    ? ChangeHistory.Skip(ChangeHistory.Count - 50).ToList()
+                    : ChangeHistory;
+
+                using (var writer = new StreamWriter(_changeHistoryFilePath))
+                {
+                    var serializer = new XmlSerializer(typeof(List<Commit>));
+                    serializer.Serialize(writer, historyToSave);
+                }
+            }
+
             RaiseRequestClose(new DialogResult(ButtonResult.OK));
         }
 
@@ -247,6 +306,24 @@ namespace RemoteVisionConsole.Module.ViewModels
                 return false;
             }
 
+            // Load old values and compare for changes
+            var (oldValues, missingMethods) = Helpers.LoadMethods(_weightProjectDir, _constraint.OutputNames);
+            for (int i = 0; i < oldValues.Count; i++)
+            {
+                var oldMethod = oldValues[i];
+                var newMethod = CalculationMethods[i];
+                if (oldMethod.MethodDefinition != newMethod.MethodDefinition)
+                {
+                    _changes.Add(new Change()
+                    {
+                        Name = $"Method: {oldMethod.OutputName}",
+                        OldValue = oldMethod.MethodDefinition,
+                        NewValue = newMethod.MethodDefinition
+                    });
+                }
+            }
+
+
             // Save methods
             Directory.CreateDirectory(_methodDir);
             foreach (var method in CalculationMethods)
@@ -254,7 +331,6 @@ namespace RemoteVisionConsole.Module.ViewModels
                 var path = Path.Combine(_methodDir, $"{method.OutputName}.calc");
                 File.WriteAllText(path, method.MethodDefinition);
             }
-
             return true;
         }
 
@@ -283,8 +359,25 @@ namespace RemoteVisionConsole.Module.ViewModels
             _constraint = parameters.GetValue<WeightConfigurationConstraint>("Constraint");
             CanModify = parameters.GetValue<bool>("Login");
             ReadProject(_constraint.ProjectFilePath);
+
+            ChangeHistory = LoadChangeHistory();
         }
 
+
+        private List<Commit> LoadChangeHistory()
+        {
+            var dir = Path.Combine(Constants.AppDataDir, "Changes");
+            Directory.CreateDirectory(dir);
+            _changeHistoryFilePath = Path.Combine(dir, "Weights.xml");
+            if (!File.Exists(_changeHistoryFilePath)) return new List<Commit>();
+
+            using (var reader = new StreamReader(_changeHistoryFilePath))
+            {
+                var serializer = new XmlSerializer(typeof(List<Commit>));
+                return serializer.Deserialize(reader) as List<Commit>;
+                
+            }
+        }
 
         #endregion
     }

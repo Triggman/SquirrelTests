@@ -27,6 +27,7 @@ namespace RemoteVisionConsole.Module
             containerRegistry.RegisterDialog<WeightEditorDialog, WeightEditorDialogViewModel>();
             containerRegistry.RegisterDialog<FillPreviewInputsDialog, FillPreviewInputsDialogViewModel>();
             containerRegistry.RegisterDialog<PreviewDialog, PreviewDialogViewModel>();
+            containerRegistry.RegisterDialog<CommitViewerDialog, CommitViewerDialogViewModel>();
         }
 
         public static void UpdateLoginState(bool login)

@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
+using Prism.Regions;
 
 namespace RemoteVisionConsole.App
 {

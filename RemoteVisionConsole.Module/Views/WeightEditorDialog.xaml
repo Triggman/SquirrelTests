@@ -15,8 +15,8 @@
     mc:Ignorable="d">
 
 
-    <Grid IsHitTestVisible="{Binding CanModify}">
-        <UniformGrid Columns="2">
+    <Grid>
+        <UniformGrid Columns="2" IsHitTestVisible="{Binding CanModify}">
             <UniformGrid.InputBindings>
                 <KeyBinding
                     Key="S"
@@ -139,24 +139,36 @@
             </GroupBox>
 
 
-        </UniformGrid>
+        </UniformGrid >
 
         <TextBlock
-            Margin="100 0"
+            Margin="150,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
+            FontSize="20"
             FontWeight="SemiBold"
             Foreground="Red"
             Text="登录后才能修改"
-            Visibility="{Binding CanModify, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Visible, TrueVisibility=Hidden}}" FontSize="20"/>
+            Visibility="{Binding CanModify, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Visible, TrueVisibility=Hidden}}" />
 
-        <Button
+        <StackPanel
             Margin="20,7"
-            Padding="10"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
-            bunny:ButtonAssist.CornerRadius="3"
-            Command="{Binding SaveProjectCommand}"
-            Content="完成" />
+            Orientation="Horizontal">
+            <Button
+                Padding="10"
+                bunny:ButtonAssist.CornerRadius="3"
+                Command="{Binding SaveProjectCommand}"
+                Content="完成" />
+            <Button
+                Padding="10"
+                bunny:ButtonAssist.CornerRadius="3"
+                Command="{Binding ShowChangeHistoryCommand}"
+                Content="更改历史" />
+
+        </StackPanel>
+
+
     </Grid>
 </UserControl>
