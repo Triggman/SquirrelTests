@@ -1,0 +1,113 @@
+﻿<UserControl
+    x:Class="DistributedVisionRunner.Module.Views.PreviewDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:bunny="http://afterbunny/2020/ui/wpf"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mvvm="http://prismlibrary.com/"
+    xmlns:viewModels="clr-namespace:DistributedVisionRunner.Module.ViewModels"
+    d:Height="400"
+    d:Width="600"
+    mvvm:ViewModelLocator.AutoWireViewModel="True"
+    mc:Ignorable="d">
+
+
+    <mvvm:Dialog.WindowStyle>
+        <Style TargetType="Window">
+            <Setter Property="SizeToContent" Value="WidthAndHeight" />
+            <Setter Property="Background" Value="{bunny:ThemeResource ResourceKey=ContentBackground}" />
+        </Style>
+    </mvvm:Dialog.WindowStyle>
+
+    <Grid TextElement.Foreground="{bunny:ThemeResource ResourceKey=ControlForeground}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <!--  Inputs  -->
+        <GroupBox
+            Grid.Column="0"
+            Padding="5"
+            Header="Inputs">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Inputs}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{bunny:ThemeResource ResourceKey=ControlBorder}" BorderThickness="0 0 0 1">
+                                <StackPanel Margin="3" Orientation="Horizontal">
+                                    <TextBlock
+                                        Width="80"
+                                        Text="{Binding Key}"
+                                        TextAlignment="Center" />
+                                    <TextBlock Text=" = " />
+                                    <TextBlock
+                                        Width="80"
+                                        Text="{Binding Value}"
+                                        TextAlignment="Center" />
+                                </StackPanel></Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </GroupBox>
+
+        <!--  Weights  -->
+        <GroupBox
+            Grid.Column="1"
+            Padding="5"
+            Header="{Binding WeightHeader}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Weights}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{bunny:ThemeResource ResourceKey=ControlBorder}" BorderThickness="0 0 0 1">
+                                <StackPanel Margin="3" Orientation="Horizontal">
+                                    <TextBlock
+                                        Width="80"
+                                        Text="{Binding Key}"
+                                        TextAlignment="Center" />
+                                    <TextBlock Text=" = " />
+                                    <TextBlock
+                                        Width="80"
+                                        Text="{Binding Value}"
+                                        TextAlignment="Center" />
+                                </StackPanel></Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </GroupBox>
+
+        <!--  Results  -->
+        <GroupBox
+            Grid.Column="2"
+            Padding="5"
+            Header="Results">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding CalculationResults}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="viewModels:CalculationResult">
+                            <Border BorderBrush="{bunny:ThemeResource ResourceKey=ControlBorder}" BorderThickness="0 0 0 1">
+                                <StackPanel Margin="3" Orientation="Horizontal">
+                                    <TextBlock
+                                        Width="80"
+                                        Text="{Binding OutputName}"
+                                        TextAlignment="Center" />
+                                    <TextBlock Text=" = " />
+                                    <TextBlock
+                                        Width="80"
+                                        Text="{Binding OutputValue}"
+                                        TextAlignment="Center" />
+                                    <TextBlock Text=" = " />
+                                    <TextBlock Text="{Binding MethodDefinition}" />
+                                </StackPanel></Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </GroupBox>
+
+    </Grid>
+</UserControl>
