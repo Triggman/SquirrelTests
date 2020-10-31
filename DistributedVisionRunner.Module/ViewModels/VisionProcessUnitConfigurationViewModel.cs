@@ -1,7 +1,8 @@
-﻿using Prism.Commands;
-using Prism.Mvvm;
+﻿using Afterbunny.Windows.Helpers;
 using DistributedVisionRunner.Interface;
-using DistributedVisionRunner.Module.Helper;
+using DistributedVisionRunner.Module.Models;
+using Prism.Commands;
+using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,12 +10,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Input;
-using Afterbunny.Windows.Helpers;
-using DistributedVisionRunner.Module.Models;
 
 namespace DistributedVisionRunner.Module.ViewModels
 {
-    public class VsionProcessUnitConfigurationViewModel : BindableBase
+    public class VisionProcessUnitConfigurationViewModel : BindableBase
     {
 
         #region events
@@ -88,7 +87,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         #endregion
 
         #region ctor
-        public VsionProcessUnitConfigurationViewModel()
+        public VisionProcessUnitConfigurationViewModel()
         {
             MatchProcessorAndAdapterCommand = new DelegateCommand(MatchProcessorAndAdapter, () => SelectedProcessorTypeSource != null && SelectedAdapterTypeSource != null)
                 .ObservesProperty(() => SelectedAdapterTypeSource).ObservesProperty(() => SelectedProcessorTypeSource);
@@ -102,7 +101,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private void SelectAdapterAssembly()
         {
-            var path = FileSystemHelper.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll"}, "dll"));
+            var path = FileSystemHelper.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll" }, "dll"), Path.Combine(Constants.AppDataDir, "Cache/SelectAssembly.RecentFolder"));
             if (string.IsNullOrEmpty(path)) return;
 
             AdapterAssemblyPath = path;
@@ -110,7 +109,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private void SelectProcessorAssembly()
         {
-            var path = FileSystemHelper.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll" }, "dll"));
+            var path = FileSystemHelper.GetFileFromDialog(Directory.GetCurrentDirectory(), (new[] { "dll" }, "dll"), Path.Combine(Constants.AppDataDir, "Cache/SelectAssembly.RecentFolder"));
             if (string.IsNullOrEmpty(path)) return;
 
             ProcessorAssemblyPath = path;
@@ -127,8 +126,18 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private void OnAdapterAssemblyPathChanged()
         {
-            var typeCount = PopulateTypeSources(ref _adapterTypeSources, AdapterAssemblyPath,
-                new[] { typeof(IVisionAdapter<byte>), typeof(IVisionAdapter<short>), typeof(IVisionAdapter<ushort>), typeof(IVisionAdapter<float>), });
+            int typeCount;
+            try
+            {
+                typeCount = PopulateTypeSources(ref _adapterTypeSources, AdapterAssemblyPath,
+                       new[] { typeof(IVisionAdapter<byte>), typeof(IVisionAdapter<short>), typeof(IVisionAdapter<ushort>), typeof(IVisionAdapter<float>), });
+
+            }
+            catch (FileNotFoundException)
+            {
+                LogError("请确保该dll的所有依赖dll都存在于软件的运行目录,\n然后重启软件");
+                return;
+            }
             OnPropertyChanged(new PropertyChangedEventArgs(nameof(AdapterTypeSources)));
             if (typeCount > 0)
             {
@@ -136,15 +145,27 @@ namespace DistributedVisionRunner.Module.ViewModels
             }
             else
             {
-                LogError($"Can not find any adapter type in assmebly: {AdapterAssemblyPath}");
+                LogError($"Can not find any adapter type in assembly: {AdapterAssemblyPath}");
             }
         }
 
 
         private void OnProcessorAssemblyPathChanged()
         {
-            var typeCount = PopulateTypeSources(ref _processorTypeSources, ProcessorAssemblyPath,
-                new[] { typeof(IVisionProcessor<byte>), typeof(IVisionProcessor<short>), typeof(IVisionProcessor<ushort>), typeof(IVisionProcessor<float>), });
+            int typeCount;
+
+            try
+            {
+                typeCount = PopulateTypeSources(ref _processorTypeSources, ProcessorAssemblyPath,
+                      new[] { typeof(IVisionProcessor<byte>), typeof(IVisionProcessor<short>), typeof(IVisionProcessor<ushort>), typeof(IVisionProcessor<float>), });
+
+            }
+            catch (FileNotFoundException)
+            {
+
+                LogError("请确保该dll的所有依赖dll都存在于软件的运行目录,\n然后重启软件");
+                return;
+            }
             OnPropertyChanged(new PropertyChangedEventArgs(nameof(ProcessorTypeSources)));
             if (typeCount > 0)
             {
@@ -152,7 +173,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             }
             else
             {
-                LogError($"Can not find any processor type in assmebly: {ProcessorAssemblyPath}");
+                LogError($"Can not find any processor type in assembly: {ProcessorAssemblyPath}");
             }
         }
 

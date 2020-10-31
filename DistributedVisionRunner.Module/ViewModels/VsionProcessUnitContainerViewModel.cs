@@ -34,7 +34,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         /// <summary>
         /// Can be type of <see cref="VisionProcessUnitViewModel{TData}"/> 
-        /// or type of <see cref="VsionProcessUnitConfigurationViewModel"/>
+        /// or type of <see cref="VisionProcessUnitConfigurationViewModel"/>
         /// </summary>
         public object ViewModel
         {
@@ -55,11 +55,11 @@ namespace DistributedVisionRunner.Module.ViewModels
         #region ctor
 
         /// <summary>
-        /// Construct an instance with <see cref="VsionProcessUnitConfigurationViewModel"/> as ViewModel
+        /// Construct an instance with <see cref="VisionProcessUnitConfigurationViewModel"/> as ViewModel
         /// </summary>
         public VsionProcessUnitContainerViewModel(IEventAggregator ea, IDialogService dialogService)
         {
-            var configViewModel = new VsionProcessUnitConfigurationViewModel();
+            var configViewModel = new VisionProcessUnitConfigurationViewModel();
             configViewModel.Error += Warn;
             configViewModel.ProcessorAndAdapterMatched += OnConfigFinished;
             ViewModel = configViewModel;
@@ -102,7 +102,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
             // Confirm delete
             var prompt = string.Empty;
-            if (ViewModel is VsionProcessUnitConfigurationViewModel)
+            if (ViewModel is VisionProcessUnitConfigurationViewModel)
             {
                 prompt = "是否删除未配置完成的页面?";
             }

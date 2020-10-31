@@ -28,8 +28,8 @@
             <local:VisionProcessUnitView />
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type viewModel:VsionProcessUnitConfigurationViewModel}">
-            <local:VsionProcessUnitConfigurationView />
+        <DataTemplate DataType="{x:Type viewModel:VisionProcessUnitConfigurationViewModel}">
+            <local:VisionProcessUnitConfigurationView />
         </DataTemplate>
     </UserControl.Resources>
 

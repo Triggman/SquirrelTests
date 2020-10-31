@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace DistributedVisionRunner.Module.Views
 {
     /// <summary>
-    /// Interaction logic for VsionProcessUnitConfigurationView.xaml
+    /// Interaction logic for VisionProcessUnitConfigurationView.xaml
     /// </summary>
-    public partial class VsionProcessUnitConfigurationView : UserControl
+    public partial class VisionProcessUnitConfigurationView : UserControl
     {
-        public VsionProcessUnitConfigurationView()
+        public VisionProcessUnitConfigurationView()
         {
             InitializeComponent();
         }

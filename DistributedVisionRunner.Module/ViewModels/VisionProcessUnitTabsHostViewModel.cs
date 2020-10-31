@@ -60,17 +60,23 @@ namespace DistributedVisionRunner.Module.ViewModels
             {
                 var configItems = ReadUnitConfigs();
 
-                foreach (var configItem in configItems)
+                for (var index = 0; index < configItems.Count; index++)
                 {
+                    var configItem = configItems[index];
                     try
                     {
                         var (processorType, adapterType, dataType) = configItem.GetTypes();
-                        output.Add(new VsionProcessUnitContainerViewModel(processorType, adapterType, dataType, _ea, _dialogService));
+                        output.Add(new VsionProcessUnitContainerViewModel(processorType, adapterType, dataType, _ea,
+                            _dialogService));
                     }
                     catch (FileNotFoundException e)
                     {
                         var prompt = $"dll文件({e.FileName})丢失, \n页面{configItem.UnitName}无法加载";
                         Warn(prompt, $"dll file lost: {e.FileName}");
+
+                        // Remove invalid config from file
+                        configItems.Remove(configItem);
+                        SaveConfigs(configItems);
                     }
                 }
             }
@@ -107,7 +113,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                 TabItems.Remove(i);
 
                 // Remove setting
-                if (!(i.ViewModel is VsionProcessUnitConfigurationViewModel))
+                if (!(i.ViewModel is VisionProcessUnitConfigurationViewModel))
                 {
                     var unitName = i.Title;
                     var configs = ReadUnitConfigs();
@@ -115,11 +121,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                     if (configToRemove != null)
                     {
                         configs.Remove(configToRemove);
-                        using (var writer = new StreamWriter(Constants.ConfigFilePath))
-                        {
-                            var serializer = new XmlSerializer(typeof(List<VisionProcessUnitConfig>));
-                            serializer.Serialize(writer, configs);
-                        }
+                        SaveConfigs(configs);
                     }
                 }
 
@@ -127,6 +129,15 @@ namespace DistributedVisionRunner.Module.ViewModels
                 var lastTab = TabItems.LastOrDefault();
                 if (lastTab != null) SelectedTab = lastTab;
             };
+        }
+
+        private static void SaveConfigs(List<VisionProcessUnitConfig> configs)
+        {
+            using (var writer = new StreamWriter(Constants.ConfigFilePath))
+            {
+                var serializer = new XmlSerializer(typeof(List<VisionProcessUnitConfig>));
+                serializer.Serialize(writer, configs);
+            }
         }
 
         private void Warn(string message, string saveMessage)

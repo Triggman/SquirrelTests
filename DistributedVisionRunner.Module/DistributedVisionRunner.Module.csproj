@@ -94,7 +94,7 @@
     <Compile Include="ViewModels\VisionProcessUnitPropertyDialogViewModel.cs" />
     <Compile Include="ViewModels\VisionProcessUnitTabsHostViewModel.cs" />
     <Compile Include="ViewModels\VisionProcessUnitViewModel.cs" />
-    <Compile Include="ViewModels\VsionProcessUnitConfigurationViewModel.cs" />
+    <Compile Include="ViewModels\VisionProcessUnitConfigurationViewModel.cs" />
     <Compile Include="ViewModels\VsionProcessUnitContainerViewModel.cs" />
     <Compile Include="ViewModels\WeightCollectionViewModel.cs" />
     <Compile Include="ViewModels\WeightItemViewModel.cs" />
@@ -127,8 +127,8 @@
     <Compile Include="Views\VisionProcessUnitView.xaml.cs">
       <DependentUpon>VisionProcessUnitView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\VsionProcessUnitConfigurationView.xaml.cs">
-      <DependentUpon>VsionProcessUnitConfigurationView.xaml</DependentUpon>
+    <Compile Include="Views\VisionProcessUnitConfigurationView.xaml.cs">
+      <DependentUpon>VisionProcessUnitConfigurationView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\WeightCollectionView.xaml.cs" />
     <Compile Include="Views\WeightItemView.xaml.cs" />
@@ -219,7 +219,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\VsionProcessUnitConfigurationView.xaml">
+    <Page Include="Views\VisionProcessUnitConfigurationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
