@@ -1,4 +1,5 @@
 ﻿using Afterbunny.UI.WPF.Core;
+using Afterbunny.Windows.Helpers;
 using CygiaUserClientModule;
 using CygiaUserClientModule.Views;
 using LoggingConsole.Interface;
@@ -13,7 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
-using Prism.Regions;
 
 namespace RemoteVisionConsole.App
 {
@@ -24,10 +24,13 @@ namespace RemoteVisionConsole.App
     {
         protected override Window CreateShell()
         {
-
-
-
             return Container.Resolve<MainWindow>();
+        }
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            FileSystemHelper.SetupUnhandledExceptionLogging(Path.Combine(Constants.AppDataDir, "UnhandledExceptions"));
+            base.OnStartup(e);
         }
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)

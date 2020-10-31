@@ -55,6 +55,24 @@ namespace Afterbunny.Windows.Helpers
         }
 
 
+        /// <summary>
+        /// Unhandled exceptions will be logged to <see cref="logDir"/>
+        /// </summary>
+        /// <param name="logDir"></param>
+        public static void SetupUnhandledExceptionLogging(string logDir)
+        {
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+            {
+                var ex = (Exception)args.ExceptionObject;
+                var lines = new[] { DateTime.Now.ToString("yyyy-MMdd-HHmm:ss_fff"), ex.GetType().ToString(), ex.Message, ex.StackTrace };
+                Directory.CreateDirectory(logDir);
+                var filePath = Path.Combine(logDir, $"UnhandledExceptions_{DateTime.Now:MMdd_HHmm_ss}.txt");
+                File.WriteAllLines(filePath, lines);
+            };
+        }
+
+
+
         public static string GetDirFromDialog(string initialDir = null, string cacheFile = null)
         {
             if (!string.IsNullOrEmpty(cacheFile) && File.Exists(cacheFile))

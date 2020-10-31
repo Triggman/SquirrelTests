@@ -1,2 +1,1 @@
-1. Add exception logging
 2. Add miniminze-to-tray
