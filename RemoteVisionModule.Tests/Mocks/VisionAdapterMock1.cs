@@ -1,5 +1,4 @@
-﻿using RemoteVisionConsole.Data;
-using RemoteVisionConsole.Interface;
+﻿using RemoteVisionConsole.Interface;
 using RemoteVisionConsole.Module.Helper;
 using System;
 using System.Collections.Generic;

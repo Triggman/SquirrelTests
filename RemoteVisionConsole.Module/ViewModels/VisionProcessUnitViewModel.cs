@@ -9,7 +9,6 @@ using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
-using RemoteVisionConsole.Data;
 using RemoteVisionConsole.Interface;
 using RemoteVisionConsole.Module.Helper;
 using RemoteVisionConsole.Module.Models;
@@ -559,7 +558,7 @@ namespace RemoteVisionConsole.Module.ViewModels
                 ProcessResult<TData> result = null;
                 try
                 {
-                    result = Processor.Process(data, cavity);
+                    result = Processor.Process(data);
 
                 }
                 catch (Exception ex)

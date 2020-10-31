@@ -1,5 +1,5 @@
 ﻿using Prism.Events;
-using RemoteVisionConsole.Data;
+using RemoteVisionConsole.Interface;
 
 namespace RemoteVisionConsole.Module
 {

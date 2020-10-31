@@ -1,4 +1,4 @@
-﻿namespace RemoteVisionConsole.Data
+﻿namespace RemoteVisionConsole.Interface
 {
     public class TextData
     {

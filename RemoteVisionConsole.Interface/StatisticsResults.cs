@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace RemoteVisionConsole.Data
+namespace RemoteVisionConsole.Interface
 {
     public class StatisticsResults
     {

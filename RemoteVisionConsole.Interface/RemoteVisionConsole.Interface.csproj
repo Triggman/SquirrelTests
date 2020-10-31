@@ -38,15 +38,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DoubleData.cs" />
+    <Compile Include="IntegerData.cs" />
     <Compile Include="IVisionAdapter.cs" />
     <Compile Include="IVisionProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\RemoteVisionConsole.Data\RemoteVisionConsole.Data.csproj">
-      <Project>{46FBFB29-F3E7-4AE5-AD65-067A1B501223}</Project>
-      <Name>RemoteVisionConsole.Data</Name>
-    </ProjectReference>
+    <Compile Include="ResultType.cs" />
+    <Compile Include="StatisticsResults.cs" />
+    <Compile Include="TextData.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

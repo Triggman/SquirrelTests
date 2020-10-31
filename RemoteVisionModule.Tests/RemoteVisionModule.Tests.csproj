@@ -54,10 +54,6 @@
     <Compile Include="VisionProcessUnitTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RemoteVisionConsole.Data\RemoteVisionConsole.Data.csproj">
-      <Project>{46FBFB29-F3E7-4AE5-AD65-067A1B501223}</Project>
-      <Name>RemoteVisionConsole.Data</Name>
-    </ProjectReference>
     <ProjectReference Include="..\RemoteVisionConsole.Interface\RemoteVisionConsole.Interface.csproj">
       <Project>{AFCC4B12-C5CF-46F8-A0DA-5EB56993C590}</Project>
       <Name>RemoteVisionConsole.Interface</Name>

@@ -1,5 +1,4 @@
-﻿using RemoteVisionConsole.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace RemoteVisionConsole.Interface
 {

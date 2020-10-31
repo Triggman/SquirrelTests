@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteVisionModule.Tests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteVisionConsole.Interface", "RemoteVisionConsole.Interface\RemoteVisionConsole.Interface.csproj", "{AFCC4B12-C5CF-46F8-A0DA-5EB56993C590}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteVisionConsole.Data", "RemoteVisionConsole.Data\RemoteVisionConsole.Data.csproj", "{46FBFB29-F3E7-4AE5-AD65-067A1B501223}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingConsole.Module", "LoggingConsole.Module\LoggingConsole.Module.csproj", "{B58AB189-56DE-4B77-872C-0767177F428E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingConsole.Interface", "LoggingConsole.Interface\LoggingConsole.Interface.csproj", "{E1A3A34E-AE28-4BF7-9685-15A7F82FF7F5}"
@@ -46,10 +44,6 @@ Global
 		{AFCC4B12-C5CF-46F8-A0DA-5EB56993C590}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFCC4B12-C5CF-46F8-A0DA-5EB56993C590}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFCC4B12-C5CF-46F8-A0DA-5EB56993C590}.Release|Any CPU.Build.0 = Release|Any CPU
-		{46FBFB29-F3E7-4AE5-AD65-067A1B501223}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{46FBFB29-F3E7-4AE5-AD65-067A1B501223}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{46FBFB29-F3E7-4AE5-AD65-067A1B501223}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{46FBFB29-F3E7-4AE5-AD65-067A1B501223}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B58AB189-56DE-4B77-872C-0767177F428E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B58AB189-56DE-4B77-872C-0767177F428E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B58AB189-56DE-4B77-872C-0767177F428E}.Release|Any CPU.ActiveCfg = Release|Any CPU
