@@ -1,3 +1,2 @@
 1. Add exception logging
 2. Add miniminze-to-tray
-3. Refactor change-tracking logic in EditorDialog

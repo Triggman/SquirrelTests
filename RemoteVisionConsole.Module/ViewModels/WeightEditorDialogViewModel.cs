@@ -21,17 +21,39 @@ namespace RemoteVisionConsole.Module.ViewModels
         private string _weightDir;
         private List<WeightCollectionViewModel> _weights;
         private readonly IDialogService _dialogService;
+        private string _weightProjectDir;
         private string _methodHint;
         private string _methodDir;
         private string _projectFilePath;
+        /// <summary>
+        /// The dialog must achieve these constraints in order to save weight settings
+        /// </summary>
         private WeightConfigurationConstraint _constraint;
         private string _weightNamesCsv;
         private string _inputNamesCsv;
         private bool _canModify;
+        /// <summary>
+        /// Path to the change history file of this dialog
+        /// </summary>
         private string _changeHistoryFilePath;
+
+        /// <summary>
+        /// Change history of the past
+        /// </summary>
         private List<Commit> _changeHistory;
-        private string _weightProjectDir;
+        /// <summary>
+        /// Changes that are made during one time of dialog open
+        /// </summary>
         private readonly List<Change> _changes = new List<Change>();
+
+        /// <summary>
+        /// Weights that are copied when the dialog is opened to track changes
+        /// </summary>
+        private readonly List<WeightCollectionViewModel> _weightsCopy = new List<WeightCollectionViewModel>();
+        /// <summary>
+        /// Methods that are copied when the dialog is opened to track changes
+        /// </summary>
+        private List<CalculationMethodItemViewModel> _methodsCopy;
 
         #endregion
 
@@ -43,35 +65,42 @@ namespace RemoteVisionConsole.Module.ViewModels
             set => SetProperty(ref _weights, value);
         }
 
-        public List<Commit> ChangeHistory
-        {
-            get => _changeHistory;
-            set => SetProperty(ref _changeHistory, value);
-        }
 
 
         public ICommand SaveProjectCommand { get; }
         public ICommand ShowChangeHistoryCommand { get; }
 
 
+        /// <summary>
+        /// For displaying only
+        /// </summary>
         public string MethodHint
         {
             get => _methodHint;
             set => SetProperty(ref _methodHint, value);
         }
 
+        /// <summary>
+        /// For displaying only
+        /// </summary>
         public string WeightNamesCsv
         {
             get => _weightNamesCsv;
             set => SetProperty(ref _weightNamesCsv, value);
         }
 
+        /// <summary>
+        /// For displaying only
+        /// </summary>
         public string InputNamesCsv
         {
             get => _inputNamesCsv;
             set => SetProperty(ref _inputNamesCsv, value);
         }
 
+        /// <summary>
+        /// True if login
+        /// </summary>
         public bool CanModify
         {
             get => _canModify;
@@ -103,17 +132,16 @@ namespace RemoteVisionConsole.Module.ViewModels
 
         private void ShowChangeHistory()
         {
-            if (ChangeHistory.Any())
-                _dialogService.ShowDialog("CommitViewerDialog", new DialogParameters() { { "Commits", ChangeHistory } }, r => { });
+            if (_changeHistory.Any())
+                _dialogService.ShowDialog("CommitViewerDialog", new DialogParameters() { { "Commits", _changeHistory } }, r => { });
         }
 
         private void SaveWeights()
         {
             // Load old values and compare for changes
-            var (oldValues, newlyDefinedWeights) = Helpers.LoadWeights(_weightProjectDir, _constraint.WeightNames, _constraint.WeightSetCount);
-            for (var index = 0; index < oldValues.Count; index++)
+            for (var index = 0; index < _weightsCopy.Count; index++)
             {
-                var weightCollectionOld = oldValues[index];
+                var weightCollectionOld = _weightsCopy[index];
                 var weightCollectionNew = Weights[index];
                 var weightSetIndex = weightCollectionOld.Index;
 
@@ -155,6 +183,13 @@ namespace RemoteVisionConsole.Module.ViewModels
             var weightsAndNewlyDefinedWeights =
                 Helpers.LoadWeights(_weightProjectDir, _constraint.WeightNames, _constraint.WeightSetCount);
             Weights = weightsAndNewlyDefinedWeights.weightCollection;
+            // Create weight copies
+            foreach (var weightCollection in Weights)
+            {
+                var weightItemsCopy = weightCollection.WeightItems.Select(Helpers.CopyObject).ToList();
+                var collectionCopy = new WeightCollectionViewModel(weightItemsCopy){Index = weightCollection.Index};
+                _weightsCopy.Add(collectionCopy);
+            }
 
             // Read methods
             InputNamesCsv = string.Join(", ", _constraint.InputNames);
@@ -168,6 +203,9 @@ namespace RemoteVisionConsole.Module.ViewModels
             {
                 CalculationMethods.Add(new CalculationMethodItemViewModel() { OutputName = missingMethod });
             }
+            // Create method copies
+            _methodsCopy = CalculationMethods.Select(Helpers.CopyObject).ToList();
+
 
             TryGenerateMethodHint();
         }
@@ -240,10 +278,10 @@ namespace RemoteVisionConsole.Module.ViewModels
             if (_changes.Any())
             {
                 var commit = new Commit() { Time = DateTime.Now, Changes = _changes };
-                ChangeHistory.Add(commit);
-                var historyToSave = ChangeHistory.Count > 50
-                    ? ChangeHistory.Skip(ChangeHistory.Count - 50).ToList()
-                    : ChangeHistory;
+                _changeHistory.Add(commit);
+                var historyToSave = _changeHistory.Count > 50
+                    ? _changeHistory.Skip(_changeHistory.Count - 50).ToList()
+                    : _changeHistory;
 
                 using (var writer = new StreamWriter(_changeHistoryFilePath))
                 {
@@ -307,10 +345,9 @@ namespace RemoteVisionConsole.Module.ViewModels
             }
 
             // Load old values and compare for changes
-            var (oldValues, missingMethods) = Helpers.LoadMethods(_weightProjectDir, _constraint.OutputNames);
-            for (int i = 0; i < oldValues.Count; i++)
+            for (int i = 0; i < _methodsCopy.Count; i++)
             {
-                var oldMethod = oldValues[i];
+                var oldMethod = _methodsCopy[i];
                 var newMethod = CalculationMethods[i];
                 if (oldMethod.MethodDefinition != newMethod.MethodDefinition)
                 {
@@ -360,7 +397,7 @@ namespace RemoteVisionConsole.Module.ViewModels
             CanModify = parameters.GetValue<bool>("Login");
             ReadProject(_constraint.ProjectFilePath);
 
-            ChangeHistory = LoadChangeHistory();
+            _changeHistory = LoadChangeHistory();
         }
 
 
