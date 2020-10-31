@@ -14,17 +14,7 @@ namespace DistributedVisionRunner.App.Views
         {
             InitializeComponent();
 
-            var ni = new System.Windows.Forms.NotifyIcon
-            {
-                //Icon = new System.Drawing.Icon("Main.ico"),
-                Visible = true
-            };
-            ni.DoubleClick +=
-                 (sender, args) =>
-                {
-                    this.Show();
-                    this.WindowState = WindowState.Normal;
-                };
+            this.SetMinimizeToTray("icon.ico");
         }
 
         private void MainWindow_OnClosed(object sender, EventArgs e)
@@ -32,12 +22,5 @@ namespace DistributedVisionRunner.App.Views
             FileSystemHelper.RemoveOutdatedFiles(Constants.AppDataDir, TimeSpan.FromDays(30), "log");
         }
 
-        protected override void OnStateChanged(EventArgs e)
-        {
-            if (WindowState == System.Windows.WindowState.Minimized)
-                this.Hide();
-
-            base.OnStateChanged(e);
-        }
     }
 }

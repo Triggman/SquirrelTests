@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
-using System.Windows.Controls;
+using System.Windows;
 using System.Windows.Controls.Primitives;
+using System.Windows.Forms;
+using ComboBox = System.Windows.Controls.ComboBox;
 
 namespace Afterbunny.Windows.Helpers
 {
@@ -17,6 +19,28 @@ namespace Afterbunny.Windows.Helpers
             byte b = (byte)HexadecimalToDecimal(hex.Substring(4, 2));
 
             return (r, g, b);
+        }
+
+        public static NotifyIcon SetMinimizeToTray(this Window window, string iconFilePath)
+        {
+            var ni = new NotifyIcon
+            {
+                Icon = new System.Drawing.Icon(iconFilePath),
+                Visible = true
+            };
+            ni.DoubleClick +=
+                (sender, args) =>
+                {
+                    window.Show();
+                    window.WindowState = WindowState.Normal;
+                };
+
+            window.StateChanged += (sender, args) =>
+            {
+                if (window.WindowState == WindowState.Minimized)
+                    window.Hide();
+            };
+            return ni;
         }
 
         public static void SetEnumBinding<T>(this ComboBox comboBox, string path) where T : struct, IConvertible

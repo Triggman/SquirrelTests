@@ -21,57 +21,57 @@ namespace DistributedVisionRunner.Module.Views
         {
             get
             {
-                ScaleTransform scaleTransform = this.GetScaleTransform();
+                ScaleTransform scaleTransform = GetScaleTransform();
                 return scaleTransform.ScaleX != 1.0 || scaleTransform.ScaleY != 1.0;
             }
         }
 
-        private TranslateTransform GetTranslateTransform() => (TranslateTransform)((TransformGroup)this.child.RenderTransform).Children.First<Transform>((Func<Transform, bool>)(tr => tr is TranslateTransform));
+        private TranslateTransform GetTranslateTransform() => (TranslateTransform)((TransformGroup)child.RenderTransform).Children.First<Transform>((Func<Transform, bool>)(tr => tr is TranslateTransform));
 
-        private ScaleTransform GetScaleTransform() => (ScaleTransform)((TransformGroup)this.child.RenderTransform).Children.First<Transform>((Func<Transform, bool>)(tr => tr is ScaleTransform));
+        private ScaleTransform GetScaleTransform() => (ScaleTransform)((TransformGroup)child.RenderTransform).Children.First<Transform>((Func<Transform, bool>)(tr => tr is ScaleTransform));
 
         public override UIElement Child
         {
             get => base.Child;
             set
             {
-                if (value != null && value != this.Child)
-                    this.Initialize(value);
+                if (value != null && value != Child)
+                    Initialize(value);
                 base.Child = value;
             }
         }
 
         public void Initialize(UIElement element)
         {
-            this.child = element;
-            this.ClipToBounds = true;
-            if (this.child == null)
+            child = element;
+            ClipToBounds = true;
+            if (child == null)
                 return;
             TransformGroup transformGroup = new TransformGroup();
             ScaleTransform scaleTransform = new ScaleTransform();
             transformGroup.Children.Add((Transform)scaleTransform);
             TranslateTransform translateTransform = new TranslateTransform();
             transformGroup.Children.Add((Transform)translateTransform);
-            this.child.RenderTransform = (Transform)transformGroup;
-            this.child.RenderTransformOrigin = PanAndZoomBorder.DefaultRTO;
-            this.MouseWheel += new MouseWheelEventHandler(this.child_MouseWheel);
-            this.MouseLeftButtonDown += new MouseButtonEventHandler(this.child_MouseLeftButtonDown);
-            this.MouseLeftButtonDown += new MouseButtonEventHandler(this.LeftMouseDownLinked);
-            this.MouseLeftButtonUp += new MouseButtonEventHandler(this.child_MouseLeftButtonUp);
-            this.MouseMove += new MouseEventHandler(this.child_MouseMove);
-            this.MouseMove += new MouseEventHandler(this.MouseMoveLinked);
-            this.MouseRightButtonDown += new MouseButtonEventHandler(this.child_MouseRightButtonDown);
+            child.RenderTransform = (Transform)transformGroup;
+            child.RenderTransformOrigin = DefaultRTO;
+            MouseWheel += new MouseWheelEventHandler(child_MouseWheel);
+            MouseLeftButtonDown += new MouseButtonEventHandler(child_MouseLeftButtonDown);
+            MouseLeftButtonDown += new MouseButtonEventHandler(LeftMouseDownLinked);
+            MouseLeftButtonUp += new MouseButtonEventHandler(child_MouseLeftButtonUp);
+            MouseMove += new MouseEventHandler(child_MouseMove);
+            MouseMove += new MouseEventHandler(MouseMoveLinked);
+            MouseRightButtonDown += new MouseButtonEventHandler(child_MouseRightButtonDown);
         }
 
         public void Reset()
         {
-            if (this.child == null)
+            if (child == null)
                 return;
-            ScaleTransform scaleTransform = this.GetScaleTransform();
+            ScaleTransform scaleTransform = GetScaleTransform();
             scaleTransform.ScaleX = 1.0;
             scaleTransform.ScaleY = 1.0;
-            this.child.RenderTransformOrigin = PanAndZoomBorder.DefaultRTO;
-            TranslateTransform translateTransform = this.GetTranslateTransform();
+            child.RenderTransformOrigin = DefaultRTO;
+            TranslateTransform translateTransform = GetTranslateTransform();
             translateTransform.X = 0.0;
             translateTransform.Y = 0.0;
         }
@@ -80,7 +80,7 @@ namespace DistributedVisionRunner.Module.Views
         {
             if (this.child == null)
                 return;
-            ScaleTransform scaleTransform = this.GetScaleTransform();
+            ScaleTransform scaleTransform = GetScaleTransform();
             double num1 = e.Delta > 0 ? 0.2 : -0.2;
             double num2 = scaleTransform.ScaleX + num1;
             double num3 = scaleTransform.ScaleY + num1;
@@ -89,7 +89,7 @@ namespace DistributedVisionRunner.Module.Views
             {
                 if (!flag)
                 {
-                    this.child.RenderTransformOrigin = PanAndZoomBorder.DefaultRTO;
+                    child.RenderTransformOrigin = DefaultRTO;
                 }
                 else
                 {
@@ -107,12 +107,12 @@ namespace DistributedVisionRunner.Module.Views
                     child.RenderTransformOrigin = point;
                 }
             }
-            if (this.Links.Count > 0)
+            if (Links.Count > 0)
             {
-                foreach (PanAndZoomBorder link in this.Links)
+                foreach (PanAndZoomBorder link in Links)
                 {
                     if (link.child != null)
-                        link.child.RenderTransformOrigin = this.child.RenderTransformOrigin;
+                        link.child.RenderTransformOrigin = child.RenderTransformOrigin;
                 }
             }
             if (num2 < 1.0)
@@ -125,37 +125,37 @@ namespace DistributedVisionRunner.Module.Views
 
         private void child_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (this.child == null || !this.CanPan())
+            if (child == null || !CanPan())
                 return;
-            TranslateTransform translateTransform = this.GetTranslateTransform();
-            this.start = e.GetPosition((IInputElement)this);
-            this.origin = new Point(translateTransform.X, translateTransform.Y);
-            this.Cursor = Cursors.ScrollAll;
-            this.child.CaptureMouse();
+            TranslateTransform translateTransform = GetTranslateTransform();
+            start = e.GetPosition((IInputElement)this);
+            origin = new Point(translateTransform.X, translateTransform.Y);
+            Cursor = Cursors.ScrollAll;
+            child.CaptureMouse();
         }
 
         private void child_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (this.child == null)
+            if (child == null)
                 return;
-            this.child.ReleaseMouseCapture();
-            this.Cursor = Cursors.Arrow;
+            child.ReleaseMouseCapture();
+            Cursor = Cursors.Arrow;
         }
 
-        private void child_MouseRightButtonDown(object sender, MouseButtonEventArgs e) => this.Reset();
+        private void child_MouseRightButtonDown(object sender, MouseButtonEventArgs e) => Reset();
 
         private void child_MouseMove(object sender, MouseEventArgs e)
         {
-            if (this.child == null || !this.child.IsMouseCaptured && sender == this)
+            if (child == null || !child.IsMouseCaptured && sender == this)
                 return;
-            this.child_MouseMoveLinked(this.start - e.GetPosition((IInputElement)this));
+            child_MouseMoveLinked(start - e.GetPosition((IInputElement)this));
         }
 
         private void child_MouseMoveLinked(Vector relative)
         {
-            TranslateTransform translateTransform = this.GetTranslateTransform();
-            translateTransform.X = this.origin.X - relative.X;
-            translateTransform.Y = this.origin.Y - relative.Y;
+            TranslateTransform translateTransform = GetTranslateTransform();
+            translateTransform.X = origin.X - relative.X;
+            translateTransform.Y = origin.Y - relative.Y;
         }
 
         /// <summary>
@@ -164,60 +164,60 @@ namespace DistributedVisionRunner.Module.Views
         /// <param name="borderToLink">Border to link to this one.</param>
         public void Link(PanAndZoomBorder borderToLink)
         {
-            if (this.Links.Contains(borderToLink) || borderToLink.Links.Contains(this))
+            if (Links.Contains(borderToLink) || borderToLink.Links.Contains(this))
                 return;
-            this.Links.Add(borderToLink);
+            Links.Add(borderToLink);
             borderToLink.Links.Add(this);
-            ScaleTransform scaleTransform = this.GetScaleTransform();
-            TranslateTransform translateTransform = this.GetTranslateTransform();
+            ScaleTransform scaleTransform = GetScaleTransform();
+            TranslateTransform translateTransform = GetTranslateTransform();
             borderToLink.GetTranslateTransform().X = translateTransform.X;
             borderToLink.GetTranslateTransform().Y = translateTransform.Y;
             borderToLink.GetScaleTransform().ScaleX = scaleTransform.ScaleX;
             borderToLink.GetScaleTransform().ScaleY = scaleTransform.ScaleY;
-            this.MouseWheel += new MouseWheelEventHandler(borderToLink.child_MouseWheel);
-            this.MouseLeftButtonDown += new MouseButtonEventHandler(borderToLink.child_MouseLeftButtonDown);
-            this.MouseLeftButtonUp += new MouseButtonEventHandler(borderToLink.child_MouseLeftButtonUp);
-            this.MouseRightButtonDown += new MouseButtonEventHandler(borderToLink.child_MouseRightButtonDown);
-            borderToLink.MouseWheel += new MouseWheelEventHandler(this.child_MouseWheel);
-            borderToLink.MouseLeftButtonDown += new MouseButtonEventHandler(this.child_MouseLeftButtonDown);
-            borderToLink.MouseLeftButtonUp += new MouseButtonEventHandler(this.child_MouseLeftButtonUp);
-            borderToLink.MouseRightButtonDown += new MouseButtonEventHandler(this.child_MouseRightButtonDown);
+            MouseWheel += new MouseWheelEventHandler(borderToLink.child_MouseWheel);
+            MouseLeftButtonDown += new MouseButtonEventHandler(borderToLink.child_MouseLeftButtonDown);
+            MouseLeftButtonUp += new MouseButtonEventHandler(borderToLink.child_MouseLeftButtonUp);
+            MouseRightButtonDown += new MouseButtonEventHandler(borderToLink.child_MouseRightButtonDown);
+            borderToLink.MouseWheel += new MouseWheelEventHandler(child_MouseWheel);
+            borderToLink.MouseLeftButtonDown += new MouseButtonEventHandler(child_MouseLeftButtonDown);
+            borderToLink.MouseLeftButtonUp += new MouseButtonEventHandler(child_MouseLeftButtonUp);
+            borderToLink.MouseRightButtonDown += new MouseButtonEventHandler(child_MouseRightButtonDown);
         }
 
         /// <summary>Unlinks a border from this one to move independently.</summary>
         /// <param name="linkedBorder">Border to remove link from.</param>
         public void Unlink(PanAndZoomBorder linkedBorder)
         {
-            this.Links.Remove(linkedBorder);
+            Links.Remove(linkedBorder);
             linkedBorder.Links.Remove(this);
-            this.MouseWheel -= new MouseWheelEventHandler(linkedBorder.child_MouseWheel);
-            this.MouseLeftButtonDown -= new MouseButtonEventHandler(linkedBorder.child_MouseLeftButtonDown);
-            this.MouseLeftButtonUp -= new MouseButtonEventHandler(linkedBorder.child_MouseLeftButtonUp);
-            this.MouseRightButtonDown -= new MouseButtonEventHandler(linkedBorder.child_MouseRightButtonDown);
-            linkedBorder.MouseWheel -= new MouseWheelEventHandler(this.child_MouseWheel);
-            linkedBorder.MouseLeftButtonDown -= new MouseButtonEventHandler(this.child_MouseLeftButtonDown);
-            linkedBorder.MouseLeftButtonUp -= new MouseButtonEventHandler(this.child_MouseLeftButtonUp);
-            linkedBorder.MouseRightButtonDown -= new MouseButtonEventHandler(this.child_MouseRightButtonDown);
+            MouseWheel -= new MouseWheelEventHandler(linkedBorder.child_MouseWheel);
+            MouseLeftButtonDown -= new MouseButtonEventHandler(linkedBorder.child_MouseLeftButtonDown);
+            MouseLeftButtonUp -= new MouseButtonEventHandler(linkedBorder.child_MouseLeftButtonUp);
+            MouseRightButtonDown -= new MouseButtonEventHandler(linkedBorder.child_MouseRightButtonDown);
+            linkedBorder.MouseWheel -= new MouseWheelEventHandler(child_MouseWheel);
+            linkedBorder.MouseLeftButtonDown -= new MouseButtonEventHandler(child_MouseLeftButtonDown);
+            linkedBorder.MouseLeftButtonUp -= new MouseButtonEventHandler(child_MouseLeftButtonUp);
+            linkedBorder.MouseRightButtonDown -= new MouseButtonEventHandler(child_MouseRightButtonDown);
         }
 
         private void MouseMoveLinked(object sender, MouseEventArgs e)
         {
-            if (this.Links.Count == 0 || this.child == null || !this.child.IsMouseCaptured)
+            if (Links.Count == 0 || child == null || !child.IsMouseCaptured)
                 return;
-            Vector relative = this.start - e.GetPosition((IInputElement)this);
-            foreach (PanAndZoomBorder link in this.Links)
+            Vector relative = start - e.GetPosition((IInputElement)this);
+            foreach (PanAndZoomBorder link in Links)
                 link.child_MouseMoveLinked(relative);
         }
 
         private void LeftMouseDownLinked(object sender, MouseEventArgs e)
         {
-            if (this.child == null)
+            if (child == null)
                 return;
-            if (this.CanPan())
+            if (CanPan())
                 e.Handled = true;
-            if (this.Links.Count == 0)
+            if (Links.Count == 0)
                 return;
-            foreach (PanAndZoomBorder link in this.Links)
+            foreach (PanAndZoomBorder link in Links)
             {
                 TranslateTransform translateTransform = link.GetTranslateTransform();
                 link.origin = new Point(translateTransform.X, translateTransform.Y);
@@ -226,7 +226,7 @@ namespace DistributedVisionRunner.Module.Views
 
         private bool CanPan()
         {
-            ScaleTransform scaleTransform = this.GetScaleTransform();
+            ScaleTransform scaleTransform = GetScaleTransform();
             return scaleTransform.ScaleX != 1.0 || scaleTransform.ScaleY != 1.0;
         }
     }

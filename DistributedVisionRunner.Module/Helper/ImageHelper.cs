@@ -163,7 +163,7 @@ namespace DistributedVisionRunner.Module.Helper
                 if (fillorder != FillOrder.MSB2LSB)
                 {
                     // We need to swap bits -- ABCDEFGH becomes HGFEDCBA
-                    System.Console.Out.WriteLine("Fixing the fillorder");
+                    Console.Out.WriteLine("Fixing the fillorder");
 
                     for (int count = 0; count < bufferSize; count++)
                     {
@@ -439,7 +439,7 @@ namespace DistributedVisionRunner.Module.Helper
                 if (fillorder != FillOrder.MSB2LSB)
                 {
                     // We need to swap bits -- ABCDEFGH becomes HGFEDCBA
-                    System.Console.Out.WriteLine("Fixing the fillorder");
+                    Console.Out.WriteLine("Fixing the fillorder");
 
                     for (int count = 0; count < bufferSize; count++)
                     {
@@ -623,7 +623,7 @@ namespace DistributedVisionRunner.Module.Helper
                 if (fillorder != FillOrder.MSB2LSB)
                 {
                     // We need to swap bits -- ABCDEFGH becomes HGFEDCBA
-                    System.Console.Out.WriteLine("Fixing the fillorder");
+                    Console.Out.WriteLine("Fixing the fillorder");
 
                     for (int count = 0; count < bufferSize; count++)
                     {

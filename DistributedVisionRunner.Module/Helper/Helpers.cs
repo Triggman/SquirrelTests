@@ -115,7 +115,7 @@ namespace DistributedVisionRunner.Module.Helper
             }
 
             if (successfulReadWeights.Count == 0)
-                return (Helpers.CreateASetOfWeights(weightNames), weightNames);
+                return (CreateASetOfWeights(weightNames), weightNames);
 
             // Look for missing weightItems
             // And init missing weightItems with empty weight values
