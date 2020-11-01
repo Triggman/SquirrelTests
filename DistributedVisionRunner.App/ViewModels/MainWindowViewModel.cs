@@ -1,14 +1,14 @@
 ﻿using CygiaUserClientModule;
+using DistributedVisionRunner.Module;
 using Prism.Events;
 using Prism.Mvvm;
 using Prism.Regions;
-using DistributedVisionRunner.Module;
 
 namespace DistributedVisionRunner.App.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
-        private string _title = "Remote vision console";
+        private string _title = "Distributed vision runner";
         public string Title
         {
             get => _title;
@@ -37,7 +37,8 @@ namespace DistributedVisionRunner.App.ViewModels
         public MainWindowViewModel(IRegionManager rm, IEventAggregator ea)
         {
             _rm = rm;
-            ea.GetEvent<UserRoleEvent>().Subscribe(role => {
+            ea.GetEvent<UserRoleEvent>().Subscribe(role =>
+            {
                 var login = role != "None";
                 if (login) LoginPageToggle = false;
                 DistributedVisionRunnerModule.UpdateLoginState(login);

@@ -21,13 +21,29 @@ namespace Afterbunny.Windows.Helpers
             return (r, g, b);
         }
 
-        public static NotifyIcon SetMinimizeToTray(this Window window, string iconFilePath)
+        public static NotifyIcon SetMinimizeToTray(this Window window, string iconFilePath, (string, Action)[] contextMenuActions = null)
         {
+
+            var strip = new ContextMenuStrip();
+            strip.Items.Add("Exit", null, (sender, args) => { window.Close(); });
+            var hasExtraContextMenuActions = contextMenuActions != null && contextMenuActions.Any();
+            if (hasExtraContextMenuActions)
+            {
+                foreach (var (title, action) in contextMenuActions)
+                {
+                    strip.Items.Add(title, null, (sender, args) => action.Invoke());
+                }
+            }
+
             var ni = new NotifyIcon
             {
                 Icon = new System.Drawing.Icon(iconFilePath),
-                Visible = true
+                Visible = false,
+                ContextMenuStrip =strip,
+                Text = window.Title
             };
+
+        
             ni.DoubleClick +=
                 (sender, args) =>
                 {
@@ -35,11 +51,22 @@ namespace Afterbunny.Windows.Helpers
                     window.WindowState = WindowState.Normal;
                 };
 
+            // Hide window and show icon if minimized
             window.StateChanged += (sender, args) =>
             {
                 if (window.WindowState == WindowState.Minimized)
+                {
+                    ni.Visible = true;
                     window.Hide();
+                }
             };
+
+            // Let icon disappear after app exits
+            window.Closed += (sender, args) =>
+            {
+                ni.Icon = null;
+            };
+
             return ni;
         }
 
