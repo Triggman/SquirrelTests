@@ -1,8 +1,8 @@
-﻿using Prism.Commands;
-using Prism.Services.Dialogs;
-using DistributedVisionRunner.Module.ChangeTracking;
+﻿using DistributedVisionRunner.Module.ChangeTracking;
 using DistributedVisionRunner.Module.Helper;
 using DistributedVisionRunner.Module.Models;
+using Prism.Commands;
+using Prism.Services.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -187,7 +187,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             foreach (var weightCollection in Weights)
             {
                 var weightItemsCopy = weightCollection.WeightItems.Select(Helpers.CopyObject).ToList();
-                var collectionCopy = new WeightCollectionViewModel(weightItemsCopy){Index = weightCollection.Index};
+                var collectionCopy = new WeightCollectionViewModel(weightItemsCopy) { Index = weightCollection.Index };
                 _weightsCopy.Add(collectionCopy);
             }
 
@@ -412,7 +412,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             {
                 var serializer = new XmlSerializer(typeof(List<Commit>));
                 return serializer.Deserialize(reader) as List<Commit>;
-                
+
             }
         }
 

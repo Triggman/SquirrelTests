@@ -9,7 +9,9 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     prism:ViewModelLocator.AutoWireViewModel="True"
+    prism:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
     mc:Ignorable="d">
+   
     <Grid>
         <DataGrid IsReadOnly="True" ItemsSource="{Binding Properties}" />
     </Grid>

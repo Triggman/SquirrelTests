@@ -9,7 +9,10 @@
     Height="700"
     prism:ViewModelLocator.AutoWireViewModel="True"
     Closed="MainWindow_OnClosed"
-    Style="{StaticResource AfterbunnyWindowStyle}">
+    Style="{StaticResource AfterbunnyWindowStyle}"
+    SizeToContent="Manual"
+    bunny:WindowAssist.ConfirmOnExit="True"
+    >
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="7*" />

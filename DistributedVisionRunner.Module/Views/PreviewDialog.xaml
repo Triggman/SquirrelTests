@@ -7,18 +7,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:mvvm="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:DistributedVisionRunner.Module.ViewModels"
+    
+    mvvm:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
+
     d:Height="400"
     d:Width="600"
     mvvm:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
-
-
-    <mvvm:Dialog.WindowStyle>
-        <Style TargetType="Window">
-            <Setter Property="SizeToContent" Value="WidthAndHeight" />
-            <Setter Property="Background" Value="{bunny:ThemeResource ResourceKey=ContentBackground}" />
-        </Style>
-    </mvvm:Dialog.WindowStyle>
 
     <Grid TextElement.Foreground="{bunny:ThemeResource ResourceKey=ControlForeground}">
         <Grid.ColumnDefinitions>

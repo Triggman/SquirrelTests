@@ -12,7 +12,9 @@
     d:DataContext="{viewModels:CommitViewerDialogViewModel_DesignTime}"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    mvvm:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
     mc:Ignorable="d">
+    
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <ItemsControl ItemsSource="{Binding Commits}">
             <ItemsControl.ItemTemplate>

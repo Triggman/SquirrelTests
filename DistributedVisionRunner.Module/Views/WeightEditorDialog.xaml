@@ -11,9 +11,9 @@
     xmlns:views="clr-namespace:DistributedVisionRunner.Module.Views"
     d:DesignHeight="600"
     d:DesignWidth="800"
+    mvvm:Dialog.WindowStyle ="{StaticResource AfterbunnyWindowStyle}"
     mvvm:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
-
 
     <Grid>
         <UniformGrid Columns="2" IsHitTestVisible="{Binding CanModify}">

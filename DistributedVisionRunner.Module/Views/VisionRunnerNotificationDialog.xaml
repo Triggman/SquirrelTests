@@ -8,6 +8,7 @@
     xmlns:prism="http://prismlibrary.com/"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    prism:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
     prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
     <Grid MinWidth="150" MinHeight="100">

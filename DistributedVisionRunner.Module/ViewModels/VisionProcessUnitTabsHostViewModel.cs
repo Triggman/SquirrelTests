@@ -80,7 +80,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                     }
                 }
             }
-            // Add a default unconfigured tab
+            // Add a default not-configured tab
             else
             {
                 output.Add(new VsionProcessUnitContainerViewModel(_ea, _dialogService));

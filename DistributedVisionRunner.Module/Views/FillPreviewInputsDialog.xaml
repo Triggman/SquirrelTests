@@ -8,14 +8,8 @@
              xmlns:viewModels="clr-namespace:DistributedVisionRunner.Module.ViewModels"
              mvvm:ViewModelLocator.AutoWireViewModel="True"
              mc:Ignorable="d" 
+             mvvm:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
              d:DesignHeight="300" d:DesignWidth="300" mvvm:Dialog.WindowStartupLocation="CenterScreen">
-    
-    <mvvm:Dialog.WindowStyle>
-        <Style TargetType="Window">
-            <Setter Property="SizeToContent" Value="WidthAndHeight"/>
-        </Style>
-    </mvvm:Dialog.WindowStyle>
-    
     <Grid Background="{bunny:ThemeResource ResourceKey=ContentBackground}" TextElement.Foreground="{bunny:ThemeResource ResourceKey=ControlForeground}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>

@@ -11,6 +11,7 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     prism:ViewModelLocator.AutoWireViewModel="True"
+    prism:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
     mc:Ignorable="d">
     <Grid Height="400" IsHitTestVisible="{Binding UserLogin}">
         <Grid.RowDefinitions>
