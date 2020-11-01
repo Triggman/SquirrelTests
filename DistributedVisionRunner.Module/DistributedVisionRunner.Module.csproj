@@ -81,7 +81,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="DistributedVisionRunnerEvents.cs" />
     <Compile Include="ViewModels\CalculationMethodItemViewModel.cs" />
     <Compile Include="ViewModels\CommitViewerDialogViewModel.cs" />
     <Compile Include="ViewModels\FillPreviewInputsDialogViewModel.cs" />

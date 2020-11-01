@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afterbunny.Windows.Helpers", "Afterbunny.Windows.Helpers\Afterbunny.Windows.Helpers.csproj", "{BE1B8316-30F5-4469-9F86-D930998E7950}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedVisionRunner.Client", "DistributedVisionRunner.Client\DistributedVisionRunner.Client.csproj", "{814F62DD-5C42-4C46-8F31-DA4C8F30B74D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{BE1B8316-30F5-4469-9F86-D930998E7950}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE1B8316-30F5-4469-9F86-D930998E7950}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE1B8316-30F5-4469-9F86-D930998E7950}.Release|Any CPU.Build.0 = Release|Any CPU
+		{814F62DD-5C42-4C46-8F31-DA4C8F30B74D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{814F62DD-5C42-4C46-8F31-DA4C8F30B74D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{814F62DD-5C42-4C46-8F31-DA4C8F30B74D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{814F62DD-5C42-4C46-8F31-DA4C8F30B74D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

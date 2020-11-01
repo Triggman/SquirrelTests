@@ -1,7 +1,6 @@
 ﻿using Prism.Events;
-using DistributedVisionRunner.Interface;
 
-namespace DistributedVisionRunner.Module
+namespace DistributedVisionRunner.Interface
 {
     public class DataEvent : PubSubEvent<(byte[] data, int cavity, string sn)> { }
 
