@@ -21,6 +21,10 @@
 5. 目前支持的数据类型有byte, byte(RGB)， float, ushort, short, 其他数据类型的支持会在日后有需求时加入
 
 ## 使用
-
+### 视觉工程师
+1. 引用Nuget包[DistributedVisionRunner.Interface](https://www.nuget.org/packages/DistributedVisionRunner.Interface/), 继承*IVisionProcessor\<TData>*
+### 上位机工程师
+1. 引用Nuget包[DistributedVisionRunner.Interface](https://www.nuget.org/packages/DistributedVisionRunner.Interface/), 继承*IVisionAdapter\<TData>*
+2. 
 ## 依赖项
 

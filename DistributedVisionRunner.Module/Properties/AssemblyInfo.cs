@@ -8,7 +8,7 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DistributedVisionRunner.Module")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Prism module for hosting vision processing routines and provide common utilties")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("DistributedVisionRunner.Module")]

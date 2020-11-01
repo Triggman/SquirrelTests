@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DistributedVisionRunner.Interface")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Includes interface classes, IVisionAdapter and IVisionProcessor for DistributedVisionRunner.Module")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("DistributedVisionRunner.Interface")]

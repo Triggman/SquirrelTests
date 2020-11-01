@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>Afterbunny</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://gitee.com/believingheart/remote-vision-console</projectUrl>
+    <description>Includes interface classes, IVisionAdapter and IVisionProcessor for DistributedVisionRunner.Module</description>
+    <releaseNotes>First release</releaseNotes>
+    <copyright>$copyright$</copyright>
+    <tags>Cygia</tags>
+  </metadata>
+</package>

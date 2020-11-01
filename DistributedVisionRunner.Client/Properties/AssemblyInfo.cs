@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DistributedVisionRunner.Client")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Client library for DistributedVisionRunner.Module")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("DistributedVisionRunner.Client")]
