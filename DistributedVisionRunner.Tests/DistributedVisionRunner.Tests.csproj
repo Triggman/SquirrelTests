@@ -47,6 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ImageHelperTests.cs" />
+    <Compile Include="IntegrationTests\CanProcessRGBData\Adapter_CanProcessRGBData.cs" />
+    <Compile Include="IntegrationTests\CanProcessRGBData\Processor_CanProcessRGBData.cs" />
+    <Compile Include="IntegrationTests\CanProcessRGBData\Test.cs" />
     <Compile Include="IntegrationTests\CanSaveImagesOnDemand\Adapter_CanSaveImagesOnDemand.cs" />
     <Compile Include="IntegrationTests\CanSaveImagesOnDemand\Processor_CanSaveImagesOnDemand.cs" />
     <Compile Include="IntegrationTests\CanSaveImagesOnDemand\Test.cs" />
@@ -97,7 +100,6 @@
     <Folder Include="IntegrationTests\AdapterCanWeightProperly\" />
     <Folder Include="IntegrationTests\CanProcessFloatData\" />
     <Folder Include="IntegrationTests\CanProcessImageOfDifferentSize\" />
-    <Folder Include="IntegrationTests\CanProcessRGBData\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
