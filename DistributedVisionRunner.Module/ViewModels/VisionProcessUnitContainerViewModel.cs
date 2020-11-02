@@ -14,7 +14,7 @@ using System.Xml.Serialization;
 
 namespace DistributedVisionRunner.Module.ViewModels
 {
-    public class VsionProcessUnitContainerViewModel : BindableBase
+    public class VisionProcessUnitContainerViewModel : BindableBase
     {
         #region private fields
         private readonly IEventAggregator _ea;
@@ -24,7 +24,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         #region events
         public event Action<string> Error;
-        public event Action<VsionProcessUnitContainerViewModel> Deleted;
+        public event Action<VisionProcessUnitContainerViewModel> Deleted;
 
 
         #endregion
@@ -57,7 +57,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         /// <summary>
         /// Construct an instance with <see cref="VisionProcessUnitConfigurationViewModel"/> as ViewModel
         /// </summary>
-        public VsionProcessUnitContainerViewModel(IEventAggregator ea, IDialogService dialogService)
+        public VisionProcessUnitContainerViewModel(IEventAggregator ea, IDialogService dialogService)
         {
             var configViewModel = new VisionProcessUnitConfigurationViewModel();
             configViewModel.Error += Warn;
@@ -74,7 +74,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         /// </summary>
         /// <param name="processorType"></param>
         /// <param name="adapterType"></param>
-        public VsionProcessUnitContainerViewModel(TypeSource processorType, TypeSource adapterType, Type dataType, IEventAggregator ea, IDialogService dialogService)
+        public VisionProcessUnitContainerViewModel(TypeSource processorType, TypeSource adapterType, Type dataType, IEventAggregator ea, IDialogService dialogService)
         {
             _ea = ea;
             _dialogService = dialogService;

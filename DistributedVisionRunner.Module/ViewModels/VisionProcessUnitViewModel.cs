@@ -327,7 +327,8 @@ namespace DistributedVisionRunner.Module.ViewModels
                 InputNames = Processor.OutputNames,
                 OutputNames = Adapter.OutputNames.floatNames,
                 WeightNames = Processor.WeightNames,
-                WeightSetCount = Adapter.WeightSetCount
+                WeightSetCount = Adapter.WeightSetCount,
+                TabName = Adapter.Name
             } },{ "Login", DistributedVisionRunnerModule.UserLogin }}, r =>
             {
                 if (r.Result == ButtonResult.OK)

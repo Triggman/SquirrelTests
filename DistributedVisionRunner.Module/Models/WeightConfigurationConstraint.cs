@@ -7,5 +7,6 @@
         public string[] WeightNames { get; set; }
         public string[] InputNames { get; set; }
         public string[] OutputNames { get; set; }
+        public string TabName { get; set; }
     }
 }

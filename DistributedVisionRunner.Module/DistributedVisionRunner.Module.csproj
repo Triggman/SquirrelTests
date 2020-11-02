@@ -93,7 +93,7 @@
     <Compile Include="ViewModels\VisionProcessUnitTabsHostViewModel.cs" />
     <Compile Include="ViewModels\VisionProcessUnitViewModel.cs" />
     <Compile Include="ViewModels\VisionProcessUnitConfigurationViewModel.cs" />
-    <Compile Include="ViewModels\VsionProcessUnitContainerViewModel.cs" />
+    <Compile Include="ViewModels\VisionProcessUnitContainerViewModel.cs" />
     <Compile Include="ViewModels\WeightCollectionViewModel.cs" />
     <Compile Include="ViewModels\WeightItemViewModel.cs" />
     <Compile Include="ViewModels\WeightEditorDialogViewModel.cs" />

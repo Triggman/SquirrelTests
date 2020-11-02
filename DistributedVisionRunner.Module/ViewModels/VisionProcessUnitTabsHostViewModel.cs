@@ -1,8 +1,8 @@
-﻿using System;
-using Prism.Commands;
+﻿using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -18,15 +18,15 @@ namespace DistributedVisionRunner.Module.ViewModels
         private readonly IEventAggregator _ea;
         private readonly IDialogService _dialogService;
 
-        private ObservableCollection<VsionProcessUnitContainerViewModel> _tabItems;
-        public ObservableCollection<VsionProcessUnitContainerViewModel> TabItems
+        private ObservableCollection<VisionProcessUnitContainerViewModel> _tabItems;
+        public ObservableCollection<VisionProcessUnitContainerViewModel> TabItems
         {
             get => _tabItems;
             set => SetProperty(ref _tabItems, value);
         }
 
-        private VsionProcessUnitContainerViewModel _selectedTab;
-        public VsionProcessUnitContainerViewModel SelectedTab
+        private VisionProcessUnitContainerViewModel _selectedTab;
+        public VisionProcessUnitContainerViewModel SelectedTab
         {
             get => _selectedTab;
             set => SetProperty(ref _selectedTab, value);
@@ -47,15 +47,15 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private void AddTabItem()
         {
-            var item = new VsionProcessUnitContainerViewModel(_ea, _dialogService);
+            var item = new VisionProcessUnitContainerViewModel(_ea, _dialogService);
             AttatchDeleteEvent(item);
             TabItems.Add(item);
             SelectedTab = item;
         }
 
-        private ObservableCollection<VsionProcessUnitContainerViewModel> LoadSavedTabItems()
+        private ObservableCollection<VisionProcessUnitContainerViewModel> LoadSavedTabItems()
         {
-            var output = new ObservableCollection<VsionProcessUnitContainerViewModel>();
+            var output = new ObservableCollection<VisionProcessUnitContainerViewModel>();
             // Load configured tabs if any
             if (File.Exists(Constants.ConfigFilePath))
             {
@@ -67,7 +67,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                     try
                     {
                         var (processorType, adapterType, dataType) = configItem.GetTypes();
-                        output.Add(new VsionProcessUnitContainerViewModel(processorType, adapterType, dataType, _ea,
+                        output.Add(new VisionProcessUnitContainerViewModel(processorType, adapterType, dataType, _ea,
                             _dialogService));
                     }
                     catch (FileNotFoundException e)
@@ -92,7 +92,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             // Add a default not-configured tab
             else
             {
-                output.Add(new VsionProcessUnitContainerViewModel(_ea, _dialogService));
+                output.Add(new VisionProcessUnitContainerViewModel(_ea, _dialogService));
             }
 
             foreach (var item in output)
@@ -115,7 +115,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             return configItems;
         }
 
-        private void AttatchDeleteEvent(VsionProcessUnitContainerViewModel item)
+        private void AttatchDeleteEvent(VisionProcessUnitContainerViewModel item)
         {
             item.Deleted += i =>
             {
@@ -131,6 +131,17 @@ namespace DistributedVisionRunner.Module.ViewModels
                     {
                         configs.Remove(configToRemove);
                         SaveConfigs(configs);
+
+                        // Remove relating folders
+                        try
+                        {
+                            Directory.Delete($"{Constants.AppDataDir}/Changes/{unitName}");
+                            Directory.Delete($"{Constants.AppDataDir}/WeightSettings/{unitName}");
+                        }
+                        catch
+                        {
+                            // Ignore this
+                        }
                     }
                 }
 

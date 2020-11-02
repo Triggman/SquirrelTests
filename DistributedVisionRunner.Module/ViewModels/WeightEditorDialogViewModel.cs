@@ -403,7 +403,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private List<Commit> LoadChangeHistory()
         {
-            var dir = Path.Combine(Constants.AppDataDir, "Changes");
+            var dir = Path.Combine(Constants.AppDataDir, $"Changes/{_constraint.TabName}");
             Directory.CreateDirectory(dir);
             _changeHistoryFilePath = Path.Combine(dir, "Weights.xml");
             if (!File.Exists(_changeHistoryFilePath)) return new List<Commit>();

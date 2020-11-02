@@ -1,2 +1,0 @@
-2. Add open image dir button
-3. Delete all related folders if tab is delelted
