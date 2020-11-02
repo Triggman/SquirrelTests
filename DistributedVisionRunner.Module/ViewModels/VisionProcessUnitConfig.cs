@@ -20,6 +20,15 @@ namespace DistributedVisionRunner.Module.ViewModels
         {
             var adapterType = SearchType(AdapterAssemblyPath, AdapterNamespace, AdapterTypeName);
             var processorType = SearchType(ProcessorAssemblyPath, ProcessorNamespace, ProcessorTypeName);
+            if (adapterType == null)
+            {
+                throw new TypeLoadException($"Can not find the required adapter({AdapterTypeName})\n in {AdapterAssemblyPath}");
+            }
+
+            if (processorType == null)
+            {
+                throw new TypeLoadException($"Can not find the required processor type({ProcessorTypeName})\n in {ProcessorAssemblyPath}");
+            }
 
             var genericType = adapterType.GetInterfaces().First(t => t.Name.Contains("IVisionAdapter")).GetGenericArguments()[0];
 
@@ -31,7 +40,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         private Type SearchType(string assemblyPath, string ns, string typeName)
         {
             var assembly = Assembly.LoadFrom(assemblyPath);
-            return assembly.GetTypes().Where(t => t.Namespace == ns).Single(t => t.Name == typeName);
+            return assembly.GetTypes().Where(t => t.Namespace == ns).FirstOrDefault(t => t.Name == typeName);
         }
     }
 }

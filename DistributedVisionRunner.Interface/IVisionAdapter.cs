@@ -73,14 +73,14 @@ namespace DistributedVisionRunner.Interface
         ResultType GetResultType(Statistics statistics);
 
         /// <summary>
-        /// 
+        /// Note: do not need to call Directory.CreateDirectory
         /// </summary>
         /// <param name="imageData"></param>
         /// <param name="mainFolder"></param>
         /// <param name="subFolder"></param>
-        /// <param name="fileName"></param>
+        /// <param name="fileNameWithoutExtension"></param>
         /// <param name="exceptionDetail">null when no error occours during image processing</param>
-        void SaveImage(List<TOutput[]> imageData, string mainFolder, string subFolder, string fileName, string exceptionDetail);
+        void SaveImage(List<TOutput[]> imageData, string mainFolder, string subFolder, string fileNameWithoutExtension, string exceptionDetail);
 
         /// <summary>
         /// Read data from file
@@ -97,7 +97,7 @@ namespace DistributedVisionRunner.Interface
         /// <summary>
         /// The type of the displaying image
         /// </summary>
-        public DataSampleType SampleType { get; set; }
+        public DataSampleType SampleType { get; set; } = DataSampleType.TwoDimension;
 
         /// <summary>
         /// The dimensions of each image for displaying
@@ -107,7 +107,7 @@ namespace DistributedVisionRunner.Interface
         /// <summary>
         /// Whether images should be displayed
         /// </summary>
-        public bool ShouldDisplay { get; set; }
+        public bool ShouldDisplay { get; set; } = true;
 
         /// <summary>
         /// Range to define max and min values for the displaying images

@@ -1,4 +1,5 @@
-﻿using Prism.Commands;
+﻿using System;
+using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
@@ -73,6 +74,14 @@ namespace DistributedVisionRunner.Module.ViewModels
                     {
                         var prompt = $"dll文件({e.FileName})丢失, \n页面{configItem.UnitName}无法加载";
                         Warn(prompt, $"dll file lost: {e.FileName}");
+
+                        // Remove invalid config from file
+                        configItems.Remove(configItem);
+                        SaveConfigs(configItems);
+                    }
+                    catch (TypeLoadException ex)
+                    {
+                        Warn(ex.Message, ex.Message);
 
                         // Remove invalid config from file
                         configItems.Remove(configItem);

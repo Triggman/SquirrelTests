@@ -31,6 +31,7 @@
 ![Initialize](./Images/GeneralSettings.png)
 ![Initialize](./Images/WeightSetting.png)
 
+## Processor类和Adapter类的设计思想及任务划分
 
 ## 使用(作为ALC的Prism模块时), 同独立运行的使用方法
 

@@ -1,6 +1,9 @@
 ﻿using Afterbunny.Windows.Helpers;
 using CygiaSqliteAccess.Proxy;
 using CygiaSqliteAccess.Proxy.Proxy;
+using DistributedVisionRunner.Interface;
+using DistributedVisionRunner.Module.Helper;
+using DistributedVisionRunner.Module.Models;
 using LoggingConsole.Interface;
 using NetMQ;
 using NetMQ.Sockets;
@@ -9,9 +12,6 @@ using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
 using Prism.Services.Dialogs;
-using DistributedVisionRunner.Interface;
-using DistributedVisionRunner.Module.Helper;
-using DistributedVisionRunner.Module.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -547,6 +547,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             }
 
             IsIdle = false;
+            var now = DateTime.Now;
 
             try
             {
@@ -566,7 +567,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                     // Save image file
                     var exDetail = $"{ex.GetType()} \n{ex.Message}\n {ex.StackTrace}";
                     if (dataSource != DataSourceType.DataFile)
-                        Adapter.SaveImage(data, ImageSaveFolderToday, "ERROR", GetImageFileName(cavity, sn), exDetail);
+                        SaveImage(data, cavity, "ERROR", sn, exDetail, now);
                     Log($"视觉处理出现异常: {exDetail}", $"Errored during vision processing: {exDetail}", LogLevel.Fatal);
 
                     // Report ex to ALC
@@ -642,17 +643,21 @@ namespace DistributedVisionRunner.Module.ViewModels
 
                 if (dataSource != DataSourceType.DataFile && _userSetting.ImageSaveFilter != ImageSaveFilter.ErrorOnly)
                 {
-                    var subFolder = string.Empty;
-                    if (_userSetting.ImageSaveSchema == ImageSaveSchema.OkNgInOneFolder)
-                    {
-                        subFolder = "OkAndNg";
-                    }
-                    else
-                    {
-                        subFolder = resultType.ToString();
-                    }
 
-                    Adapter.SaveImage(data, ImageSaveFolderToday, subFolder, GetImageFileName(cavity, sn), null);
+                    if (!(_userSetting.ImageSaveFilter == ImageSaveFilter.ErrorAndNg && resultType == ResultType.OK))
+                    {
+                        var subFolder = string.Empty;
+                        if (_userSetting.ImageSaveSchema == ImageSaveSchema.OkNgInOneFolder)
+                        {
+                            subFolder = "OkAndNg";
+                        }
+                        else
+                        {
+                            subFolder = resultType.ToString();
+                        }
+
+                        SaveImage(data, cavity, subFolder, sn, null, now); 
+                    }
                 }
 
                 // Write to database
@@ -672,7 +677,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                             {
                                 new RowData
                                 {
-                                    CreationTime = DateTime.Now,
+                                    CreationTime = now,
                                     DoubleFields = rawData.Select(p => new DoubleField {Name = p.Key, Value = p.Value})
                                         .ToArray(),
                                     IntegerFields = integerFields,
@@ -707,7 +712,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                             {
                                 new RowData
                                 {
-                                    CreationTime = DateTime.Now,
+                                    CreationTime = now,
                                     DoubleFields = statistics.FloatResults
                                         .Select(p => new DoubleField {Name = p.Key, Value = p.Value}).ToArray(),
                                     IntegerFields = integerFields.ToArray(),
@@ -737,6 +742,15 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         }
 
+        private void SaveImage(List<TData[]> data, int cavity, string subFolder, string sn, string exceptionDetail,
+            DateTime dateTime)
+        {
+            var dir = Path.Combine(ImageSaveFolderToday, subFolder);
+            Directory.CreateDirectory(dir);
+            var snPart = string.IsNullOrEmpty(sn) ? "NoSN_" : $"{sn}_";
+            Adapter.SaveImage(data, ImageSaveFolderToday, subFolder, $"{snPart}Cavity{cavity}_{dateTime:MMdd-HHmm-ss-fff}", exceptionDetail);
+        }
+
         private void SendZeroMQError()
         {
             var json = JsonConvert.SerializeObject(new StatisticsResults() { ResultType = ResultType.ERROR });
@@ -753,14 +767,10 @@ namespace DistributedVisionRunner.Module.ViewModels
         /// </returns>
         private bool CompareNames(string[] promiseNames, string[] actualNames)
         {
-            if (promiseNames == null && actualNames == null) return true;
-
-            var twoArray = new[] { promiseNames, actualNames };
-            if (twoArray.Any(arr => arr == null)) return false;
-
-            if (promiseNames.Length == 0 && actualNames.Length == 0) return true;
-
-            if (promiseNames.Length != actualNames.Length) return false;
+            if(promiseNames == null) promiseNames = new string[]{};
+            if(actualNames == null) actualNames = new string[]{};
+            if (actualNames.Length == 0 && promiseNames.Length == 0) return true;
+            if (actualNames.Length != promiseNames.Length) return false;
 
             return promiseNames.All(pn => actualNames.Contains(pn));
         }
