@@ -1,4 +1,5 @@
 ﻿using BitMiracle.LibTiff.Classic;
+using DistributedVisionRunner.Interface;
 using NUnit.Framework;
 using DistributedVisionRunner.Module.Helper;
 

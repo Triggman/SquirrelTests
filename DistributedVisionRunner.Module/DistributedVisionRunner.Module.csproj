@@ -62,7 +62,6 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Helper\Helpers.cs" />
-    <Compile Include="Helper\ImageHelper.cs" />
     <Compile Include="Models\DialogViewModelBase.cs" />
     <Compile Include="Models\ProcessUnitUserSetting.cs" />
     <Compile Include="Models\TypeSource.cs" />

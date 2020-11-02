@@ -1,10 +1,8 @@
-﻿using BitMiracle.LibTiff.Classic;
-using System;
+﻿using System;
 using System.IO;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Converters;
+using BitMiracle.LibTiff.Classic;
 
-namespace DistributedVisionRunner.Module.Helper
+namespace DistributedVisionRunner.Interface
 {
     public class ImageHelper
     {
@@ -23,7 +21,7 @@ namespace DistributedVisionRunner.Module.Helper
             // Calcualte suitable ROWSPERSTRIP
             var optimalSizePerStrip = 8000.0;
             var optimalRowsPerStripDouble = optimalSizePerStrip / sizeof(float) / width / samplesPerPixel;
-            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int) optimalRowsPerStripDouble;
+            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int)optimalRowsPerStripDouble;
             var height = data.Length / samplesPerPixel / width;
 
             using (Tiff image = Tiff.Open(path, "w"))
@@ -48,7 +46,7 @@ namespace DistributedVisionRunner.Module.Helper
                 image.SetField(TiffTag.YRESOLUTION, yRes);
                 image.SetField(TiffTag.RESOLUTIONUNIT, resUnit);
 
-                var maxStrip = Math.Ceiling((float) height / optimalRowsPerStrip);
+                var maxStrip = Math.Ceiling((float)height / optimalRowsPerStrip);
                 var byteCountEachRow = width * samplesPerPixel * sizeof(float);
                 for (int stripIndex = 0; stripIndex < maxStrip; stripIndex++)
                 {
@@ -159,7 +157,7 @@ namespace DistributedVisionRunner.Module.Helper
                     throw new InvalidOperationException("Image has an undefined fillorder");
                 }
 
-                FillOrder fillorder = (FillOrder) value[0].ToInt();
+                FillOrder fillorder = (FillOrder)value[0].ToInt();
                 if (fillorder != FillOrder.MSB2LSB)
                 {
                     // We need to swap bits -- ABCDEFGH becomes HGFEDCBA
@@ -210,7 +208,7 @@ namespace DistributedVisionRunner.Module.Helper
         {
             var optimalSizePerStrip = 8000.0;
             var optimalRowsPerStripDouble = optimalSizePerStrip / sizeof(byte) / width / samplesPerPixel;
-            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int) optimalRowsPerStripDouble;
+            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int)optimalRowsPerStripDouble;
             var height = data.Length / width / samplesPerPixel;
             using (var output = Tiff.Open(path, "w"))
             {
@@ -219,13 +217,13 @@ namespace DistributedVisionRunner.Module.Helper
                 output.SetField(TiffTag.SAMPLESPERPIXEL, samplesPerPixel);
                 output.SetField(TiffTag.BITSPERSAMPLE, 8);
                 output.SetField(TiffTag.ROWSPERSTRIP, optimalRowsPerStrip);
-                output.SetField(TiffTag.PHOTOMETRIC, (int) photo);
+                output.SetField(TiffTag.PHOTOMETRIC, (int)photo);
                 output.SetField(TiffTag.PLANARCONFIG, PlanarConfig.CONTIG);
                 output.SetField(TiffTag.RESOLUTIONUNIT, resUnit);
                 output.SetField(TiffTag.XRESOLUTION, xRes);
                 output.SetField(TiffTag.YRESOLUTION, yRes);
 
-                var stripCount = Math.Ceiling((float) height / optimalRowsPerStrip);
+                var stripCount = Math.Ceiling((float)height / optimalRowsPerStrip);
 
                 var stripSize = optimalRowsPerStrip * width * samplesPerPixel;
                 for (int stripIndex = 0; stripIndex < stripCount; stripIndex++)
@@ -264,7 +262,7 @@ namespace DistributedVisionRunner.Module.Helper
 
                 buffer = new byte[height * width * samplesPerPixel];
 
-                var stripCount = Math.Ceiling((float) height / rowsPerStrip);
+                var stripCount = Math.Ceiling((float)height / rowsPerStrip);
 
                 for (int stripIndex = 0; stripIndex < stripCount; stripIndex++)
                 {
@@ -298,7 +296,7 @@ namespace DistributedVisionRunner.Module.Helper
             // Calcualte suitable ROWSPERSTRIP
             var optimalSizePerStrip = 8000.0;
             var optimalRowsPerStripDouble = optimalSizePerStrip / sizeof(short) / width / samplesPerPixel;
-            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int) optimalRowsPerStripDouble;
+            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int)optimalRowsPerStripDouble;
             var height = data.Length / samplesPerPixel / width;
 
             using (Tiff image = Tiff.Open(path, "w"))
@@ -324,7 +322,7 @@ namespace DistributedVisionRunner.Module.Helper
                 image.SetField(TiffTag.YRESOLUTION, yRes);
                 image.SetField(TiffTag.RESOLUTIONUNIT, resUnit);
 
-                var maxStrip = Math.Ceiling((float) height / optimalRowsPerStrip);
+                var maxStrip = Math.Ceiling((float)height / optimalRowsPerStrip);
                 var byteCountEachRow = width * samplesPerPixel * sizeof(short);
                 for (int stripIndex = 0; stripIndex < maxStrip; stripIndex++)
                 {
@@ -435,7 +433,7 @@ namespace DistributedVisionRunner.Module.Helper
                     throw new InvalidOperationException("Image has an undefined FILLORDER");
                 }
 
-                FillOrder fillorder = (FillOrder) value[0].ToInt();
+                FillOrder fillorder = (FillOrder)value[0].ToInt();
                 if (fillorder != FillOrder.MSB2LSB)
                 {
                     // We need to swap bits -- ABCDEFGH becomes HGFEDCBA
@@ -482,7 +480,7 @@ namespace DistributedVisionRunner.Module.Helper
             // Calcualte suitable ROWSPERSTRIP
             var optimalSizePerStrip = 8000.0;
             var optimalRowsPerStripDouble = optimalSizePerStrip / sizeof(ushort) / width / samplesPerPixel;
-            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int) optimalRowsPerStripDouble;
+            var optimalRowsPerStrip = optimalRowsPerStripDouble < 1 ? 1 : (int)optimalRowsPerStripDouble;
             var height = data.Length / samplesPerPixel / width;
 
             using (Tiff image = Tiff.Open(path, "w"))
@@ -508,7 +506,7 @@ namespace DistributedVisionRunner.Module.Helper
                 image.SetField(TiffTag.YRESOLUTION, yRes);
                 image.SetField(TiffTag.RESOLUTIONUNIT, resUnit);
 
-                var maxStrip = Math.Ceiling((float) height / optimalRowsPerStrip);
+                var maxStrip = Math.Ceiling((float)height / optimalRowsPerStrip);
                 var byteCountEachRow = width * samplesPerPixel * sizeof(ushort);
                 for (int stripIndex = 0; stripIndex < maxStrip; stripIndex++)
                 {
@@ -619,7 +617,7 @@ namespace DistributedVisionRunner.Module.Helper
                     throw new InvalidOperationException("Image has an undefined FILLORDER");
                 }
 
-                FillOrder fillorder = (FillOrder) value[0].ToInt();
+                FillOrder fillorder = (FillOrder)value[0].ToInt();
                 if (fillorder != FillOrder.MSB2LSB)
                 {
                     // We need to swap bits -- ABCDEFGH becomes HGFEDCBA
