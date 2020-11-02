@@ -3,55 +3,57 @@
 namespace DistributedVisionRunner.Interface
 {
     /// <summary>
-    /// Should be implemented by software engineers
-    /// Adapt input and output from and to <see cref="IVisionProcessor{TData}"/>
+    /// 由上位机工程师实现
+    /// 此类负责转换视觉工程师(<see cref="IVisionProcessor{TData}"/>类)的输入输出
     /// </summary>
-    /// <typeparam name="TOutput">The type of array that is accepted by <see cref="IVisionProcessor{TData}"/></typeparam>
+    /// <typeparam name="TOutput">
+    /// 相应<see cref="IVisionProcessor{TData}"/>类的输入数据类型,
+    /// 目前支持byte(单通道和3通道一样时byte), float, short, ushort
+    /// </typeparam>
     public interface IVisionAdapter<TOutput>
     {
         /// <summary>
-        /// Will be used as the name of the tab
+        /// 将用来命名响应的Tab
         /// </summary>
         string Name { get; }
 
         /// <summary>
-        /// Any valid ZeroMQ address, for example, "tcp://localhost:6000"
+        /// 任何有效的ZeroMQ地址, 例如, "tcp://localhost:6000"
         /// </summary>
         string ZeroMQAddress { get; }
 
         /// <summary>
-        /// Name of the project, for example, 995X.
-        /// This will be used as information to create database file
+        /// 项目名称, 例如, 995X.
+        /// 数据库的相关命名会同此挂钩
         /// </summary>
         string ProjectName { get; }
 
         /// <summary>
-        /// Whether outputs from <see cref="IVisionProcessor{TData}"/>
-        /// will be recalculated and output results with different names
+        /// 是否将来自 <see cref="IVisionProcessor{TData}"/>
+        /// 的原始数据先经过补偿服务后才输入<see cref="GetResultType"/>
         /// </summary>
         bool EnableWeighting { get; }
 
         /// <summary>
-        /// Equals to count of Cavity
+        /// 等于穴(Cavity)的个数
         /// </summary>
         int WeightSetCount { get; }
 
 
         /// <summary>
-        /// extensions: for example, new []{tif, tiff}
-        /// fileTypePrompt: for example, "tif image files"
-        /// 
-        /// Will be used to filter files when RunSingleFile file dialog is opened
+        /// extensions: 例如, new []{tif, tiff}
+        /// fileTypePrompt: 例如, "tif image files"
+        /// 运行图片文件时, 用来过滤掉后缀名不符的文件
         /// </summary>
         (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; }
 
         /// <summary>
-        /// The final output names that will be send to ALC
+        /// 定义最终输出数据的变量名
         /// </summary>
         (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; }
 
         /// <summary>
-        /// Parameters that define how the image for displaying will be shown
+        /// 定义图片显示的参数
         /// </summary>
         GraphicMetaData GraphicMetaData { get; }
 
@@ -59,32 +61,34 @@ namespace DistributedVisionRunner.Interface
 
 
         /// <summary>
-        /// Convert byte array to any type of array for <see cref="IVisionProcessor{TData}"/>
+        /// 将byte数组转换成<see cref="IVisionProcessor{TData}"/>所需的数据类型的数组
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
         List<TOutput[]> ConvertInput(byte[] input);
 
         /// <summary>
-        /// Deduce result type based on statistics result
+        /// 根据视觉工程师给出的数据返回判断结果, 并且改写输入的内容
+        /// <see cref="statistics"/>内的词典变量名称必须要同<see cref="OutputNames"/>一致
+        /// 这个方法完成之后, <see cref="statistics"/> 将会返回给ALC
         /// </summary>
-        /// <param name="statistics"></param>
+        /// <param name="statistics">来自Processor(视觉工程师)的数据, </param>
         /// <returns></returns>
         ResultType GetResultType(Statistics statistics);
 
         /// <summary>
-        /// Note: do not need to call Directory.CreateDirectory
+        /// 注意: 此方法内不需要再调用Directory.CreateDirectory
         /// </summary>
         /// <param name="imageData"></param>
         /// <param name="mainFolder"></param>
         /// <param name="subFolder"></param>
         /// <param name="fileNameWithoutExtension"></param>
-        /// <param name="exceptionDetail">null when no error occours during image processing</param>
+        /// <param name="exceptionDetail">null when no error occurs during image processing</param>
         void SaveImage(List<TOutput[]> imageData, string mainFolder, string subFolder, string fileNameWithoutExtension, string exceptionDetail);
 
         /// <summary>
-        /// Read data from file
-        /// The output will be directly fed to <see cref="IVisionProcessor{TData}"/>
+        /// 定义从文件获取图片数据的方法
+        /// 获取的数据之后会输入到<see cref="IVisionProcessor{TData}"/>
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -95,24 +99,24 @@ namespace DistributedVisionRunner.Interface
     public class GraphicMetaData
     {
         /// <summary>
-        /// The type of the displaying image
+        /// 显示图片的类型
         /// </summary>
         public DataSampleType SampleType { get; set; } = DataSampleType.TwoDimension;
 
         /// <summary>
-        /// The dimensions of each image for displaying
+        /// 显示图片的尺寸,
+        /// 由于可以一次输入多张图片, 因此各张图片具有不同的尺寸也是允许的
         /// </summary>
         public (int width, int height)[] Dimensions { get; set; }
 
         /// <summary>
-        /// Whether images should be displayed
+        /// 是否显示图片
         /// </summary>
         public bool ShouldDisplay { get; set; } = true;
 
         /// <summary>
-        /// Range to define max and min values for the displaying images
-        /// Images within this range will be rescaled to (0, 255) for displaying
-        /// if the image data type is not byte. Otherwise, it will be ignored
+        /// 显示图片的原始数据的最小最大范围,
+        /// 将用来缩放整张图片的灰度值, 使其处于图片显示的0-255之间的范围
         /// </summary>
         public (float min, float max) DataRange { get; }
     }
@@ -120,15 +124,15 @@ namespace DistributedVisionRunner.Interface
     public enum DataSampleType
     {
         /// <summary>
-        /// Curve
+        /// 曲线(未实现)
         /// </summary>
         OneDimension,
         /// <summary>
-        /// Single channel image
+        /// 单通道图片
         /// </summary>
         TwoDimension,
         /// <summary>
-        /// RGB image
+        /// RGB图片
         /// </summary>
         TwoDimensionRGB
     }

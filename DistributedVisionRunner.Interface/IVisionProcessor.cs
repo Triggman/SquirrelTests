@@ -3,28 +3,30 @@
 namespace DistributedVisionRunner.Interface
 {
     /// <summary>
-    /// Should be implemented by vision engineer
+    /// 由视觉工程师负责实现
     /// </summary>
     /// <typeparam name="TData">
-    /// Data type of the images to be processed, for example, byte for gray scale images
+    /// 输入数据的类型
+    /// 目前支持byte(单通道和3通道一样时byte), float, short, ushort
     /// </typeparam>
     public interface IVisionProcessor<TData>
     {
         /// <summary>
-        /// Process data and output statistic and graphical results
+        /// 处理来自上位机的数据, 并返回结果
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">
+        /// 每个元素都是一张图片的数据
+        /// </param>
         /// <returns></returns>
         ProcessResult<TData> Process(List<TData[]> data);
 
         /// <summary>
-        /// Equals ProcessResult.Statistics.FloatResults.Keys
+        /// <see cref="Process"/>返回的数值型变量的名称,
         /// </summary>
         string[] OutputNames { get; }
 
         /// <summary>
-        /// Names of weights
-        /// Will be used in the weighting system
+        /// 补偿值的名称
         /// </summary>
         string[] WeightNames { get; }
     }
@@ -32,12 +34,13 @@ namespace DistributedVisionRunner.Interface
     public class ProcessResult<TData>
     {
         /// <summary>
-        /// Data for displaying
+        /// 用于显示的图片数据,
+        /// 一个元素代表一张图片, 无论是1或3通道
         /// </summary>
         public List<TData[]> DisplayData { get; set; }
 
         /// <summary>
-        /// statistic output
+        /// 输出的数据
         /// </summary>
         public Statistics Statistics { get; set; }
     }
