@@ -92,6 +92,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         private HashSet<string> _adapterIntegerNamesLookup;
         private HashSet<string> _adapterTextNamesLookup;
         private HashSet<string> _processorOutputNamesLookup;
+        private readonly bool _noNamingProblems;
 
         public bool WeightsConfigured
         {
@@ -135,6 +136,8 @@ namespace DistributedVisionRunner.Module.ViewModels
             _userSetting = LoadUserSetting(Adapter.Name);
 
             CreateDatabase();
+
+            _noNamingProblems = CheckNamingProblems();
             if (Adapter.EnableWeighting)
             {
                 WeightsConfigured = CheckIfWeightsAreConfigured(Adapter.Name);
@@ -174,6 +177,59 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         #region impl
 
+        private bool CheckNamingProblems()
+        {
+            // Check naming of Adapter.OutputNames
+            if (Adapter.OutputNames.floatNames != null)
+                foreach (var name in Adapter.OutputNames.floatNames)
+                {
+                    if (!VariableNameIsValid(name, "Adapter")) return false;
+                }
+
+            if (Adapter.OutputNames.integerNames != null)
+            {
+                foreach (var name in Adapter.OutputNames.integerNames)
+                {
+                    if (!VariableNameIsValid(name, "Adapter")) return false;
+                }
+
+                if (Adapter.OutputNames.integerNames.Contains("Cavity"))
+                {
+                    Log("Adapter.OutputNames.integerNames不能含有Cavity", "Adapter.OutputNames.integerNames can not contains cavity", LogLevel.Fatal);
+                    return false;
+                }
+            }
+
+            if (Adapter.OutputNames.textNames != null)
+            {
+                foreach (var name in Adapter.OutputNames.textNames)
+                {
+                    if (!VariableNameIsValid(name, "Adapter")) return false;
+                }
+
+                if (Adapter.OutputNames.textNames.Contains("SN"))
+                {
+                    Log("Adapter.OutputNames.textNames不能含有SN", "Adapter.OutputNames.textNames can not contains SN", LogLevel.Fatal);
+                    return false;
+                }
+            }
+
+            // Check process.OutputNames
+            if (Processor.OutputNames == null || Processor.OutputNames.Length == 0)
+            {
+                Log("Processor.OutputNames未定义",
+                    "Processor.OutputNames has not been properly defined", LogLevel.Fatal);
+                return false;
+            }
+
+            foreach (var name in Processor.OutputNames)
+            {
+                if (!VariableNameIsValid(name, "Processor")) return false;
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// Create variable names cache for validation during data output
         /// </summary>
@@ -202,23 +258,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                 return false;
             }
 
-            // Check for naming of Adapter.OutputNames
-            foreach (var name in Adapter.OutputNames.floatNames)
-            {
-                if (!VariableNameIsValid(name, "Adapter")) return false;
-            }
-
-            if (Adapter.OutputNames.integerNames != null)
-                foreach (var name in Adapter.OutputNames.integerNames)
-                {
-                    if (!VariableNameIsValid(name, "Adapter")) return false;
-                }
-
-            if (Adapter.OutputNames.textNames != null)
-                foreach (var name in Adapter.OutputNames.textNames)
-                {
-                    if (!VariableNameIsValid(name, "Adapter")) return false;
-                }
 
             if (Adapter.WeightSetCount < 1)
             {
@@ -233,17 +272,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                     "Processor.WeightNames has not been properly defined", LogLevel.Fatal);
                 return false;
             }
-            if (Processor.OutputNames == null || Processor.OutputNames.Length == 0)
-            {
-                Log("Processor.OutputNames未正确定义",
-                    "Processor.OutputNames has not been properly defined", LogLevel.Fatal);
-                return false;
-            }
 
-            foreach (var name in Processor.OutputNames)
-            {
-                if (!VariableNameIsValid(name, "Processor")) return false;
-            }
 
 
             _weightProjectDir = Path.Combine(Constants.AppDataDir, $"WeightSettings/{adapterName}");
@@ -563,10 +592,12 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private void ProcessData(List<TData[]> data, int cavity, string inputSn, DataSourceType dataSource)
         {
-            if (Adapter.EnableWeighting && !WeightsConfigured)
+            var weightsNotConfiguredProperly = Adapter.EnableWeighting && !WeightsConfigured;
+            if (weightsNotConfiguredProperly || !_noNamingProblems)
             {
-                Log("权重未分配, 数据处理无法进行", "Weights not configured, cancel processing", LogLevel.Fatal);
-                if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
+                if (weightsNotConfiguredProperly) Log("权重未分配, 数据处理无法进行", "Weights not configured, cancel processing", LogLevel.Fatal);
+                if (!_noNamingProblems) Log("存在变量命名问题, 数据处理无法进行", "Naming problems found, cancel processing", LogLevel.Fatal);
+                if (dataSource != DataSourceType.DataFile) SendErrorToALC(dataSource);
                 return;
             }
 
@@ -598,9 +629,9 @@ namespace DistributedVisionRunner.Module.ViewModels
                     if (dataSource == DataSourceType.DataEvent)
                         _ea.GetEvent<VisionResultEvent>().Publish(new StatisticsResults()
                         { ResultType = ResultType.ERROR });
-                    if (dataSource == DataSourceType.ZeroMQ)
+                    if (dataSource != DataSourceType.DataFile)
                     {
-                        SendZeroMQError();
+                        SendErrorToALC(dataSource);
                     }
 
                     return;
@@ -616,7 +647,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                 {
                     Log($"Processor的输出数据种类({ConcatStrings(rawData.Keys.ToArray())})与其定义的不相符,\n 请检查类的定义和输出类型",
                         $"The result of processor does not match what it promised", LogLevel.Fatal);
-                    if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
+                    if (dataSource != DataSourceType.DataFile) SendErrorToALC(dataSource);
                     return;
                 }
 
@@ -643,7 +674,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                     {
                         Log($"{kind} 的输出数据种类({ConcatStrings(actualNames)})与其定义的不相符,\n 请检查类的定义和输出类型",
                             $"The result of {kind} does not match what it promised", LogLevel.Fatal);
-                        if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
+                        if (dataSource != DataSourceType.DataFile) SendErrorToALC(dataSource);
                         return;
                     }
                 }
@@ -653,7 +684,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
                 if (dataSource != DataSourceType.DataFile) ReportResult(statistics, resultType, dataSource);
 
-                DisplayStatisticResults(statistics, cavity, sn);
+                DisplayStatisticResults(statistics, cavity, sn, now);
 
                 if (Adapter.GraphicMetaData.ShouldDisplay)
                 {
@@ -778,10 +809,17 @@ namespace DistributedVisionRunner.Module.ViewModels
             Adapter.SaveImage(data, ImageSaveFolderToday, subFolder, $"{snPart}Cavity{cavity}_{dateTime:MMdd-HHmm-ss-fff}", exceptionDetail);
         }
 
-        private void SendZeroMQError()
+        private void SendErrorToALC(DataSourceType dataSourceType)
         {
-            var json = JsonConvert.SerializeObject(new StatisticsResults() { ResultType = ResultType.ERROR });
-            _serverSocket.SendFrame(json);
+            if (dataSourceType == DataSourceType.ZeroMQ)
+            {
+                var json = JsonConvert.SerializeObject(new StatisticsResults() { ResultType = ResultType.ERROR });
+                _serverSocket.SendFrame(json);
+            }
+            else if (dataSourceType == DataSourceType.DataEvent)
+            {
+                _ea.GetEvent<VisionResultEvent>().Publish(new StatisticsResults() { ResultType = ResultType.ERROR });
+            }
         }
 
         /// <summary>
@@ -809,7 +847,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
                 return actualNames.All(promiseNames.Contains);
             }
-            
+
         }
 
         private Dictionary<string, float> Weight(Dictionary<string, float> inputFloats, int cavity)
@@ -858,11 +896,11 @@ namespace DistributedVisionRunner.Module.ViewModels
             throw new NotImplementedException();
         }
 
-        private void DisplayStatisticResults(Statistics statistics, int cavity, string sn)
+        private void DisplayStatisticResults(Statistics statistics, int cavity, string sn, DateTime dateTime)
         {
             var rowData = new Dictionary<string, object>()
             {
-                ["Time"] = DateTime.Now.ToString("HH:mm:ss fff"),
+                ["Time"] = dateTime.ToString("HH:mm:ss fff"),
                 ["Cavity"] = cavity,
                 ["SN"] = sn
             };
