@@ -1,4 +1,6 @@
-﻿using Prism.Commands;
+﻿using System.Diagnostics;
+using System.IO;
+using Prism.Commands;
 using Prism.Services.Dialogs;
 using DistributedVisionRunner.Module.Helper;
 using System.Windows.Input;
@@ -25,16 +27,22 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         public ICommand OKCommand { get; }
         public ICommand SelectImageSaveMainFolderCommand { get; }
+        public ICommand OpenImageSaveMainFolderCommand { get; }
 
         public UserSettingDialogViewModel()
         {
             OKCommand = new DelegateCommand(() =>
             {
-                var param = new DialogParameters { { "setting", ViewModel } };
+                var param = new DialogParameters {{"setting", ViewModel}};
                 RaiseRequestClose(new DialogResult(ButtonResult.OK, param));
-            });
+            }, () => UserLogin).ObservesProperty(()=>UserLogin);
 
             SelectImageSaveMainFolderCommand = new DelegateCommand(SelectImageSaveMainFolder);
+            OpenImageSaveMainFolderCommand = new DelegateCommand(() =>
+            {
+                Directory.CreateDirectory(ViewModel.ImageSaveMainFolder);
+                Process.Start(ViewModel.ImageSaveMainFolder);
+            });
         }
 
         public override void OnDialogOpened(IDialogParameters parameters)

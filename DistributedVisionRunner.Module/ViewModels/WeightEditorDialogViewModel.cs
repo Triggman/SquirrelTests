@@ -119,7 +119,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         public WeightEditorDialogViewModel(IDialogService dialogService)
         {
             _dialogService = dialogService;
-            SaveProjectCommand = new DelegateCommand(SaveProject);
+            SaveProjectCommand = new DelegateCommand(SaveProject, () => CanModify).ObservesProperty(() => CanModify);
             ShowChangeHistoryCommand = new DelegateCommand(ShowChangeHistory);
 
         }

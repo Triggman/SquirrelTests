@@ -16,7 +16,7 @@
     mc:Ignorable="d">
 
     <Grid>
-        <UniformGrid Columns="2" IsHitTestVisible="{Binding CanModify}">
+        <UniformGrid Columns="2">
             <UniformGrid.InputBindings>
                 <KeyBinding
                     Key="S"
@@ -148,7 +148,7 @@
             FontSize="20"
             FontWeight="SemiBold"
             Foreground="Red"
-            Text="登录后才能修改"
+            Text="保存需要登录"
             Visibility="{Binding CanModify, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Visible, TrueVisibility=Hidden}}" />
 
         <StackPanel
@@ -160,7 +160,7 @@
                 Padding="10"
                 bunny:ButtonAssist.CornerRadius="3"
                 Command="{Binding SaveProjectCommand}"
-                Content="完成" />
+                Content="保存" />
             <Button
                 Padding="10"
                 bunny:ButtonAssist.CornerRadius="3"
