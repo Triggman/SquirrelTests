@@ -1,4 +1,6 @@
-﻿using BitMiracle.LibTiff.Classic;
+﻿using System;
+using System.Linq;
+using BitMiracle.LibTiff.Classic;
 using DistributedVisionRunner.Interface;
 using NUnit.Framework;
 using DistributedVisionRunner.Module.Helper;
@@ -41,11 +43,11 @@ namespace DistributedVisionRunner.Tests
                 outputData[i] = data[i * samplesPerPixel];
             }
 
-            ImageHelper.SaveTiff(outputData, width, 1, Photometric.MINISBLACK, path);
+            ImageHelper.SaveTiff(outputData, width, 1,  path);
 
             // Read
             var (dataRead, samplesPerPixelRead, widthRead) = ImageHelper.ReadByteTiff(path);
-            ImageHelper.SaveTiff(dataRead, widthRead, samplesPerPixelRead, Photometric.MINISBLACK, $"{fileName}Reload.tif");
+            ImageHelper.SaveTiff(dataRead, widthRead, samplesPerPixelRead, $"{fileName}Reload.tif");
         }
 
         [Test]
@@ -55,7 +57,7 @@ namespace DistributedVisionRunner.Tests
                 ImageHelper.ReadByteTiff(
                     "Sample Data/marbles.tif");
 
-            ImageHelper.SaveTiff(data, width, 3, Photometric.RGB, "rgb.tiff");
+            ImageHelper.SaveTiff(data, width, 3,  "rgb.tiff",Photometric.RGB);
         }
 
         [Test]
@@ -102,7 +104,7 @@ namespace DistributedVisionRunner.Tests
 
         private static (byte[] data, int samplesPerPixel, int width) LoadRbgData()
         {
-            return ImageHelper.ReadByteTiff(@"C:\Users\afterbunny\source\repos\libtiff.net-master\Samples\Sample Data\pc260001.tif");
+            return ImageHelper.ReadByteTiff(@"Sample Data\pc260001.tif");
         }
     }
 }

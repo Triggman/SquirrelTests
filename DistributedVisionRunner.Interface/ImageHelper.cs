@@ -203,7 +203,7 @@ namespace DistributedVisionRunner.Interface
         /// <param name="xRes"></param>
         /// <param name="yRes"></param>
         /// <param name="resUnit"></param>
-        public static void SaveTiff(byte[] data, int width, int samplesPerPixel, Photometric photo, string path,
+        public static void SaveTiff(byte[] data, int width, int samplesPerPixel,  string path, Photometric photo = Photometric.MINISBLACK,
             float xRes = 100, float yRes = 100, ResUnit resUnit = ResUnit.CENTIMETER)
         {
             var optimalSizePerStrip = 8000.0;

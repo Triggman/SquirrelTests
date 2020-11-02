@@ -1,0 +1,3 @@
+Average: 81.182500000000005
+UnderExposed: average - 50
+OverExposed: average + 50
