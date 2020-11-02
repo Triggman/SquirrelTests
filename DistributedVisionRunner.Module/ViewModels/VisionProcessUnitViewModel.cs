@@ -88,7 +88,10 @@ namespace DistributedVisionRunner.Module.ViewModels
         private string _weightProjectFilePath;
         private Dictionary<int, Dictionary<string, double>> _weightCollectionByCavity;
         private Dictionary<string, string> _methodsByOutputName;
-        private bool _hasEverProcessedData;
+        private HashSet<string> _adapterFloatNamesLookup;
+        private HashSet<string> _adapterIntegerNamesLookup;
+        private HashSet<string> _adapterTextNamesLookup;
+        private HashSet<string> _processorOutputNamesLookup;
 
         public bool WeightsConfigured
         {
@@ -138,6 +141,8 @@ namespace DistributedVisionRunner.Module.ViewModels
                 if (WeightsConfigured) ReloadWeights();
             }
 
+            CreateVariableNamesCache();
+
             // Setup server
             var enableZeroMQText = ConfigurationManager.AppSettings["EnableZeroMQ"];
             var enableZeroMQ = !string.IsNullOrEmpty(enableZeroMQText) && bool.Parse(enableZeroMQText);
@@ -168,6 +173,24 @@ namespace DistributedVisionRunner.Module.ViewModels
         #endregion
 
         #region impl
+
+        /// <summary>
+        /// Create variable names cache for validation during data output
+        /// </summary>
+        private void CreateVariableNamesCache()
+        {
+            CreateNamesCache(Adapter.OutputNames.floatNames, ref _adapterFloatNamesLookup);
+            CreateNamesCache(Adapter.OutputNames.integerNames, ref _adapterIntegerNamesLookup);
+            CreateNamesCache(Adapter.OutputNames.textNames, ref _adapterTextNamesLookup);
+            CreateNamesCache(Processor.OutputNames, ref _processorOutputNamesLookup);
+        }
+
+        private static void CreateNamesCache(string[] names, ref HashSet<string> lookup)
+        {
+            if (names == null || names.Length == 0) return;
+            lookup = new HashSet<string>(names);
+        }
+
 
         private bool CheckIfWeightsAreConfigured(string adapterName)
         {
@@ -586,17 +609,16 @@ namespace DistributedVisionRunner.Module.ViewModels
                 var rawData = statistics.FloatResults;
                 // Check if processor give results that match what it promised
                 // at the first run
-                if (!_hasEverProcessedData)
+
+                var namesAreEqual = CompareNames(_processorOutputNamesLookup, rawData.Keys.ToArray());
+                if (!namesAreEqual)
                 {
-                    var namesAreEqual = CompareNames(Processor.OutputNames, rawData.Keys.ToArray());
-                    if (!namesAreEqual)
-                    {
-                        Log($"Processor的输出数据种类与其定义的不相符,\n 请检查类的定义和输出类型",
-                            $"The result of processor does not match what it promised", LogLevel.Fatal);
-                        if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
-                        return;
-                    }
+                    Log($"Processor的输出数据种类({ConcatStrings(rawData.Keys.ToArray())})与其定义的不相符,\n 请检查类的定义和输出类型",
+                        $"The result of processor does not match what it promised", LogLevel.Fatal);
+                    if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
+                    return;
                 }
+
 
                 statistics.FloatResults = Weight(statistics.FloatResults, cavity);
                 var resultType = Adapter.GetResultType(statistics);
@@ -605,29 +627,27 @@ namespace DistributedVisionRunner.Module.ViewModels
 
                 // Check if adapter give results that match what it promised
                 // at the first run
-                if (!_hasEverProcessedData)
-                {
-                    var promiseNamesAndActualNames = new List<(string kind, string[] promiseNames, string[] actualNames)>
+
+                var promiseNamesAndActualNames = new List<(string kind, HashSet<string> promiseNames, string[] actualNames)>
                     {
-                        ("AdapterFloatNames",Adapter.OutputNames.floatNames, statistics.FloatResults.Keys.ToArray()),
-                        ("AdapterIntegerNames",Adapter.OutputNames.integerNames, statistics.IntegerResults.Keys.ToArray()),
-                        ("AdapterTextNames",Adapter.OutputNames.textNames, statistics.TextResults.Keys.ToArray())
+                        ("AdapterFloatNames",_adapterFloatNamesLookup, statistics.FloatResults.Keys.ToArray()),
+                        ("AdapterIntegerNames",_adapterIntegerNamesLookup, statistics.IntegerResults.Keys.ToArray()),
+                        ("AdapterTextNames",_adapterTextNamesLookup, statistics.TextResults.Keys.ToArray())
                     };
 
-                    foreach (var (kind, promiseNames, actualNames) in promiseNamesAndActualNames)
+                foreach (var (kind, promiseNames, actualNames) in promiseNamesAndActualNames)
+                {
+                    namesAreEqual = CompareNames(promiseNames, actualNames);
+                    if (!namesAreEqual)
                     {
-                        var namesAreEqual = CompareNames(promiseNames, actualNames);
-                        if (!namesAreEqual)
-                        {
-                            Log($"{kind} 的输出数据种类与其定义的不相符,\n 请检查类的定义和输出类型",
-                                $"The result of {kind} does not match what it promised", LogLevel.Fatal);
-                            if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
-                            return;
-                        }
+                        Log($"{kind} 的输出数据种类({ConcatStrings(actualNames)})与其定义的不相符,\n 请检查类的定义和输出类型",
+                            $"The result of {kind} does not match what it promised", LogLevel.Fatal);
+                        if (dataSource == DataSourceType.ZeroMQ) SendZeroMQError();
+                        return;
                     }
                 }
 
-                _hasEverProcessedData = true;
+
 
 
                 if (dataSource != DataSourceType.DataFile) ReportResult(statistics, resultType, dataSource);
@@ -656,7 +676,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                             subFolder = resultType.ToString();
                         }
 
-                        SaveImage(data, cavity, subFolder, sn, null, now); 
+                        SaveImage(data, cavity, subFolder, sn, null, now);
                     }
                 }
 
@@ -742,6 +762,12 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         }
 
+        private static string ConcatStrings(string[] array)
+        {
+            if (array == null || array.Length == 0) return string.Empty;
+            return string.Join(",", array);
+        }
+
         private void SaveImage(List<TData[]> data, int cavity, string subFolder, string sn, string exceptionDetail,
             DateTime dateTime)
         {
@@ -765,14 +791,24 @@ namespace DistributedVisionRunner.Module.ViewModels
         /// <returns>
         /// true if all matched
         /// </returns>
-        private bool CompareNames(string[] promiseNames, string[] actualNames)
+        private bool CompareNames(HashSet<string> promiseNames, string[] actualNames)
         {
-            if(promiseNames == null) promiseNames = new string[]{};
-            if(actualNames == null) actualNames = new string[]{};
-            if (actualNames.Length == 0 && promiseNames.Length == 0) return true;
-            if (actualNames.Length != promiseNames.Length) return false;
+            if (promiseNames == null)
+            {
+                if (actualNames == null || actualNames.Length == 0)
+                {
+                    return true;
+                }
+                return false;
+            }
+            else
+            {
+                if (actualNames == null || actualNames.Length == 0) return false;
+                if (actualNames.Length != promiseNames.Count) return false;
 
-            return promiseNames.All(pn => actualNames.Contains(pn));
+                return actualNames.All(promiseNames.Contains);
+            }
+            
         }
 
         private Dictionary<string, float> Weight(Dictionary<string, float> inputFloats, int cavity)

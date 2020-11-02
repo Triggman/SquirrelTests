@@ -1,2 +1,2 @@
-1. Check outputs from adapter and processor each run for valid count and names
 2. Add open image dir button
+3. Delete all related folders if tab is delelted
