@@ -20,11 +20,22 @@
 4. 一张图像包含多个穴(Cavity)时, 可以在上位机端先切分图像, 然后分段请求处理
 5. 目前支持的数据类型有byte, byte(RGB)， float, ushort, short, 其他数据类型的支持会在日后有需求时加入
 
-## 使用
+## 使用(独立运行时)
 ### 视觉工程师
 1. 引用Nuget包[DistributedVisionRunner.Interface](https://www.nuget.org/packages/DistributedVisionRunner.Interface/), 继承*IVisionProcessor\<TData>*
 ### 上位机工程师
 1. 引用Nuget包[DistributedVisionRunner.Interface](https://www.nuget.org/packages/DistributedVisionRunner.Interface/), 继承*IVisionAdapter\<TData>*
-2. 
+2. 配置页面, 一个页面对应一个图像处理单元
+![Initialize](./Images/initialize.png)
+3. 详细设置， 包括保存数据图片设置和补偿设置
+![Initialize](./Images/GeneralSettings.png)
+![Initialize](./Images/WeightSetting.png)
+
+
+## 使用(作为ALC的Prism模块时), 同独立运行的使用方法
+
 ## 依赖项
+1. 用户管理服务: [到此处下载Release](https://gitee.com/believingheart/cygia-user-management/releases/1.0.0)并安装
+2. Sqlite管理服务: [到此处下载Release](https://gitee.com/believingheart/cygia-sqlite-access-service/releases/V1.0.1)并安装
+3. 捞Sqlite数据的应用: [到此处下载Release](https://gitee.com/believingheart/DataLog/releases/1.1.5.0)并安装
 
