@@ -21,9 +21,9 @@ namespace Afterbunny.Windows.Helpers
             return (r, g, b);
         }
 
-        public static NotifyIcon SetMinimizeToTray(this Window window, string iconFilePath, (string, Action)[] contextMenuActions = null)
+        public static NotifyIcon SetMinimizeToTray(this Window window, string iconFilePath, (string, Action)[] contextMenuActions = null,
+            string balloonTitle = null, string balloonText = null, int balloonTimeout = 2, string appName = null)
         {
-
             var strip = new ContextMenuStrip();
             strip.Items.Add("Exit", null, (sender, args) => { window.Close(); });
             var hasExtraContextMenuActions = contextMenuActions != null && contextMenuActions.Any();
@@ -35,15 +35,28 @@ namespace Afterbunny.Windows.Helpers
                 }
             }
 
+
+            var iconText = appName ?? window.Title;
+            if (string.IsNullOrEmpty(iconText))
+            {
+                throw new ArgumentException("Either window.Title or appName should be specified", nameof(appName));
+            }
+
+            var balloonTipText = balloonText ?? "程序已最小化至托管栏, 双击图标可展开";
+
+
             var ni = new NotifyIcon
             {
                 Icon = new System.Drawing.Icon(iconFilePath),
                 Visible = false,
-                ContextMenuStrip =strip,
-                Text = window.Title
+                ContextMenuStrip = strip,
+                Text = iconText,
+                BalloonTipText = balloonTipText,
+                BalloonTipTitle = balloonTitle ?? iconText
+
             };
 
-        
+
             ni.DoubleClick +=
                 (sender, args) =>
                 {
@@ -57,7 +70,12 @@ namespace Afterbunny.Windows.Helpers
                 if (window.WindowState == WindowState.Minimized)
                 {
                     ni.Visible = true;
+                    ni.ShowBalloonTip(balloonTimeout);
                     window.Hide();
+                }
+                else
+                {
+                    ni.Visible = false;
                 }
             };
 

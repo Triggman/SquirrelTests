@@ -1,4 +1,2 @@
 1. draw a data flow chart
-3. chech data length in datafile mode
-4. Hide when window is open NotifyIcon 
 5. Remember last selected tab
