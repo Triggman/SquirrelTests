@@ -1,0 +1,5 @@
+1. draw a data flow chart
+2. Bug fix: tab load breaks if types of one tab is not found
+3. chech data length in datafile mode
+4. Hide when window is open NotifyIcon 
+5. Remember last selected tab

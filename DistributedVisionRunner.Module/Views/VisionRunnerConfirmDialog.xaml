@@ -29,6 +29,7 @@
             Margin="5"
             Columns="2">
             <Button
+                IsDefault="True"
                 Width="80"
                 Command="{Binding OkCommand}"
                 Content="OK" />

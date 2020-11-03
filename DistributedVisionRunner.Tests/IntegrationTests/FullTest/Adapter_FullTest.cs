@@ -1,35 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using DistributedVisionRunner.Interface;
+using System.Collections.Generic;
 using System.IO;
-using DistributedVisionRunner.Interface;
 
 namespace DistributedVisionRunner.Tests.IntegrationTests.CanSaveImagesOnDemand
 {
-    public class Adapter_CanSaveImagesOnDemand : IVisionAdapter<byte>
+    public class Adapter_FullTest : IVisionAdapter<byte>
     {
-        public string Name { get; } = "CanSaveImagesOnDemand";
+        public string Name { get; } = "FullTest";
         public string ZeroMQAddress { get; } = "tcp://localhost:6000";
         public string ProjectName { get; }
-        public bool EnableWeighting { get; } = false;
-        public int WeightSetCount { get; }
-        public (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; }
+        public bool EnableWeighting { get; } = true;
+        public int WeightSetCount { get; } = 2;
+
+        public (string[] extensions, string fileTypePrompt)? ImageFileFilter { get; } =
+            (new[] { "tif", "tiff" }, "tif images");
 
         public (string[] floatNames, string[] integerNames, string[] textNames) OutputNames { get; } =
-            (new[] {"Average"}, null, new[] {"Result"});
+            (new[] { "Value1" }, null, new[] { "Result" });
         public GraphicMetaData GraphicMetaData { get; } = new GraphicMetaData()
         {
-            Dimensions = new (int width, int height)[]{(320, 240)},
+            Dimensions = new (int width, int height)[] { (320, 240) },
             SampleType = DataSampleType.TwoDimension,
             ShouldDisplay = true
         };
         public List<byte[]> ConvertInput(byte[] input)
         {
-            return new List<byte[]>(){input};
+            return new List<byte[]>() { input };
         }
 
         public ResultType GetResultType(Statistics statistics)
         {
-            var average = statistics.FloatResults["Average"];
-            if (average < 80)
+            var average = statistics.FloatResults["Value1"];
+            if (average < 8)
             {
                 statistics.TextResults["Result"] = "NG";
                 return ResultType.NG;
@@ -51,12 +53,13 @@ namespace DistributedVisionRunner.Tests.IntegrationTests.CanSaveImagesOnDemand
             // Save exception
             if (string.IsNullOrEmpty(exceptionDetail)) return;
             var exceptionPath = $"{fileName}_error.txt";
-            File.WriteAllText(exceptionPath, exceptionDetail);    
+            File.WriteAllText(exceptionPath, exceptionDetail);
         }
 
         public List<byte[]> ReadFile(string path)
         {
-            throw new System.NotImplementedException();
+            var (data, samplesPerPixel, width) = ImageHelper.ReadByteTiff(path);
+            return new List<byte[]>() { data };
         }
     }
 }

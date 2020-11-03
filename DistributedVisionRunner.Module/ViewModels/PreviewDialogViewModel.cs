@@ -65,7 +65,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             var methods = parameters.GetValue<Dictionary<string, string>>("Methods");
             var setIndex = parameters.GetValue<int>("SetIndex");
 
-            WeightHeader = $"Weights - Set {setIndex }";
+            WeightHeader = $"Weights: Set {setIndex + 1 }";
             CalculationResults = GetCalculationResults(Inputs, Weights, methods);
         }
 

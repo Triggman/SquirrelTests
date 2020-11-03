@@ -5,7 +5,7 @@ using DistributedVisionRunner.Interface;
 
 namespace DistributedVisionRunner.Tests.IntegrationTests.CanSaveImagesOnDemand
 {
-    public class Processor_CanSaveImagesOnDemand : IVisionProcessor<byte>
+    public class Processor_FullTest : IVisionProcessor<byte>
     {
         public ProcessResult<byte> Process(List<byte[]> data)
         {
@@ -20,6 +20,6 @@ namespace DistributedVisionRunner.Tests.IntegrationTests.CanSaveImagesOnDemand
         }
 
         public string[] OutputNames { get; } = new[] {"Average"};
-        public string[] WeightNames { get; }
+        public string[] WeightNames { get; } = new[] {"w1"};
     }
 }

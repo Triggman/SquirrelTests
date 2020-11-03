@@ -537,7 +537,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         private (int cavity, string sn) ParseCavitySN(string fileName)
         {
             // Extract sn
-            var snPattern = new Regex(@"^(\w+)_");
+            var snPattern = new Regex(@"^([\da-zA-Z]+)_");
             var snResult = snPattern.Match(fileName);
             var snExtracted = snResult.Success ? snResult.Groups[1].Value : "NoSN";
 

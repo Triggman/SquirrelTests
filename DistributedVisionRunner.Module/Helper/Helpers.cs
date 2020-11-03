@@ -69,7 +69,7 @@ namespace DistributedVisionRunner.Module.Helper
             var weightDir = Path.Combine(weightProjectDir, "Weights");
             Directory.CreateDirectory(weightDir);
 
-            var expectedWeightFilePaths = Enumerable.Range(0, weightSetCount)
+            var expectedWeightFilePaths = Enumerable.Range(1, weightSetCount)
                 .Select(index => Path.Combine(weightDir, $"{index:D3}.weight")).ToArray();
 
             var output = new List<WeightCollectionViewModel>();
@@ -86,7 +86,7 @@ namespace DistributedVisionRunner.Module.Helper
                     newlyDefinedWeights = newlyAddedWeights;
                 }
                 output.Add(new WeightCollectionViewModel(aSetOfWeightItems)
-                { Index = setIndex, NeedToSave = !fileExists });
+                { Index = setIndex + 1, NeedToSave = !fileExists });
             }
 
 

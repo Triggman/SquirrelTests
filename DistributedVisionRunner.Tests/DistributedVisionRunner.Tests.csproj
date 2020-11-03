@@ -56,9 +56,9 @@
     <Compile Include="IntegrationTests\CanProcessRGBData\Adapter_CanProcessRGBData.cs" />
     <Compile Include="IntegrationTests\CanProcessRGBData\Processor_CanProcessRGBData.cs" />
     <Compile Include="IntegrationTests\CanProcessRGBData\Test.cs" />
-    <Compile Include="IntegrationTests\CanSaveImagesOnDemand\Adapter_CanSaveImagesOnDemand.cs" />
-    <Compile Include="IntegrationTests\CanSaveImagesOnDemand\Processor_CanSaveImagesOnDemand.cs" />
-    <Compile Include="IntegrationTests\CanSaveImagesOnDemand\Test.cs" />
+    <Compile Include="IntegrationTests\FullTest\Adapter_FullTest.cs" />
+    <Compile Include="IntegrationTests\FullTest\Processor_FullTest.cs" />
+    <Compile Include="IntegrationTests\FullTest\Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -102,9 +102,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="IntegrationTests\AdapterCanWeightProperly\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.

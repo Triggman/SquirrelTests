@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Prism.Commands;
+using Prism.Mvvm;
+using Prism.Services.Dialogs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
-using Prism.Commands;
-using Prism.Mvvm;
-using Prism.Services.Dialogs;
 
 namespace DistributedVisionRunner.Module.ViewModels
 {
@@ -37,7 +37,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             get => _selectedIndex;
             set => SetProperty(ref _selectedIndex, value);
         }
-        
+
         public ICommand OkCommand { get; }
 
         #endregion
@@ -57,10 +57,10 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         public void OnDialogClosed()
         {
-            
+
         }
 
-        public  void OnDialogOpened(IDialogParameters parameters)
+        public void OnDialogOpened(IDialogParameters parameters)
         {
             var weightSets = parameters.GetValue<int>("WeightSets");
             var inputNames = parameters.GetValue<string[]>("InputNames");
@@ -86,12 +86,12 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private void GenInputItems(string[] inputNames)
         {
-            InputItems = inputNames.Select(name => new InputItemViewModel() {Name = name}).ToList();
+            InputItems = inputNames.Select(name => new InputItemViewModel() { Name = name }).ToList();
         }
 
         private void GenWeightSetSelectionList(int weightSets)
         {
-            WeightSetSelectionList = Enumerable.Range(0, weightSets).Select(num => $"Set {num}").ToList();
+            WeightSetSelectionList = Enumerable.Range(1, weightSets).Select(num => $"Set {num}").ToList();
             SelectedIndex = 0;
         }
 
