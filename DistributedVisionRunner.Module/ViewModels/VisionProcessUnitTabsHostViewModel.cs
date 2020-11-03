@@ -61,9 +61,9 @@ namespace DistributedVisionRunner.Module.ViewModels
             {
                 var configItems = ReadUnitConfigs();
 
-                for (var index = 0; index < configItems.Count; index++)
+                var errorItems = new List<VisionProcessUnitConfig>();
+                foreach (var configItem in configItems)
                 {
-                    var configItem = configItems[index];
                     try
                     {
                         var (processorType, adapterType, dataType) = configItem.GetTypes();
@@ -74,20 +74,25 @@ namespace DistributedVisionRunner.Module.ViewModels
                     {
                         var prompt = $"dll文件({e.FileName})丢失, \n页面{configItem.UnitName}无法加载";
                         Warn(prompt, $"dll file lost: {e.FileName}");
-
-                        // Remove invalid config from file
-                        configItems.Remove(configItem);
-                        SaveConfigs(configItems);
+                        errorItems.Add(configItem);
                     }
                     catch (TypeLoadException ex)
                     {
                         Warn(ex.Message, ex.Message);
-
-                        // Remove invalid config from file
-                        configItems.Remove(configItem);
-                        SaveConfigs(configItems);
+                        errorItems.Add(configItem);
                     }
                 }
+
+
+                if (errorItems.Any())
+                {
+                    foreach (var errorItem in errorItems)
+                    {
+                        configItems.Remove(errorItem);
+                    }
+                    SaveConfigs(configItems);
+                }
+
             }
             // Add a default not-configured tab
             else
