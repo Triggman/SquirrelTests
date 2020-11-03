@@ -10,8 +10,8 @@
     xmlns:prism="http://prismlibrary.com/"
     d:DesignHeight="450"
     d:DesignWidth="800"
-    prism:ViewModelLocator.AutoWireViewModel="True"
     prism:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
+    prism:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
     <Grid Height="400">
         <Grid.RowDefinitions>
@@ -62,21 +62,21 @@
                         Margin="2,0"
                         Command="{Binding SelectImageSaveMainFolderCommand}"
                         Content=" ... " />
-                    <Button Content=" 打开 " Command="{Binding OpenImageSaveMainFolderCommand}"/>
+                    <Button Command="{Binding OpenImageSaveMainFolderCommand}" Content=" 打开 " />
                 </StackPanel>
 
             </WrapPanel>
         </GroupBox>
-        <Button 
-                Grid.Row="2"
-                Margin="10"
-                Padding="10,3"
-                HorizontalAlignment="Center"
-                bunny:ButtonAssist.CornerRadius="5"
-                Command="{Binding OKCommand}"
-                Content="保存"
-                FontSize="20"
-                FontWeight="DemiBold" />
+        <Button
+            Grid.Row="2"
+            Margin="10"
+            Padding="10,3"
+            HorizontalAlignment="Center"
+            bunny:ButtonAssist.CornerRadius="5"
+            Command="{Binding OKCommand}"
+            Content="保存"
+            FontSize="20"
+            FontWeight="DemiBold" />
         <TextBlock
             Grid.Row="3"
             Margin="0,0,0,5"
@@ -86,6 +86,6 @@
             FontWeight="DemiBold"
             Foreground="Red"
             Text="保存需要登录"
-            Visibility="{Binding UserLogin, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Visible,TrueVisibility=Collapsed}}" />
+            Visibility="{Binding UserLogin, Converter={bunny:BoolToVisibilityConverter FalseVisibility=Visible, TrueVisibility=Collapsed}}" />
     </Grid>
 </UserControl>

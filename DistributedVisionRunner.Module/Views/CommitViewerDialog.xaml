@@ -6,15 +6,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:DistributedVisionRunner.Module.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:DistributedVisionRunner.Module.ViewModels"
     xmlns:mvvm="http://prismlibrary.com/"
-    mvvm:ViewModelLocator.AutoWireViewModel="True"
+    xmlns:viewModels="clr-namespace:DistributedVisionRunner.Module.ViewModels"
     d:DataContext="{viewModels:CommitViewerDialogViewModel_DesignTime}"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mvvm:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
+    mvvm:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
-    
+
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <ItemsControl ItemsSource="{Binding Commits}">
             <ItemsControl.ItemTemplate>

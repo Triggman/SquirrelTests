@@ -7,11 +7,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:mvvm="http://prismlibrary.com/"
     xmlns:viewModels="clr-namespace:DistributedVisionRunner.Module.ViewModels"
-    
-    mvvm:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
-
     d:Height="400"
     d:Width="600"
+    mvvm:Dialog.WindowStyle="{StaticResource AfterbunnyWindowStyle}"
     mvvm:ViewModelLocator.AutoWireViewModel="True"
     mc:Ignorable="d">
 
@@ -30,7 +28,7 @@
                 <ItemsControl ItemsSource="{Binding Inputs}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border BorderBrush="{bunny:ThemeResource ResourceKey=ControlBorder}" BorderThickness="0 0 0 1">
+                            <Border BorderBrush="{bunny:ThemeResource ResourceKey=ControlBorder}" BorderThickness="0,0,0,1">
                                 <StackPanel Margin="3" Orientation="Horizontal">
                                     <TextBlock
                                         Width="80"
@@ -41,7 +39,8 @@
                                         Width="80"
                                         Text="{Binding Value}"
                                         TextAlignment="Center" />
-                                </StackPanel></Border>
+                                </StackPanel>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -57,7 +56,7 @@
                 <ItemsControl ItemsSource="{Binding Weights}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border BorderBrush="{bunny:ThemeResource ResourceKey=ControlBorder}" BorderThickness="0 0 0 1">
+                            <Border BorderBrush="{bunny:ThemeResource ResourceKey=ControlBorder}" BorderThickness="0,0,0,1">
                                 <StackPanel Margin="3" Orientation="Horizontal">
                                     <TextBlock
                                         Width="80"
@@ -68,7 +67,8 @@
                                         Width="80"
                                         Text="{Binding Value}"
                                         TextAlignment="Center" />
-                                </StackPanel></Border>
+                                </StackPanel>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -84,7 +84,7 @@
                 <ItemsControl ItemsSource="{Binding CalculationResults}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="viewModels:CalculationResult">
-                            <Border BorderBrush="{bunny:ThemeResource ResourceKey=ControlBorder}" BorderThickness="0 0 0 1">
+                            <Border BorderBrush="{bunny:ThemeResource ResourceKey=ControlBorder}" BorderThickness="0,0,0,1">
                                 <StackPanel Margin="3" Orientation="Horizontal">
                                     <TextBlock
                                         Width="80"
@@ -97,7 +97,8 @@
                                         TextAlignment="Center" />
                                     <TextBlock Text=" = " />
                                     <TextBlock Text="{Binding MethodDefinition}" />
-                                </StackPanel></Border>
+                                </StackPanel>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

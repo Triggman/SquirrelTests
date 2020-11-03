@@ -47,6 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ImageHelperTests.cs" />
+    <Compile Include="IntegrationTests\CanProcessFloatData\Adapter_CanProcessFloatData.cs" />
+    <Compile Include="IntegrationTests\CanProcessFloatData\Processor_CanProcessFloatData.cs" />
+    <Compile Include="IntegrationTests\CanProcessFloatData\Test.cs" />
     <Compile Include="IntegrationTests\CanProcessImagesOfDifferentSize\Adapter_CanProcessImagesOfDifferentSize.cs" />
     <Compile Include="IntegrationTests\CanProcessImagesOfDifferentSize\Processor_CanProcessImagesOfDifferentSize.cs" />
     <Compile Include="IntegrationTests\CanProcessImagesOfDifferentSize\Test.cs" />
@@ -101,7 +104,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="IntegrationTests\AdapterCanWeightProperly\" />
-    <Folder Include="IntegrationTests\CanProcessFloatData\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

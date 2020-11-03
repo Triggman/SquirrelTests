@@ -118,7 +118,7 @@ namespace DistributedVisionRunner.Interface
         /// 显示图片的原始数据的最小最大范围,
         /// 将用来缩放整张图片的灰度值, 使其处于图片显示的0-255之间的范围
         /// </summary>
-        public (float min, float max) DataRange { get; }
+        public (float min, float max) DataRange { get; set; }
     }
 
     public enum DataSampleType

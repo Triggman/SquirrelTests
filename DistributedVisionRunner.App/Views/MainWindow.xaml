@@ -7,12 +7,11 @@
     Title="{Binding Title}"
     Width="1000"
     Height="700"
+    bunny:WindowAssist.ConfirmOnExit="True"
     prism:ViewModelLocator.AutoWireViewModel="True"
     Closed="MainWindow_OnClosed"
-    Style="{StaticResource AfterbunnyWindowStyle}"
     SizeToContent="Manual"
-    bunny:WindowAssist.ConfirmOnExit="True"
-    >
+    Style="{StaticResource AfterbunnyWindowStyle}">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="7*" />
@@ -36,9 +35,9 @@
             VerticalAlignment="Bottom"
             IsChecked="{Binding LoginPageToggle}">
             <ToggleButton.Style>
-                <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource AfterbunnyToggleButtonStyle}">
+                <Style BasedOn="{StaticResource AfterbunnyToggleButtonStyle}" TargetType="{x:Type ToggleButton}">
                     <Setter Property="Content" Value="登录" />
-                    <Setter Property="bunny:ToggleButtonAssist.CornerRadius" Value="50"/>
+                    <Setter Property="bunny:ToggleButtonAssist.CornerRadius" Value="50" />
                     <Style.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter Property="Content" Value="主页" />
