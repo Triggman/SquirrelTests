@@ -17,6 +17,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private readonly IEventAggregator _ea;
         private readonly IDialogService _dialogService;
+        private readonly string _selectedTabCacheFile = "RecentSelectedTab";
 
         private ObservableCollection<VisionProcessUnitContainerViewModel> _tabItems;
         public ObservableCollection<VisionProcessUnitContainerViewModel> TabItems
@@ -29,7 +30,13 @@ namespace DistributedVisionRunner.Module.ViewModels
         public VisionProcessUnitContainerViewModel SelectedTab
         {
             get => _selectedTab;
-            set => SetProperty(ref _selectedTab, value);
+            set
+            {
+                SetProperty(ref _selectedTab, value);
+                // Remember recent selected tab
+                File.WriteAllText(_selectedTabCacheFile, value.Title);
+            }
+
         }
 
         public ICommand AddTabItemCommand { get; }
@@ -42,7 +49,18 @@ namespace DistributedVisionRunner.Module.ViewModels
 
             Directory.CreateDirectory(Constants.AppDataDir);
             TabItems = LoadSavedTabItems();
+            if (TabItems.Any())
+            {
+                SelectedTab = GetRecentSelectedTab();
+            }
+        }
 
+        private VisionProcessUnitContainerViewModel GetRecentSelectedTab()
+        {
+            if (!File.Exists(_selectedTabCacheFile)) return TabItems[0];
+            var tabName = File.ReadAllText(_selectedTabCacheFile);
+            var matchingTab = TabItems.FirstOrDefault(t => t.Title == tabName);
+            return matchingTab ?? TabItems[0];
         }
 
         private void AddTabItem()
