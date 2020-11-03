@@ -592,11 +592,28 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private void ProcessData(List<TData[]> data, int cavity, string inputSn, DataSourceType dataSource)
         {
+            var assertionFailed = false;
             var weightsNotConfiguredProperly = Adapter.EnableWeighting && !WeightsConfigured;
-            if (weightsNotConfiguredProperly || !_noNamingProblems)
+            if (weightsNotConfiguredProperly)
             {
-                if (weightsNotConfiguredProperly) Log("权重未分配, 数据处理无法进行", "Weights not configured, cancel processing", LogLevel.Fatal);
-                if (!_noNamingProblems) Log("存在变量命名问题, 数据处理无法进行", "Naming problems found, cancel processing", LogLevel.Fatal);
+                Log("权重未分配, 数据处理无法进行", "Weights not configured, cancel processing", LogLevel.Fatal);
+                assertionFailed = true;
+            }
+
+            if (!_noNamingProblems)
+            {
+                Log("存在变量命名问题, 数据处理无法进行", "Naming problems found, cancel processing", LogLevel.Fatal);
+                assertionFailed = true;
+            }
+
+            if (cavity < 1 || cavity > Adapter.WeightSetCount)
+            {
+                Log($"Cavity{cavity} 不是有效的穴位, \n有效的Cavity范围是[1, Adapter.WeightSetCount]", $"Cavity{cavity} is illegal cavity", LogLevel.Fatal);
+                assertionFailed = true;
+            }
+
+            if (assertionFailed)
+            {
                 if (dataSource != DataSourceType.DataFile) SendErrorToALC(dataSource);
                 return;
             }
