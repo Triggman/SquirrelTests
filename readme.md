@@ -31,10 +31,16 @@
 ![Initialize](./Images/GeneralSettings.png)
 ![Initialize](./Images/WeightSetting.png)
 
-## Processor类和Adapter类的设计思想及任务划分
-
 ## 使用(作为ALC的Prism模块时), 同独立运行的使用方法
+TODO:
 
+## Processor类和Adapter类的设计思想及任务划分
+1. Processor类是具体图像算法实现的单元, 在此单元内, 开发者(视觉工程师)只关心图像处理及其产生的原始数据以及需要显示的图像的输出和
+2. Adapter类(由上位机工程师实现)负责给出需要最终输出的数据名称及类型, 运算的最终结果类型判断方法, 类型和图像显示相关的参数, 定义图像文件转换成数据的方法以及定义byte数组转换成目标类型数组的方法.
+   - 数值型(浮点数据)补偿运算可完全交由补偿服务完成(`EnableWeighting=true`). 若有特殊订制的输出, 可在`Adapter.GetResultType`方法内实现
+   
+## 数据输出的流程
+原始数据由Processor类产生, 全部都是浮点数, 数据的名称由`Processor.OutputNames`指定. 假若`Adapter.EnableWeighting=true`, 则原始数据会经过补偿服务后输出到作为方法`Adapter.GetResultType`的参数`statistic`中的`floatResults`. 最终的数据可以包括浮点型, 整型和字符型, 其中整型和字符型数据必须由`Adapter.GetResultType`方法写到`statistics`中. 因为设计上视觉工程师只输出浮点型数据, 而其他类型数据则是通过上位机工程师通过个性化的逻辑实现.
 ## 依赖项
 1. 用户管理服务: [到此处下载Release](https://gitee.com/believingheart/cygia-user-management/releases/1.0.0)并安装
 2. Sqlite管理服务: [到此处下载Release](https://gitee.com/believingheart/cygia-sqlite-access-service/releases/V1.0.1)并安装
