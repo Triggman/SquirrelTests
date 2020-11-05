@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Xml.Serialization;
+using Afterbunny.Windows.Helpers;
 using UniversalWeightSystem.Framework.SDK;
 
 namespace DistributedVisionRunner.Module.ViewModels
@@ -186,7 +187,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             // Create weight copies
             foreach (var weightCollection in Weights)
             {
-                var weightItemsCopy = weightCollection.WeightItems.Select(Helpers.CopyObject).ToList();
+                var weightItemsCopy = weightCollection.WeightItems.Select(MiscHelper.CopyObject).ToList();
                 var collectionCopy = new WeightCollectionViewModel(weightItemsCopy) { Index = weightCollection.Index };
                 _weightsCopy.Add(collectionCopy);
             }
@@ -204,7 +205,7 @@ namespace DistributedVisionRunner.Module.ViewModels
                 CalculationMethods.Add(new CalculationMethodItemViewModel() { OutputName = missingMethod });
             }
             // Create method copies
-            _methodsCopy = CalculationMethods.Select(Helpers.CopyObject).ToList();
+            _methodsCopy = CalculationMethods.Select(MiscHelper.CopyObject).ToList();
 
 
             TryGenerateMethodHint();

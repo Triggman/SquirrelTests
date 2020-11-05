@@ -409,7 +409,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private void OpenSettingDialog()
         {
-            var settingCopied = Helpers.CopyObject(_userSetting);
+            var settingCopied = MiscHelper.CopyObject(_userSetting);
             _dialogService.ShowDialog("UserSettingDialog",
                 new DialogParameters { { "setting", settingCopied }, { "login", DistributedVisionRunnerModule.UserLogin } }, r =>
                 {

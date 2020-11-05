@@ -8,22 +8,7 @@ namespace DistributedVisionRunner.Module.Helper
 {
     public static class Helpers
     {
-        internal static T CopyObject<T>(T o) where T : class, new()
-        {
-            var copy = new T();
 
-            var type = copy.GetType();
-            var props = type.GetProperties();
-
-            foreach (var prop in props)
-            {
-                if (prop.CanWrite)
-                    prop.SetValue(copy, prop.GetValue(o));
-            }
-
-            return copy;
-
-        }
 
         public static (List<CalculationMethodItemViewModel> loadedMethods, List<string> missingMethods) LoadMethods(string weightProjectDir, string[] outputNames)
         {
