@@ -2,7 +2,6 @@
 using Afterbunny.Windows.Helpers;
 using CygiaUserClientModule;
 using CygiaUserClientModule.Views;
-using LoggingConsole.Interface;
 using LoggingConsole.Module;
 using LoggingConsole.Module.RollingFileAppender;
 using Prism.Events;
@@ -36,7 +35,6 @@ namespace DistributedVisionRunner.App
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.RegisterForNavigation<UserManageView>();
-
         }
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
@@ -54,8 +52,6 @@ namespace DistributedVisionRunner.App
             moduleCatalog.AddModule<DistributedVisionRunnerModule>();
 
             moduleCatalog.AddModule<CygiaUserClientModuleModule>();
-
         }
-
     }
 }

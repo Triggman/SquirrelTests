@@ -146,13 +146,13 @@
       <Project>{BE1B8316-30F5-4469-9F86-D930998E7950}</Project>
       <Name>Afterbunny.Windows.Helpers</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LoggingConsole.Interface\LoggingConsole.Interface.csproj">
-      <Project>{e1a3a34e-ae28-4bf7-9685-15a7f82ff7f5}</Project>
-      <Name>LoggingConsole.Interface</Name>
-    </ProjectReference>
     <ProjectReference Include="..\DistributedVisionRunner.Interface\DistributedVisionRunner.Interface.csproj">
       <Project>{afcc4b12-c5cf-46f8-a0da-5eb56993c590}</Project>
       <Name>DistributedVisionRunner.Interface</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LoggingConsole.Module\LoggingConsole.Module.csproj">
+      <Project>{B58AB189-56DE-4B77-872C-0767177F428E}</Project>
+      <Name>LoggingConsole.Module</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

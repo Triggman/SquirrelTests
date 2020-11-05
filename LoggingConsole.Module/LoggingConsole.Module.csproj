@@ -49,6 +49,9 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LogEvent.cs" />
+    <Compile Include="LoggingMessageItem.cs" />
+    <Compile Include="LogLevel.cs" />
     <Compile Include="RollingFileAppender\AppenderParam.cs" />
     <Compile Include="LoggingConsoleModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -87,12 +90,6 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LoggingConsole.Interface\LoggingConsole.Interface.csproj">
-      <Project>{E1A3A34E-AE28-4BF7-9685-15A7F82FF7F5}</Project>
-      <Name>LoggingConsole.Interface</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="Views\MessageConsoleView.xaml">

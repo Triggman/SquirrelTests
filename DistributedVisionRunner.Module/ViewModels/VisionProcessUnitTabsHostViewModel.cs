@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Xml.Serialization;
+using LoggingConsole.Module;
 
 namespace DistributedVisionRunner.Module.ViewModels
 {
@@ -186,7 +187,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         private void Warn(string message, string saveMessage)
         {
             _dialogService.ShowDialog("VisionRunnerNotificationDialog", new DialogParameters { { "message", message } }, r => { });
-            DistributedVisionRunnerModule.Log(new LoggingConsole.Interface.LoggingMessageItem(message, saveMessage) { LogLevel = LoggingConsole.Interface.LogLevel.Fatal });
+            DistributedVisionRunnerModule.Log(new LoggingMessageItem(message, saveMessage) { LogLevel = LogLevel.Fatal });
         }
     }
 }

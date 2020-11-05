@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace LoggingConsole.Interface
+namespace LoggingConsole.Module
 {
     public class LoggingMessageItem
     {
-
-
         #region props
 
         public string DisplayMessage
@@ -15,10 +13,11 @@ namespace LoggingConsole.Interface
 
         public DateTime Time
         { get; set; } = DateTime.Now;
+
         public LogLevel LogLevel
         { get; set; } = LogLevel.Info;
 
-        #endregion
+        #endregion props
 
         #region ctor
 
@@ -28,10 +27,6 @@ namespace LoggingConsole.Interface
             SaveMessage = saveMessage ?? displayMessage;
         }
 
-
-
-
-        #endregion
-
+        #endregion ctor
     }
 }

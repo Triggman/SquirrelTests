@@ -1,4 +1,3 @@
-using LoggingConsole.Interface;
 using LoggingConsole.Module.RollingFileAppender;
 using Prism.Commands;
 using Prism.Mvvm;
@@ -8,7 +7,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Threading;
-
 
 namespace LoggingConsole.Module.ViewModels
 {
@@ -27,7 +25,7 @@ namespace LoggingConsole.Module.ViewModels
         private ObservableCollection<LoggingMessageItem> _displayItems = new ObservableCollection<LoggingMessageItem>();
         private readonly RollingFileLogger _fileLogger;
 
-        #endregion
+        #endregion private filed
 
         #region ctor
 
@@ -50,7 +48,7 @@ namespace LoggingConsole.Module.ViewModels
             ClearMessagesCommand = new DelegateCommand(ClearMessages, CanClearMessages).ObservesProperty(() => DisplayItems.Count);
         }
 
-        #endregion
+        #endregion ctor
 
         #region impl
 
@@ -63,7 +61,6 @@ namespace LoggingConsole.Module.ViewModels
         {
             DisplayItems.Clear();
         }
-
 
         private void DisplayAvailableItems(object sender, EventArgs e)
         {
@@ -81,14 +78,12 @@ namespace LoggingConsole.Module.ViewModels
             DisplayItems = new ObservableCollection<LoggingMessageItem>(DisplayItems.Skip(removeSize));
         }
 
-
         private (LogLevel, string) SerializeItem(LoggingMessageItem item)
         {
             return (item.LogLevel, item.SaveMessage);
         }
 
-        #endregion
-
+        #endregion impl
 
         #region props
 
@@ -98,9 +93,7 @@ namespace LoggingConsole.Module.ViewModels
             set => SetProperty(ref _displayItems, value);
         }
 
-
-
-        public string Name { get;  }
+        public string Name { get; }
 
         public string NewestMessage
         {
@@ -110,14 +103,12 @@ namespace LoggingConsole.Module.ViewModels
 
         public ICommand ClearMessagesCommand { get; set; }
 
-        #endregion
-
+        #endregion props
 
         #region api
 
         public void EnqueueMessage(LoggingMessageItem item)
         {
-
             var (level, text) = SerializeItem(item);
             _fileLogger.Log(text, level);
             if (level == LogLevel.Debug) return;
@@ -127,6 +118,6 @@ namespace LoggingConsole.Module.ViewModels
             NewestMessage = item.DisplayMessage;
         }
 
-        #endregion
+        #endregion api
     }
 }

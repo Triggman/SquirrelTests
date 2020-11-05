@@ -1,5 +1,4 @@
 ﻿using log4net;
-using LoggingConsole.Interface;
 
 namespace LoggingConsole.Module.RollingFileAppender
 {
@@ -9,7 +8,7 @@ namespace LoggingConsole.Module.RollingFileAppender
 
         private readonly ILog _log;
 
-        #endregion
+        #endregion private fields
 
         public string Name { get; }
 
@@ -21,7 +20,7 @@ namespace LoggingConsole.Module.RollingFileAppender
             Name = name;
         }
 
-        #endregion
+        #endregion ctor
 
         #region api
 
@@ -32,20 +31,21 @@ namespace LoggingConsole.Module.RollingFileAppender
                 case LogLevel.Debug:
                     _log.Debug(message);
                     break;
+
                 case LogLevel.Info:
                     _log.Info(message);
                     break;
+
                 case LogLevel.Warn:
                     _log.Warn(message);
                     break;
+
                 case LogLevel.Fatal:
                     _log.Fatal(message);
                     break;
             }
         }
 
-        #endregion
-
-
+        #endregion api
     }
 }

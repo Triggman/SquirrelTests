@@ -13,8 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedVisionRunner.Int
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingConsole.Module", "LoggingConsole.Module\LoggingConsole.Module.csproj", "{B58AB189-56DE-4B77-872C-0767177F428E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingConsole.Interface", "LoggingConsole.Interface\LoggingConsole.Interface.csproj", "{E1A3A34E-AE28-4BF7-9685-15A7F82FF7F5}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{298E436C-27E9-4AA9-AE5A-AB9B7389B6DF}"
 	ProjectSection(SolutionItems) = preProject
 		TODO.txt = TODO.txt
@@ -50,10 +48,6 @@ Global
 		{B58AB189-56DE-4B77-872C-0767177F428E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B58AB189-56DE-4B77-872C-0767177F428E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B58AB189-56DE-4B77-872C-0767177F428E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E1A3A34E-AE28-4BF7-9685-15A7F82FF7F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E1A3A34E-AE28-4BF7-9685-15A7F82FF7F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E1A3A34E-AE28-4BF7-9685-15A7F82FF7F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E1A3A34E-AE28-4BF7-9685-15A7F82FF7F5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BE1B8316-30F5-4469-9F86-D930998E7950}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BE1B8316-30F5-4469-9F86-D930998E7950}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE1B8316-30F5-4469-9F86-D930998E7950}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,4 +1,3 @@
-using LoggingConsole.Interface;
 using LoggingConsole.Module.RollingFileAppender;
 using Prism.Events;
 using Prism.Mvvm;
@@ -15,7 +14,7 @@ namespace LoggingConsole.Module.ViewModels
         private readonly Dictionary<string, RollingFileLogger> _textLoggers;
         private readonly HashSet<string> _loggerNameInUi;
 
-        #endregion
+        #endregion private fields
 
         #region props
 
@@ -25,7 +24,7 @@ namespace LoggingConsole.Module.ViewModels
 
         public int MessageQueueOnUiCount { get; }
 
-        #endregion
+        #endregion props
 
         #region ctor
 
@@ -40,17 +39,14 @@ namespace LoggingConsole.Module.ViewModels
             MessageQueueOnUiCount = MessageQueues.Count;
         }
 
-
-        #endregion
+        #endregion ctor
 
         #region impl
-
 
         private void Log((string loggerName, LoggingMessageItem messageItem) obj)
         {
             if (_loggerNameInUi.Contains(obj.loggerName)) LogToMessageQueue(obj);
             else LogToTextFile(obj);
-
         }
 
         private void LogToMessageQueue((string, LoggingMessageItem) messageItem)
@@ -66,6 +62,6 @@ namespace LoggingConsole.Module.ViewModels
             _textLoggers[nameAndContent.Item1].Log(nameAndContent.Item2.SaveMessage ?? nameAndContent.Item2.DisplayMessage, nameAndContent.Item2.LogLevel);
         }
 
-        #endregion
+        #endregion impl
     }
 }

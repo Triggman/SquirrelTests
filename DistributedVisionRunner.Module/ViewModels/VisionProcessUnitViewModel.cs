@@ -4,7 +4,6 @@ using CygiaSqliteAccess.Proxy.Proxy;
 using DistributedVisionRunner.Interface;
 using DistributedVisionRunner.Module.Helper;
 using DistributedVisionRunner.Module.Models;
-using LoggingConsole.Interface;
 using NetMQ;
 using NetMQ.Sockets;
 using Newtonsoft.Json;
@@ -28,6 +27,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
+using LoggingConsole.Module;
 using UniversalWeightSystem.Framework.SDK;
 
 namespace DistributedVisionRunner.Module.ViewModels
@@ -35,6 +35,7 @@ namespace DistributedVisionRunner.Module.ViewModels
     public class VisionProcessUnitViewModel<TData> : BindableBase
     {
         #region private fields
+
         private readonly IEventAggregator _ea;
         private readonly IDialogService _dialogService;
         private readonly TypeSource _processorTypeSource;
@@ -50,9 +51,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         private bool _databaseServiceInstalled = true;
         private readonly Regex _namingPattern = new Regex(@"_?[a-zA-Z]+[\w_]*");
 
-        #endregion
-
-
+        #endregion private fields
 
         #region props
 
@@ -60,6 +59,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         public IVisionProcessor<TData> Processor { get; }
 
         private List<WriteableBitmap> _displayImages;
+
         public List<WriteableBitmap> DisplayImages
         {
             get => _displayImages;
@@ -67,7 +67,6 @@ namespace DistributedVisionRunner.Module.ViewModels
         }
 
         private ObservableCollection<Dictionary<string, object>> _displayData = new ObservableCollection<Dictionary<string, object>>();
-
 
         public ObservableCollection<Dictionary<string, object>> DisplayData
         {
@@ -102,7 +101,6 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         public string Name { get; }
 
-
         public string ServerAddress { get; }
 
         public string ImageSaveFolderToday => Path.Combine(_userSetting.ImageSaveMainFolder, DateTime.Now.ToString("yyyy-MM-dd"));
@@ -112,9 +110,11 @@ namespace DistributedVisionRunner.Module.ViewModels
         public ICommand RunFolderCommand { get; }
         public ICommand OpenSettingDialogCommand { get; }
         public ICommand OpenWeightEditorDialogCommand { get; }
-        #endregion
+
+        #endregion props
 
         #region ctor
+
         public VisionProcessUnitViewModel(IEventAggregator ea, IDialogService dialogService, TypeSource processorTypeSource, TypeSource adapterTypeSource)
         {
             _ea = ea;
@@ -160,20 +160,16 @@ namespace DistributedVisionRunner.Module.ViewModels
             GenerateEmptyDisplayImages();
         }
 
-
-
-        #endregion
+        #endregion ctor
 
         #region api
-
-
 
         public void Stop()
         {
             _serverSocket?.Close();
         }
 
-        #endregion
+        #endregion api
 
         #region impl
 
@@ -247,7 +243,6 @@ namespace DistributedVisionRunner.Module.ViewModels
             lookup = new HashSet<string>(names);
         }
 
-
         private bool CheckIfWeightsAreConfigured(string adapterName)
         {
             // Check for adapter and processor definition errors
@@ -257,7 +252,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                     "Adapter.OutputNames.floatNames has not been properly defined", LogLevel.Fatal);
                 return false;
             }
-
 
             if (Adapter.WeightSetCount < 1)
             {
@@ -272,8 +266,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                     "Processor.WeightNames has not been properly defined", LogLevel.Fatal);
                 return false;
             }
-
-
 
             _weightProjectDir = Path.Combine(Constants.AppDataDir, $"WeightSettings/{adapterName}");
             Directory.CreateDirectory(_weightProjectDir);
@@ -293,8 +285,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                 Log($"存在未配置的权重:{weightNamesText}", $"Weights that are not set: {weightNamesText}", LogLevel.Fatal);
                 return false;
             }
-
-
 
             // Check method files
             var (loadedMethods, missingMethods) = Helpers.LoadMethods(_weightProjectDir, Adapter.OutputNames.floatNames);
@@ -365,7 +355,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                     WeightsConfigured = true;
                     ReloadWeights();
                 }
-
             });
         }
 
@@ -380,7 +369,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                 Helpers.LoadMethods(_weightProjectDir, Adapter.OutputNames.floatNames);
             _methodsByOutputName = loadedMethods.ToDictionary(m => m.OutputName, m => m.MethodDefinition);
         }
-
 
         private void GenerateEmptyDisplayImages()
         {
@@ -398,7 +386,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                     var channel = i % 3;
                     pixelData[i] = color[channel];
                 }
-
 
                 var image = CreateDisplayImage(width, height, pixelData);
                 displayImages.Add(image);
@@ -462,7 +449,6 @@ namespace DistributedVisionRunner.Module.ViewModels
             }
         }
 
-
         private ProcessUnitUserSetting LoadUserSetting(string name)
         {
             var settingDir = Path.Combine(Constants.AppDataDir, "UserSettings");
@@ -481,7 +467,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                 return serializer.Deserialize(reader) as ProcessUnitUserSetting;
             }
         }
-
 
         private async void RunFolder()
         {
@@ -516,7 +501,6 @@ namespace DistributedVisionRunner.Module.ViewModels
             }
         }
 
-
         private async Task ProcessDataFromFile(string filePath)
         {
             var fileName = Path.GetFileName(filePath);
@@ -528,7 +512,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="fileName">
         /// Standard pattern : {sn}_Cavity{cavity}
@@ -632,7 +616,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                 try
                 {
                     result = Processor.Process(data);
-
                 }
                 catch (Exception ex)
                 {
@@ -668,7 +651,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                     return;
                 }
 
-
                 statistics.FloatResults = Weight(statistics.FloatResults, cavity);
                 var resultType = Adapter.GetResultType(statistics);
                 var ms = stopwatch.ElapsedMilliseconds;
@@ -696,9 +678,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                     }
                 }
 
-
-
-
                 if (dataSource != DataSourceType.DataFile) ReportResult(statistics, resultType, dataSource);
 
                 DisplayStatisticResults(statistics, cavity, sn, now);
@@ -712,7 +691,6 @@ namespace DistributedVisionRunner.Module.ViewModels
 
                 if (dataSource != DataSourceType.DataFile && _userSetting.ImageSaveFilter != ImageSaveFilter.ErrorOnly)
                 {
-
                     if (!(_userSetting.ImageSaveFilter == ImageSaveFilter.ErrorAndNg && resultType == ResultType.OK))
                     {
                         var subFolder = string.Empty;
@@ -808,7 +786,6 @@ namespace DistributedVisionRunner.Module.ViewModels
             {
                 IsIdle = true;
             }
-
         }
 
         private static string ConcatStrings(string[] array)
@@ -864,7 +841,6 @@ namespace DistributedVisionRunner.Module.ViewModels
 
                 return actualNames.All(promiseNames.Contains);
             }
-
         }
 
         private Dictionary<string, float> Weight(Dictionary<string, float> inputFloats, int cavity)
@@ -878,11 +854,10 @@ namespace DistributedVisionRunner.Module.ViewModels
             var (output, exceptions) = WeightWeaver.Weight(testInputs, selectedWeightCollection, _methodsByOutputName);
 
             return output.ToDictionary(p => p.Key, p => (float)p.Value);
-
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="cavity"></param>
         /// <param name="sn"></param>
@@ -953,7 +928,6 @@ namespace DistributedVisionRunner.Module.ViewModels
         {
             Application.Current.Dispatcher?.InvokeAsync(() =>
             {
-
                 if (displayData[0] is byte[])
                 {
                     ShowByteImages(displayData.Cast<byte[]>().ToList(), graphicMetaData);
@@ -1017,7 +991,6 @@ namespace DistributedVisionRunner.Module.ViewModels
             return output;
         }
 
-
         private void ShowShortImages(List<short[]> shortArray, GraphicMetaData graphicMetaData)
         {
             var displayData = new List<byte[]>();
@@ -1029,8 +1002,6 @@ namespace DistributedVisionRunner.Module.ViewModels
             ShowByteImages(displayData, graphicMetaData);
         }
 
-
-
         private void ShowUShortImages(List<ushort[]> ushortArray, GraphicMetaData graphicMetaData)
         {
             var displayData = new List<byte[]>();
@@ -1041,8 +1012,6 @@ namespace DistributedVisionRunner.Module.ViewModels
             }
             ShowByteImages(displayData, graphicMetaData);
         }
-
-
 
         private void ShowFloatImages(List<float[]> floatArray, GraphicMetaData graphicMetaData)
         {
@@ -1078,12 +1047,8 @@ namespace DistributedVisionRunner.Module.ViewModels
                     pixelData = currentImageData;
                 }
 
-
                 UpdateDisplayImage(DisplayImages[imageIndex], pixelData, graphicMetaData.Dimensions[imageIndex].width, graphicMetaData.Dimensions[imageIndex].height);
-
             }
-
-
         }
 
         private WriteableBitmap CreateDisplayImage(int width, int height, byte[] pixelData)
@@ -1104,7 +1069,7 @@ namespace DistributedVisionRunner.Module.ViewModels
             if (dataSource == DataSourceType.DataEvent) _ea.GetEvent<VisionResultEvent>().Publish(statisticResults);
             else if (dataSource == DataSourceType.ZeroMQ)
             {
-                // Serialize statistics 
+                // Serialize statistics
                 var json = JsonConvert.SerializeObject(statisticResults);
                 _serverSocket.SendFrame(json);
             }
@@ -1120,7 +1085,8 @@ namespace DistributedVisionRunner.Module.ViewModels
         {
             _dialogService.ShowDialog("VisionRunnerNotificationDialog", new DialogParameters { { "message", message } }, r => { });
         }
-        #endregion
+
+        #endregion impl
     }
 
     public class VisionProcessUnitByte : VisionProcessUnitViewModel<byte>
@@ -1144,13 +1110,10 @@ namespace DistributedVisionRunner.Module.ViewModels
         }
     }
 
-
     public class VisionProcessUnitUShort : VisionProcessUnitViewModel<ushort>
     {
         public VisionProcessUnitUShort(IEventAggregator ea, IDialogService dialogService, TypeSource processorTypeSource, TypeSource adapterTypeSource) : base(ea, dialogService, processorTypeSource, adapterTypeSource)
         {
         }
     }
-
-
 }

@@ -1,5 +1,4 @@
-﻿using LoggingConsole.Interface;
-using NetMQ;
+﻿using NetMQ;
 using Prism.Commands;
 using Prism.Events;
 using Prism.Mvvm;
@@ -11,29 +10,33 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Xml.Serialization;
+using LoggingConsole.Module;
 
 namespace DistributedVisionRunner.Module.ViewModels
 {
     public class VisionProcessUnitContainerViewModel : BindableBase
     {
         #region private fields
+
         private readonly IEventAggregator _ea;
         private readonly IDialogService _dialogService;
 
-        #endregion
+        #endregion private fields
 
         #region events
+
         public event Action<string> Error;
+
         public event Action<VisionProcessUnitContainerViewModel> Deleted;
 
-
-        #endregion
+        #endregion events
 
         #region props
+
         private object _viewModel;
 
         /// <summary>
-        /// Can be type of <see cref="VisionProcessUnitViewModel{TData}"/> 
+        /// Can be type of <see cref="VisionProcessUnitViewModel{TData}"/>
         /// or type of <see cref="VisionProcessUnitConfigurationViewModel"/>
         /// </summary>
         public object ViewModel
@@ -43,14 +46,16 @@ namespace DistributedVisionRunner.Module.ViewModels
         }
 
         private string _title = "NotConfigured";
+
         public string Title
         {
             get => _title;
             set => SetProperty(ref _title, value);
         }
+
         public ICommand DeleteMeCommand { get; }
 
-        #endregion
+        #endregion props
 
         #region ctor
 
@@ -83,13 +88,11 @@ namespace DistributedVisionRunner.Module.ViewModels
             Title = unitName;
 
             DeleteMeCommand = new DelegateCommand(DeleteMe);
-
         }
-        #endregion
 
+        #endregion ctor
 
         #region impl
-
 
         private void DeleteMe()
         {
@@ -117,7 +120,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                     Log("页面已删除", $"Page({Title}) was deleted");
                     Deleted?.Invoke(this);
                 }
-
             });
         }
 
@@ -140,7 +142,6 @@ namespace DistributedVisionRunner.Module.ViewModels
             try
             {
                 unit = CreateUnit(processorTypeSource, adapterTypeSource, dataType, _ea, _dialogService);
-
             }
             catch (AddressAlreadyInUseException ex)
             {
@@ -169,7 +170,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                 return;
             }
 
-
             configItems.Add(new VisionProcessUnitConfig
             {
                 AdapterAssemblyPath = adapterTypeSource.AssemblyFilePath,
@@ -187,7 +187,6 @@ namespace DistributedVisionRunner.Module.ViewModels
                 serializer.Serialize(writer, configItems);
             }
 
-
             ViewModel = unit.vm;
             Title = unit.name;
         }
@@ -201,6 +200,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         {
             _dialogService.ShowDialog("VisionRunnerNotificationDialog", new DialogParameters { { "message", message } }, r => { });
         }
-        #endregion
+
+        #endregion impl
     }
 }

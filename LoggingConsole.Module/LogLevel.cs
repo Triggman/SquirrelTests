@@ -1,4 +1,4 @@
-﻿namespace LoggingConsole.Interface
+﻿namespace LoggingConsole.Module
 {
     public enum LogLevel
     {

@@ -1,11 +1,11 @@
-﻿using LoggingConsole.Interface;
-using Prism.Ioc;
+﻿using Prism.Ioc;
 using Prism.Modularity;
 using Prism.Regions;
 using DistributedVisionRunner.Module.ViewModels;
 using DistributedVisionRunner.Module.Views;
 using System;
 using Afterbunny.Windows.Helpers;
+using LoggingConsole.Module;
 
 namespace DistributedVisionRunner.Module
 {
