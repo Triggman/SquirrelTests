@@ -9,7 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Xml.Serialization;
-using LoggingConsole.Module;
+using CygiaLog.Module;
 
 namespace DistributedVisionRunner.Module.ViewModels
 {
@@ -187,7 +187,7 @@ namespace DistributedVisionRunner.Module.ViewModels
         private void Warn(string message, string saveMessage)
         {
             _dialogService.ShowDialog("VisionRunnerNotificationDialog", new DialogParameters { { "message", message } }, r => { });
-            DistributedVisionRunnerModule.Log(new LoggingMessageItem(message, saveMessage) { LogLevel = LogLevel.Fatal });
+            DistributedVisionRunnerModule.Log(new LogItem(message, saveMessage) { LogLevel = LogLevel.Fatal });
         }
     }
 }

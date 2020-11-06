@@ -27,7 +27,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
-using LoggingConsole.Module;
+using CygiaLog.Module;
 using UniversalWeightSystem.Framework.SDK;
 
 namespace DistributedVisionRunner.Module.ViewModels
@@ -1078,7 +1078,7 @@ namespace DistributedVisionRunner.Module.ViewModels
 
         private void Log(string displayMessage, string saveMessage, LogLevel logLevel = LogLevel.Info)
         {
-            DistributedVisionRunnerModule.Log(new LoggingMessageItem($"({Adapter.Name}): {displayMessage}", $"VisionPage({Adapter.Name}): {saveMessage}") { LogLevel = logLevel });
+            DistributedVisionRunnerModule.Log(new LogItem($"({Adapter.Name}): {displayMessage}", $"VisionPage({Adapter.Name}): {saveMessage}") { LogLevel = logLevel });
         }
 
         private void Warn(string message)

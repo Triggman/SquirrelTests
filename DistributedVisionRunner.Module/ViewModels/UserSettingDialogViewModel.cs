@@ -2,7 +2,6 @@
 using System.IO;
 using Prism.Commands;
 using Prism.Services.Dialogs;
-using DistributedVisionRunner.Module.Helper;
 using System.Windows.Input;
 using Afterbunny.Windows.Helpers;
 using DistributedVisionRunner.Module.Models;

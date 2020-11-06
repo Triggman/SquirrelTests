@@ -5,7 +5,7 @@ using DistributedVisionRunner.Module.ViewModels;
 using DistributedVisionRunner.Module.Views;
 using System;
 using Afterbunny.Windows.Helpers;
-using LoggingConsole.Module;
+using CygiaLog.Module;
 
 namespace DistributedVisionRunner.Module
 {
@@ -35,12 +35,12 @@ namespace DistributedVisionRunner.Module
             UserLogin = login;
         }
 
-        internal static void Log(LoggingMessageItem logItem)
+        internal static void Log(LogItem logItem)
         {
             MessageLogged?.Invoke(logItem);
         }
 
-        public static void ConfigureModule(Action<LoggingMessageItem> logMethod, string regionToAttach, bool requireLogin)
+        public static void ConfigureModule(Action<LogItem> logMethod, string regionToAttach, bool requireLogin)
         {
             MessageLogged = logMethod;
             _regionToAttatch = regionToAttach;
@@ -65,7 +65,7 @@ namespace DistributedVisionRunner.Module
         internal static bool UserLogin { get; private set; }
         private static bool _configured = false;
         private static bool _requireLogin;
-        private static Action<LoggingMessageItem> MessageLogged { get; set; }
+        private static Action<LogItem> MessageLogged { get; set; }
         private static string _regionToAttatch;
     }
 }

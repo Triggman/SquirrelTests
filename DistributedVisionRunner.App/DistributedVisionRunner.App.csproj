@@ -103,6 +103,9 @@
     <PackageReference Include="Afterbunny.UI.WPF.Framework">
       <Version>1.1.6</Version>
     </PackageReference>
+    <PackageReference Include="CygiaLog.Module">
+      <Version>1.1.0</Version>
+    </PackageReference>
     <PackageReference Include="CygiaUserClientModule">
       <Version>1.0.2</Version>
     </PackageReference>
@@ -112,10 +115,6 @@
     <ProjectReference Include="..\Afterbunny.Windows.Helpers\Afterbunny.Windows.Helpers.csproj">
       <Project>{BE1B8316-30F5-4469-9F86-D930998E7950}</Project>
       <Name>Afterbunny.Windows.Helpers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\LoggingConsole.Module\LoggingConsole.Module.csproj">
-      <Project>{b58ab189-56de-4b77-872c-0767177f428e}</Project>
-      <Name>LoggingConsole.Module</Name>
     </ProjectReference>
     <ProjectReference Include="..\DistributedVisionRunner.Module\DistributedVisionRunner.Module.csproj">
       <Project>{d9110e89-0595-452c-8f5e-b051c865a005}</Project>

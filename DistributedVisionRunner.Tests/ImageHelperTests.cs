@@ -1,9 +1,6 @@
-﻿using System;
-using System.Linq;
-using BitMiracle.LibTiff.Classic;
+﻿using BitMiracle.LibTiff.Classic;
 using DistributedVisionRunner.Interface;
 using NUnit.Framework;
-using DistributedVisionRunner.Module.Helper;
 
 namespace DistributedVisionRunner.Tests
 {

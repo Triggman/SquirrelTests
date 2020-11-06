@@ -150,10 +150,6 @@
       <Project>{afcc4b12-c5cf-46f8-a0da-5eb56993c590}</Project>
       <Name>DistributedVisionRunner.Interface</Name>
     </ProjectReference>
-    <ProjectReference Include="..\LoggingConsole.Module\LoggingConsole.Module.csproj">
-      <Project>{B58AB189-56DE-4B77-872C-0767177F428E}</Project>
-      <Name>LoggingConsole.Module</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Afterbunny.UI.WPF.Framework">
@@ -161,6 +157,9 @@
     </PackageReference>
     <PackageReference Include="BitMiracle.LibTiff.NET">
       <Version>2.4.639</Version>
+    </PackageReference>
+    <PackageReference Include="CygiaLog.Module">
+      <Version>1.1.0</Version>
     </PackageReference>
     <PackageReference Include="CygiaSqliteAccess.Proxy">
       <Version>1.0.5</Version>

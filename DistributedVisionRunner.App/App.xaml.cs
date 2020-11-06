@@ -2,8 +2,6 @@
 using Afterbunny.Windows.Helpers;
 using CygiaUserClientModule;
 using CygiaUserClientModule.Views;
-using LoggingConsole.Module;
-using LoggingConsole.Module.RollingFileAppender;
 using Prism.Events;
 using Prism.Ioc;
 using Prism.Modularity;
@@ -13,6 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
+using CygiaLog.Module;
+using CygiaLog.Module.RollingFileAppender;
 
 namespace DistributedVisionRunner.App
 {
@@ -39,12 +39,12 @@ namespace DistributedVisionRunner.App
 
         protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
         {
-            LoggingConsoleModule.ConfigModule(new List<AppenderParam> { new AppenderParam("General", Path.Combine(Constants.AppDataDir, "Log")) }, "LogRegion");
-            moduleCatalog.AddModule<LoggingConsoleModule>();
+            CygiaLogModule.ConfigModule(new List<AppenderParam> { new AppenderParam("General", Path.Combine(Constants.AppDataDir, "Log")) }, "LogRegion");
+            moduleCatalog.AddModule<CygiaLogModule>();
 
             // Log messages from DistributedVisionRunnerModule
             var ea = Container.Resolve<IEventAggregator>();
-            Action<LoggingMessageItem> logMethod =
+            Action<LogItem> logMethod =
                 logItem =>
                 ea.GetEvent<LogEvent>().Publish(("General", logItem));
             DistributedVisionRunnerModule.ConfigureModule(logMethod, "VisionRegion", true);
