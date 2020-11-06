@@ -32,6 +32,8 @@
 ![Initialize](./Images/WeightSetting.png)
 
 ## 使用(作为ALC的Prism模块时), 同独立运行的使用方法
+1. 添加Nuget包[DistributedVisionRunner.Module](https://www.nuget.org/packages/DistributedVisionRunner.Module/)
+2. 在`App.xaml.cs`加入以下代码
 ```csharp
 protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
 {

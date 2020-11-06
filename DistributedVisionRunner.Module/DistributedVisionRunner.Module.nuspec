@@ -1,18 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?>
-<package >
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>DistributedVisionRunner.Module</id>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <title>DistributedVisionRunner.Module</title>
     <authors>Afterbunny</authors>
+    <owners></owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
     <projectUrl>https://gitee.com/believingheart/remote-vision-console</projectUrl>
     <description>Prism module for hosting vision processing routines and provide common utilties</description>
-    <releaseNotes>Wired nuget dependencies</releaseNotes>
+    <releaseNotes>Added DistributedVisionRunner.Interface as nuget dependency</releaseNotes>
     <copyright>$copyright$</copyright>
     <tags>Cygia</tags>
-        <dependencies>
+    <dependencies>
       <dependency id="Afterbunny.UI.WPF.Framework" version="1.1.7" />
       <dependency id="CygiaLog.Module" version="1.1.0" />
       <dependency id="CygiaSqliteAccess.Proxy" version="1.1.0" />
@@ -20,6 +21,8 @@
       <dependency id="Newtonsoft.Json" version="12.0.3" />
       <dependency id="Prism.Wpf" version="7.2.0.1422" />
       <dependency id="UniversalWeightSystem.Framework.SDK" version="1.0.6" />
+      <dependency id="DistributedVisionRunner.Interface" version="1.2.0" />
     </dependencies>
   </metadata>
+
 </package>
