@@ -110,6 +110,9 @@
       <Version>1.0.2</Version>
     </PackageReference>
     <PackageReference Include="Prism.Unity" Version="7.2.0.1422" />
+    <PackageReference Include="squirrel.windows">
+      <Version>2.0.1</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Afterbunny.Windows.Helpers\Afterbunny.Windows.Helpers.csproj">

@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>DistributedVisionRunner.App</id>
+    <version>1.0.0</version>
+    <title>DistributedVisionRunner.App</title>
+    <authors>afterbunny</authors>
+    <owners></owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://gitee.com/believingheart/remote-vision-console</projectUrl>
+    <description>Distributed application for image processing</description>
+    <releaseNotes>First release</releaseNotes>
+  </metadata>
+
+</package>
