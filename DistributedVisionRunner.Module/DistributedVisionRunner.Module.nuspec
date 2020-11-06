@@ -1,16 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package >
   <metadata>
-    <id>$id$</id>
-    <version>$version$</version>
-    <title>$title$</title>
+    <id>DistributedVisionRunner.Module</id>
+    <version>1.1.0</version>
+    <title>DistributedVisionRunner.Module</title>
     <authors>Afterbunny</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
     <projectUrl>https://gitee.com/believingheart/remote-vision-console</projectUrl>
     <description>Prism module for hosting vision processing routines and provide common utilties</description>
-    <releaseNotes>First release</releaseNotes>
+    <releaseNotes>Wired nuget dependencies</releaseNotes>
     <copyright>$copyright$</copyright>
     <tags>Cygia</tags>
+        <dependencies>
+      <dependency id="Afterbunny.UI.WPF.Framework" version="1.1.7" />
+      <dependency id="CygiaLog.Module" version="1.1.0" />
+      <dependency id="CygiaSqliteAccess.Proxy" version="1.1.0" />
+      <dependency id="NetMQ" version="4.0.1.6" />
+      <dependency id="Newtonsoft.Json" version="12.0.3" />
+      <dependency id="Prism.Wpf" version="7.2.0.1422" />
+      <dependency id="UniversalWeightSystem.Framework.SDK" version="1.0.6" />
+    </dependencies>
   </metadata>
 </package>

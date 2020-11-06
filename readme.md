@@ -32,7 +32,23 @@
 ![Initialize](./Images/WeightSetting.png)
 
 ## 使用(作为ALC的Prism模块时), 同独立运行的使用方法
-TODO:
+```csharp
+protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
+{
+   // Define method for logging messages from DistributedVisionRunnerModule
+   var ea = Container.Resolve<IEventAggregator>();
+   Action<LogItem> logMethod =
+         logItem =>
+         ea.GetEvent<LogEvent>().Publish(("General", logItem));
+
+   // Configure module before adding to module
+   DistributedVisionRunnerModule.ConfigureModule(logMethod, "VisionRegion", true);
+   DistributedVisionRunnerModule.SetDefaultImageBackground(Theme.PrimaryColor.R, Theme.PrimaryColor.G, Theme.PrimaryColor.B);
+
+   // Add module
+   moduleCatalog.AddModule<DistributedVisionRunnerModule>();
+}
+```
 
 ## Processor类和Adapter类的设计思想及任务划分
 1. Processor类是具体图像算法实现的单元, 在此单元内, 开发者(视觉工程师)只关心图像处理及其产生的原始数据以及需要显示的图像的输出和

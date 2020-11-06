@@ -47,6 +47,7 @@ namespace DistributedVisionRunner.App
             Action<LogItem> logMethod =
                 logItem =>
                 ea.GetEvent<LogEvent>().Publish(("General", logItem));
+
             DistributedVisionRunnerModule.ConfigureModule(logMethod, "VisionRegion", true);
             DistributedVisionRunnerModule.SetDefaultImageBackground(Theme.PrimaryColor.R, Theme.PrimaryColor.G, Theme.PrimaryColor.B);
             moduleCatalog.AddModule<DistributedVisionRunnerModule>();

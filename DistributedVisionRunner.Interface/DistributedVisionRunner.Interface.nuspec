@@ -1,16 +1,21 @@
-<?xml version="1.0" encoding="utf-8"?>
-<package >
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
-    <id>$id$</id>
-    <version>1.1.0</version>
-    <title>$title$</title>
+    <id>DistributedVisionRunner.Interface</id>
+    <version>1.2.0</version>
+    <title>DistributedVisionRunner.Interface</title>
     <authors>Afterbunny</authors>
+    <owners></owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
     <projectUrl>https://gitee.com/believingheart/remote-vision-console</projectUrl>
     <description>Includes interface classes, IVisionAdapter and IVisionProcessor for DistributedVisionRunner.Module</description>
-    <releaseNotes>Added ImageHelper</releaseNotes>
+    <releaseNotes>Wired nuget dependencies</releaseNotes>
     <copyright>$copyright$</copyright>
     <tags>Cygia</tags>
+    <dependencies>
+      <dependency id="BitMiracle.LibTiff.NET" version="2.4.639" />
+      <dependency id="Prism.Core" version="7.2.0.1422" />
+    </dependencies>
   </metadata>
 </package>
