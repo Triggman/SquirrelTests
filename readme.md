@@ -62,5 +62,5 @@ protected override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
 ## 依赖项
 1. 用户管理服务: [到此处下载Release](https://gitee.com/believingheart/cygia-user-management/releases/1.0.0)并安装
 2. Sqlite管理服务: [到此处下载Release](https://gitee.com/believingheart/cygia-sqlite-access-service/releases/V1.0.1)并安装
-3. 捞Sqlite数据的应用: [到此处下载Release](https://gitee.com/believingheart/DataLog/releases/1.1.5.0)并安装
+3. 捞Sqlite数据的应用: [到此处下载Release](https://gitee.com/believingheart/DataLog/releases)并安装
 
