@@ -41,6 +41,7 @@ namespace DistributedVisionRunner.App.Views
                 using (var manager = await UpdateManager.GitHubUpdateManager("https://github.com/Triggman/SquirrelTests"))
                 {
                     await manager.UpdateApp();
+
                 }
             }
         }
