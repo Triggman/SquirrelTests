@@ -38,7 +38,7 @@ namespace DistributedVisionRunner.App.Views
             if (released)
             {
 
-                using (var manager = await UpdateManager.GitHubUpdateManager("https://github.com/Triggman/SquirrelTests/releases"))
+                using (var manager = await UpdateManager.GitHubUpdateManager("https://github.com/Triggman/SquirrelTests"))
                 {
                     await manager.UpdateApp();
                 }
