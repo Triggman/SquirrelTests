@@ -38,7 +38,7 @@ namespace DistributedVisionRunner.App.Views
             if (released)
             {
 
-                using (var manager = new UpdateManager(KnownFolders.GetDefaultPath(KnownFolder.Downloads)))
+                using (var manager = await UpdateManager.GitHubUpdateManager("https://github.com/Triggman/SquirrelTests/releases"))
                 {
                     await manager.UpdateApp();
                 }
